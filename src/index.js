@@ -118,7 +118,8 @@ function buildBasicPattern(pattern, wildcard) {
   return result
 }
 
-function buildSeparatedPattern(pattern, separator) {
+function buildSeparatedPattern(pattern, options) {
+  var separator = options.separator
   var segments = split(pattern, separator)
   var escSeparator = escapeRegExpChars(separator)
   var result = ''
@@ -153,15 +154,15 @@ function buildSeparatedPattern(pattern, separator) {
   return result
 }
 
-function buildRegExpPattern(pattern, separator) {
+function buildRegExpPattern(pattern, options) {
   if (pattern === '**') {
     return '.*'
   }
 
   var regExpPattern
 
-  if (separator) {
-    regExpPattern = buildSeparatedPattern(pattern, separator)
+  if (options.separator) {
+    regExpPattern = buildSeparatedPattern(pattern, options)
   } else {
     regExpPattern = buildBasicPattern(pattern, '.')
   }
@@ -169,21 +170,26 @@ function buildRegExpPattern(pattern, separator) {
   return regExpPattern
 }
 
-function outmatch(pattern, separator) {
-  var options = typeof separator === 'object' ? separator : { separator: separator }
+function outmatch(patterns, options) {
   var regExpPattern = ''
 
-  if (Array.isArray(pattern)) {
+  options = typeof options === 'object' ? options : { separator: options }
+
+  if (Array.isArray(patterns)) {
     regExpPattern = '^('
-    for (var i = 0; i < pattern.length; i++) {
+    for (var i = 0; i < patterns.length; i++) {
       if (i > 0) {
         regExpPattern += '|'
       }
-      regExpPattern += buildRegExpPattern(pattern[i], options.separator)
+      regExpPattern += buildRegExpPattern(patterns[i], options)
     }
     regExpPattern += ')$'
+  } else if (typeof patterns === 'string') {
+    regExpPattern = '^' + buildRegExpPattern(patterns, options) + '$'
   } else {
-    regExpPattern = '^' + buildRegExpPattern(pattern, options.separator) + '$'
+    throw new TypeError(
+      'The "patterns" argument must be a string or an array of strings'
+    )
   }
 
   return new RegExp(regExpPattern)

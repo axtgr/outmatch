@@ -1,0 +1,37 @@
+{
+  "name": "outmatch",
+  "version": "0.0.0",
+  "description": "",
+  "author": "Alex Schneider <me@schneider.ax>",
+  "repository": "https://github.com/axtgr/outmatch",
+  "license": "ISC",
+  "main": "src/index.js",
+  "files": [
+    "src"
+  ],
+  "scripts": {
+    "lint": "eslint src",
+    "test": "tap --jobs=1 --no-coverage --reporter=terse test/index.js"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged && npm run test"
+    }
+  },
+  "lint-staged": {
+    "(src|test)/**/*.ts": [
+      "eslint --cache --fix"
+    ],
+    "*.md": "prettier --write"
+  },
+  "devDependencies": {
+    "benchmark": "^2.1.4",
+    "eslint": "^7.4.0",
+    "eslint-config-prettier": "^6.11.0",
+    "eslint-plugin-prettier": "^3.1.4",
+    "husky": "^4.2.5",
+    "lint-staged": "^10.2.11",
+    "prettier": "^2.0.5",
+    "tap": "^14.10.7"
+  }
+}

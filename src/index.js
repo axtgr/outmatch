@@ -173,7 +173,7 @@ function buildRegExpPattern(pattern, options) {
 function outmatch(patterns, options) {
   var regExpPattern = ''
 
-  options = typeof options === 'object' ? options : { separator: options }
+  options = options && typeof options === 'object' ? options : { separator: options }
 
   if (Array.isArray(patterns)) {
     regExpPattern = '^('

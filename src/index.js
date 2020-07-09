@@ -125,32 +125,29 @@ function buildSeparatedPattern(pattern, options) {
   var result = ''
   var wildcard
 
-  if (separator && separator.length > 1) {
+  if (separator.length > 1) {
     wildcard = '((?!' + escSeparator + ').)'
-  } else if (separator) {
-    wildcard = '[^' + escSeparator + ']'
   } else {
-    wildcard = '.'
+    wildcard = '[^' + escSeparator + ']'
   }
 
   for (var i = 0; i < segments.length; i++) {
     var segment = segments[i]
-
-    if (i === 0 && segment === '**') {
-      result = '(.*' + escSeparator + ')?'
-      continue
-    } else if (segment === '**') {
-      segment = '(' + escSeparator + '.*)?'
+    if (i < segments.length - 1) {
+      if (segment === '**') {
+        result += '(' + wildcard + '*' + escSeparator + ')*'
+      } else {
+        result += buildBasicPattern(segment, wildcard) + escSeparator
+      }
     } else {
-      segment = buildBasicPattern(segment, wildcard)
-    }
-
-    if (i < segments.length - 1 && segments[i + 1] !== '**') {
-      result += segment + escSeparator
-    } else {
-      result += segment
+      if (segment === '**') {
+        result += '.*'
+      } else {
+        result += buildBasicPattern(segment, wildcard)
+      }
     }
   }
+
   return result
 }
 

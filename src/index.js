@@ -29,6 +29,10 @@ function escapeRegExpChars(str) {
 }
 
 function split(pattern, separator) {
+  if (pattern.length === 0) {
+    return ['']
+  }
+
   var segments = []
   var segmentStart = 0
   var isSeparator = false
@@ -95,7 +99,9 @@ function buildBasicPattern(pattern, wildcard) {
       result += '[^'
       i++
     } else if (char === '*') {
-      result += wildcard + '*'
+      if (result[result.length - 1] !== '*') {
+        result += wildcard + '*'
+      }
     } else if (char === '?') {
       result += wildcard
     } else if (

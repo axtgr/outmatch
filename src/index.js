@@ -1,9 +1,11 @@
+// The code is optimized for performance and compatibility, hence the ugliness
+
 'use strict'
 
-function escapeRegExpChars(str) {
+function escapeSeparator(separator) {
   var result = ''
-  for (var i = 0; i < str.length; i++) {
-    var char = str[i]
+  for (var i = 0; i < separator.length; i++) {
+    var char = separator[i]
     if (
       char === '-' ||
       char === '^' ||
@@ -26,53 +28,6 @@ function escapeRegExpChars(str) {
     }
   }
   return result
-}
-
-function split(pattern, separator) {
-  if (pattern.length === 0) {
-    return ['']
-  }
-
-  var segments = []
-  var segmentStart = 0
-  var isSeparator = false
-  var separatorCharIndex = 0
-  var separatorStart = 0
-
-  for (var i = 0; i < pattern.length; i++) {
-    var char = pattern[i]
-
-    if (char === separator[separatorCharIndex]) {
-      if (separatorCharIndex === 0) {
-        isSeparator = true
-        separatorStart = i
-      }
-
-      if (isSeparator) {
-        if (separatorCharIndex === separator.length - 1) {
-          isSeparator = false
-          separatorCharIndex = 0
-          segments[segments.length] = pattern.substr(
-            segmentStart,
-            separatorStart - segmentStart
-          )
-          if (i === pattern.length - 1) {
-            segments[segments.length] = ''
-          } else {
-            segmentStart = i + 1
-          }
-        } else {
-          separatorCharIndex++
-        }
-      }
-    } else if (i === pattern.length - 1) {
-      segments[segments.length] = pattern.substr(segmentStart, i - segmentStart + 1)
-    } else {
-      isSeparator = false
-      separatorCharIndex = 0
-    }
-  }
-  return segments
 }
 
 function buildBasicPattern(pattern, wildcard) {
@@ -124,34 +79,89 @@ function buildBasicPattern(pattern, wildcard) {
   return result
 }
 
-function buildSeparatedPattern(pattern, options) {
-  var separator = options.separator
-  var segments = split(pattern, separator)
-  var escSeparator = escapeRegExpChars(separator)
+function buildSeparatedPattern(pattern, sep) {
+  var escSep = escapeSeparator(sep)
+  var wildcard = sep.length > 1 ? '((?!' + escSep + ').)' : '[^' + escSep + ']'
+  var maxI = pattern.length - 1
+  var sepEnd = -1
+  var sepI = 0
+  var stars = 0
+  var parens = []
   var result = ''
-  var wildcard
 
-  if (separator.length > 1) {
-    wildcard = '((?!' + escSeparator + ').)'
-  } else {
-    wildcard = '[^' + escSeparator + ']'
-  }
+  for (var i = 0; i <= maxI; i++) {
+    var char = pattern[i]
 
-  for (var i = 0; i < segments.length; i++) {
-    var segment = segments[i]
-    if (i < segments.length - 1) {
-      if (segment === '**') {
-        result += '(' + wildcard + '*' + escSeparator + ')*'
+    if (char === sep[sepI] && i >= sepEnd) {
+      if (sepI === sep.length - 1) {
+        // Separator complete
+        if (stars === 2) {
+          result += '(' + wildcard + '*' + escSep + ')*'
+        } else if (stars > 0) {
+          result += wildcard + '*' + escSep
+        } else {
+          result += escSep
+        }
+
+        sepEnd = i
+        sepI = 0
+        stars = 0
+      } else if (i === maxI) {
+        // Separator incomplete, ignore and go back
+        sepEnd = i + 1
+        sepI = 0
       } else {
-        result += buildBasicPattern(segment, wildcard) + escSeparator
+        // Separator continues
+        sepI++
       }
+    } else if (char === '*') {
+      stars++
     } else {
-      if (segment === '**') {
-        result += '.*'
+      // The previous char was a star, but this one isn't
+      if (stars > 0) {
+        result += wildcard + '*'
+      }
+
+      stars = 0
+      sepI = 0
+
+      if (char === '\\') {
+        if (i < maxI) {
+          result += '\\' + pattern[++i]
+        }
+      } else if (parens.length > 0 && char === ')') {
+        result += ')' + parens.pop()
+      } else if (pattern[i + 1] === '(') {
+        parens.push(char === '@' ? '' : char)
+        result += '('
+        i++
+      } else if (char === '[' && pattern[i + 1] === '!') {
+        result += '[^'
+        i++
+      } else if (char === '?') {
+        result += wildcard
+      } else if (
+        char === '^' ||
+        char === '$' ||
+        char === '+' ||
+        char === '.' ||
+        char === '{' ||
+        char === '}' ||
+        char === '(' ||
+        char === ')' ||
+        (char === '|' && parens.length === 0)
+      ) {
+        result += '\\' + char
       } else {
-        result += buildBasicPattern(segment, wildcard)
+        result += char
       }
     }
+  }
+
+  if (stars === 2 && sepEnd === i - stars - 1) {
+    result += '.*'
+  } else if (stars > 0) {
+    result += wildcard + '*'
   }
 
   return result
@@ -165,7 +175,7 @@ function buildRegExpPattern(pattern, options) {
   var regExpPattern
 
   if (options.separator) {
-    regExpPattern = buildSeparatedPattern(pattern, options)
+    regExpPattern = buildSeparatedPattern(pattern, options.separator)
   } else {
     regExpPattern = buildBasicPattern(pattern, '.')
   }

@@ -55,7 +55,7 @@ function parse(pattern, options) {
     if (sep && char === sep[sepI] && i >= sepEnd) {
       if (sepI === sep.length - 1) {
         // Separator complete
-        if (stars === 2) {
+        if (stars === 2 && sepEnd === i - stars - sep.length) {
           result += '(' + wildcard + '*' + escSep + ')*'
         } else if (stars > 0) {
           result += wildcard + '*' + escSep
@@ -118,10 +118,15 @@ function parse(pattern, options) {
     }
   }
 
-  if (stars === 2 && sepEnd === i - stars - 1) {
-    result += '.*'
-  } else if (stars > 0) {
-    result += wildcard + '*'
+  // Stars are treated differently depending on whether they are surrounded
+  // by separators (foo/**/ vs foo**/bar). End of string behaves as an implied separator,
+  // and this is where it is handled.
+  if (stars > 0) {
+    if (!sep || (stars === 2 && sepEnd === i - stars - 1)) {
+      result += '.*'
+    } else {
+      result += wildcard + '*'
+    }
   }
 
   return result

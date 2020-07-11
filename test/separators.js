@@ -11,7 +11,7 @@ function match(separator, pattern, sample) {
 function testBasic(t, sep) {
   var m = match.bind(null, sep)
 
-  t.test('Works with basic patterns', (t) => {
+  t.test('Works with basic patterns', function (t) {
     t.ok(m(sep, sep))
     t.ok(m('', ''))
     t.ok(m('one', 'one'))
@@ -25,7 +25,7 @@ function testBasic(t, sep) {
 function testGlobstar(t, sep) {
   var m = match.bind(null, sep)
 
-  t.test('Works with globstars', (t) => {
+  t.test('Works with globstars', function (t) {
     t.ok(m('**', 'one' + sep + 'two'))
     t.notOk(m('one**two', 'one' + sep + 'two'))
     t.notOk(m('one**two', 'one' + sep + 'three' + sep + 'two'))
@@ -36,34 +36,48 @@ function testGlobstar(t, sep) {
   })
 }
 
-module.exports = (t) => {
-  t.test('/', (t) => {
+module.exports = function (t) {
+  t.test('/', function (t) {
     testBasic(t, '/')
     testGlobstar(t, '/')
   })
 
-  t.test('.', (t) => {
+  t.test('.', function (t) {
     testBasic(t, '.')
     testGlobstar(t, '.')
   })
 
-  t.test(' ', (t) => {
+  t.test(' ', function (t) {
     testBasic(t, ' ')
     testGlobstar(t, ' ')
   })
 
-  t.test('@', (t) => {
+  t.test('@', function (t) {
     testBasic(t, '@')
     testGlobstar(t, '@')
   })
 
-  t.test('?', (t) => {
+  t.test('?', function (t) {
     testBasic(t, '?')
-    testGlobstar(t, '?')
+    testGlobstar(t, '//')
+    t.ok(outmatch('one?**?*js', '?').test('one?two?three?index.js'))
+    t.ok(outmatch('one?**?*\\?js', '?').test('one?two?three?js'))
+    t.ok(outmatch('one?two*', '?').test('one?twothree'))
+    t.ok(outmatch('one?**', '?').test('one?two?three'))
+    t.notOk(outmatch('one?**?*\\?js', '?').test('one?two?three&js'))
+    t.notOk(outmatch('one?two', '?').test('one&two'))
+    t.notOk(outmatch('one?**', '?').test('one'))
+    t.notOk(outmatch('one?two**', '?').test('one?two?three'))
   })
 
-  t.test('//', (t) => {
+  t.test('//', function (t) {
     testBasic(t, '//')
     testGlobstar(t, '//')
+    t.ok(outmatch('one//two', '//').test('one//two'))
+    t.ok(outmatch('*//*', '//').test('one//two'))
+    t.ok(outmatch('*//**', '//').test('one//two//three'))
+    t.ok(outmatch('one//**//two', '//').test('one//foo//bar//two'))
+    t.ok(outmatch('one//**//two', '//').test('one//two'))
+    t.notOk(outmatch('*//**', '//').test('one'))
   })
 }

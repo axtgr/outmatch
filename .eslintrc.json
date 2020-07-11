@@ -3,8 +3,8 @@
   "env": {
     "commonjs": true
   },
-  "plugins": ["prettier"],
-  "extends": ["eslint:recommended", "prettier"],
+  "plugins": ["prettier", "es5"],
+  "extends": ["eslint:recommended", "prettier", "plugin:es5/no-es2015"],
   "rules": {
     "prettier/prettier": "error"
   }

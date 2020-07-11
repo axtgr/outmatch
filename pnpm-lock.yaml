@@ -2,6 +2,7 @@ devDependencies:
   benchmark: 2.1.4
   eslint: 7.4.0
   eslint-config-prettier: 6.11.0_eslint@7.4.0
+  eslint-plugin-es5: 1.5.0_eslint@7.4.0
   eslint-plugin-prettier: 3.1.4_eslint@7.4.0+prettier@2.0.5
   globrex: 0.1.2
   husky: 4.2.5
@@ -414,6 +415,14 @@ packages:
       eslint: '>=3.14.1'
     resolution:
       integrity: sha512-oB8cpLWSAjOVFEJhhyMZh6NOEOtBVziaqdDQ86+qhDHFbZXoRTM7pNSvFRfW/W/L/LrQ38C99J5CGuRBBzBsdA==
+  /eslint-plugin-es5/1.5.0_eslint@7.4.0:
+    dependencies:
+      eslint: 7.4.0
+    dev: true
+    peerDependencies:
+      eslint: '>= 3.0.0'
+    resolution:
+      integrity: sha512-Qxmfo7v2B7SGAEURJo0dpBweFf+JU15kSyALfiB2rXWcBuJ96r6X9kFHXFnhdopPHCaHjoQs1xQPUJVbGMb1AA==
   /eslint-plugin-prettier/3.1.4_eslint@7.4.0+prettier@2.0.5:
     dependencies:
       eslint: 7.4.0
@@ -1585,6 +1594,7 @@ specifiers:
   benchmark: ^2.1.4
   eslint: ^7.4.0
   eslint-config-prettier: ^6.11.0
+  eslint-plugin-es5: ^1.5.0
   eslint-plugin-prettier: ^3.1.4
   globrex: ^0.1.2
   husky: ^4.2.5

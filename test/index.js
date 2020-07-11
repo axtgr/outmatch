@@ -1,12 +1,12 @@
 var outmatch = require('../src')
 
-module.exports = (t) => {
-  t.test('Basic', (t) => {
+module.exports = function (t) {
+  t.test('Basic', function (t) {
     t.ok(outmatch('pattern') instanceof RegExp)
   })
 
-  t.test('No wildcards', (t) => {
-    t.test('No separator given', (t) => {
+  t.test('No wildcards', function (t) {
+    t.test('No separator given', function (t) {
       t.ok(outmatch('').test(''))
       t.ok(outmatch('/').test('/'))
       t.ok(outmatch('one').test('one'))
@@ -16,7 +16,7 @@ module.exports = (t) => {
       t.notOk(outmatch('one').test('two'))
     })
 
-    t.test('Separator given', (t) => {
+    t.test('Separator given', function (t) {
       t.ok(outmatch('one', '/').test('one'))
       t.ok(outmatch('two', '/').test('two'))
       t.ok(outmatch('one/two', '/').test('one/two'))
@@ -53,8 +53,8 @@ module.exports = (t) => {
     })
   })
 
-  t.test('?', (t) => {
-    t.test('No separator given - matches 1 arbitrary char', (t) => {
+  t.test('?', function (t) {
+    t.test('No separator given - matches 1 arbitrary char', function (t) {
       t.ok(outmatch('?').test('o'))
       t.ok(outmatch('?').test('/'))
       t.ok(outmatch('on?').test('one'))
@@ -67,7 +67,7 @@ module.exports = (t) => {
       t.notOk(outmatch('one?').test('one'))
     })
 
-    t.test('Separator given - matches 1 non-separator char', (t) => {
+    t.test('Separator given - matches 1 non-separator char', function (t) {
       t.ok(outmatch('?', '/').test('a'))
       t.ok(outmatch('?', '/').test(' '))
       t.ok(outmatch('??', '/').test('ab'))
@@ -118,8 +118,8 @@ module.exports = (t) => {
     })
   })
 
-  t.test('*', (t) => {
-    t.test('No separator given - matches 0 or more arbitrary chars', (t) => {
+  t.test('*', function (t) {
+    t.test('No separator given - matches 0 or more arbitrary chars', function (t) {
       t.ok(outmatch('*').test(''))
       t.ok(outmatch('*').test('/'))
       t.ok(outmatch('*').test('one'))
@@ -130,7 +130,7 @@ module.exports = (t) => {
       t.notOk(outmatch('one*').test('onte'))
     })
 
-    t.test('Separator given - matches 0 or more non-separator chars', (t) => {
+    t.test('Separator given - matches 0 or more non-separator chars', function (t) {
       t.ok(outmatch('*', '/').test(''))
       t.ok(outmatch('*', '/').test('one'))
       t.ok(outmatch('*/*', '/').test('one/two'))
@@ -210,8 +210,8 @@ module.exports = (t) => {
     })
   })
 
-  t.test('**', (t) => {
-    t.test('No separator given - acts as *', (t) => {
+  t.test('**', function (t) {
+    t.test('No separator given - acts as *', function (t) {
       t.ok(outmatch('**').test(''))
       t.ok(outmatch('**').test('/'))
       t.ok(outmatch('**').test('one'))
@@ -222,7 +222,7 @@ module.exports = (t) => {
       t.notOk(outmatch('one**').test('onte'))
     })
 
-    t.test('Separator given - matches any number of segments', (t) => {
+    t.test('Separator given - matches any number of segments', function (t) {
       t.ok(outmatch('**', '/').test(''))
       t.ok(outmatch('**', '/').test(' '))
       t.ok(outmatch('**', '/').test(' /'))
@@ -276,8 +276,8 @@ module.exports = (t) => {
     })
   })
 
-  t.test('? and *', (t) => {
-    t.test('No separator given', (t) => {
+  t.test('? and *', function (t) {
+    t.test('No separator given', function (t) {
       t.ok(outmatch('?*').test('o'))
       t.ok(outmatch('?*').test('one'))
       t.ok(outmatch('?*').test('one/two'))
@@ -287,7 +287,7 @@ module.exports = (t) => {
       t.notOk(outmatch('?ne*').test('ne/two'))
     })
 
-    t.test('Separator given', (t) => {
+    t.test('Separator given', function (t) {
       t.ok(outmatch('?*', '/').test('one'))
       t.ok(outmatch('?*/', '/').test('one/'))
       t.ok(outmatch('?*/*', '/').test('one/'))
@@ -320,8 +320,8 @@ module.exports = (t) => {
     })
   })
 
-  t.test('* and **', (t) => {
-    t.test('No separator given', (t) => {
+  t.test('* and **', function (t) {
+    t.test('No separator given', function (t) {
       t.ok(outmatch('*/**').test('/'))
       t.ok(outmatch('*/**').test('one/two'))
       t.ok(outmatch('**/*').test('one/two'))
@@ -333,7 +333,7 @@ module.exports = (t) => {
       t.notOk(outmatch('one**/*').test('one'))
     })
 
-    t.test('Separator given', (t) => {
+    t.test('Separator given', function (t) {
       t.notOk(outmatch('*/**', '/').test(''))
       t.notOk(outmatch('*/**', '/').test(' '))
       t.ok(outmatch('*/**', '/').test(' /'))
@@ -387,8 +387,8 @@ module.exports = (t) => {
     })
   })
 
-  t.test('? and **', (t) => {
-    t.test('No separator given', (t) => {
+  t.test('? and **', function (t) {
+    t.test('No separator given', function (t) {
       t.ok(outmatch('?**').test('o'))
       t.ok(outmatch('?**').test('one'))
       t.ok(outmatch('?**').test('one/two'))
@@ -398,7 +398,7 @@ module.exports = (t) => {
       t.notOk(outmatch('?ne**').test('ne/two'))
     })
 
-    t.test('Separator given', (t) => {
+    t.test('Separator given', function (t) {
       t.ok(outmatch('**/?', '/').test('o'))
       t.ok(outmatch('**/?', '/').test('one/t'))
       t.ok(outmatch('**/?', '/').test('one/two/three/f'))
@@ -413,15 +413,15 @@ module.exports = (t) => {
     })
   })
 
-  t.test('?, * and **', (t) => {
-    t.test('No separator given', (t) => {
+  t.test('?, * and **', function (t) {
+    t.test('No separator given', function (t) {
       t.ok(outmatch('?*/**').test('one/two'))
       t.ok(outmatch('?*/?**').test('one/two'))
       t.notOk(outmatch('?*/**').test('one'))
       t.notOk(outmatch('?*/**').test('/two'))
     })
 
-    t.test('Separator given', (t) => {
+    t.test('Separator given', function (t) {
       t.notOk(outmatch('?*?/**', '/').test('oe'))
       t.notOk(outmatch('?*?/**', '/').test('one'))
       t.ok(outmatch('?*?/**', '/').test('one/'))
@@ -444,7 +444,7 @@ module.exports = (t) => {
     })
   })
 
-  t.test('[]', (t) => {
+  t.test('[]', function (t) {
     t.ok(outmatch('[abc]').test('a'))
     t.ok(outmatch('[abc]').test('b'))
     t.notOk(outmatch('[abc]').test('d'))
@@ -485,19 +485,29 @@ module.exports = (t) => {
     t.notOk(outmatch('[]').test('a'))
   })
 
-  t.test('Treats other RegExp characters literally', (t) => {
+  t.test('Treats other RegExp characters literally', function (t) {
     t.ok(outmatch('^$.+-|)').test('^$.+-|)'))
     t.notOk(outmatch('[].').test('[]?'))
     t.notOk(outmatch('one', '/').test('one[].*+{}]][[..$'))
-    t.throws(() => outmatch('['))
-    t.throws(() => outmatch('@(one'))
-    t.throws(() => outmatch('[].*+{}]][[..$', '/'))
-    t.throws(() => outmatch('one[].*+{}]  ][[..$', '/'))
-    t.throws(() => outmatch('one[].*+{}]][[..$', '/'))
+    t.throws(function () {
+      outmatch('[')
+    })
+    t.throws(function () {
+      outmatch('@(one')
+    })
+    t.throws(function () {
+      outmatch('[].*+{}]][[..$', '/')
+    })
+    t.throws(function () {
+      outmatch('one[].*+{}]  ][[..$', '/')
+    })
+    t.throws(function () {
+      outmatch('one[].*+{}]][[..$', '/')
+    })
   })
 
-  t.test('Treats escaped wildcards literally', (t) => {
-    t.test('No separator given', (t) => {
+  t.test('Treats escaped wildcards literally', function (t) {
+    t.test('No separator given', function (t) {
       t.ok(outmatch('\\?').test('?'))
       t.ok(outmatch('one/\\*\\*').test('one/**'))
       t.ok(outmatch('on\\?.two\\*\\*').test('on?.two**'))
@@ -506,7 +516,7 @@ module.exports = (t) => {
       t.notOk(outmatch('on\\?.two\\*\\*').test('one.two'))
     })
 
-    t.test('Separator given', (t) => {
+    t.test('Separator given', function (t) {
       t.ok(outmatch('\\?', '/').test('?'))
       t.ok(outmatch('\\*', '/').test('*'))
       t.ok(outmatch('\\*\\*', '/').test('**'))
@@ -530,7 +540,7 @@ module.exports = (t) => {
     })
   })
 
-  t.test('Accepts an array of patterns', (t) => {
+  t.test('Accepts an array of patterns', function (t) {
     t.ok(outmatch(['one']).test('one'))
     t.notOk(outmatch(['one']).test('two'))
     t.ok(outmatch(['**', 'one']).test('whatever'))

@@ -11,7 +11,8 @@
   ],
   "scripts": {
     "lint": "eslint src",
-    "test": "tap --jobs=1 --no-coverage --reporter=terse test/index.js"
+    "test": "pta --no-esm test/*.js",
+    "test-watch": "onchange test/*.js -- pta --no-esm test/*.js"
   },
   "husky": {
     "hooks": {
@@ -33,8 +34,9 @@
     "husky": "^4.2.5",
     "lint-staged": "^10.2.11",
     "matcher": "^3.0.0",
+    "onchange": "^7.0.2",
     "picomatch": "^2.2.2",
     "prettier": "^2.0.5",
-    "tap": "^14.10.7"
+    "pta": "^0.1.3"
   }
 }

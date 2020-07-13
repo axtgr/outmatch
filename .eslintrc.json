@@ -3,6 +3,9 @@
   "env": {
     "commonjs": true
   },
+  "globals": {
+    "console": true
+  },
   "plugins": ["prettier", "es5"],
   "extends": ["eslint:recommended", "prettier", "plugin:es5/no-es2015"],
   "rules": {

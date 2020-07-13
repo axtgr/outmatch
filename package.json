@@ -10,7 +10,8 @@
     "src"
   ],
   "scripts": {
-    "lint": "eslint src test",
+    "bench": "node bench/bench",
+    "lint": "eslint src test bench",
     "test": "pta --no-esm test/[!_]*.js",
     "test-watch": "onchange test/*.js -- pta --no-esm test/[!_]*.js"
   },

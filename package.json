@@ -11,8 +11,8 @@
   ],
   "scripts": {
     "lint": "eslint src test",
-    "test": "pta --no-esm test/*.js",
-    "test-watch": "onchange test/*.js -- pta --no-esm test/*.js"
+    "test": "pta --no-esm test/[!_]*.js",
+    "test-watch": "onchange test/*.js -- pta --no-esm test/[!_]*.js"
   },
   "husky": {
     "hooks": {

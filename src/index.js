@@ -91,7 +91,10 @@ function parse(pattern, options) {
         }
       } else if (parens.length > 0 && char === ')') {
         result += ')' + parens.pop()
-      } else if (pattern[i + 1] === '(') {
+      } else if (
+        pattern[i + 1] === '(' &&
+        (char === '?' || char === '*' || char === '+' || char === '@')
+      ) {
         parens.push(char === '@' ? '' : char)
         result += '('
         i++

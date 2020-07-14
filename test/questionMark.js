@@ -98,7 +98,6 @@ module.exports = function (t) {
         t.ok(m('one\\?')('one?'))
         t.ok(m('\\?one')('?one'))
         t.ok(m('o\\?e')('o?e'))
-        t.ok(m('o\\?e')('o?e'))
 
         t.notOk(m('\\?')(''))
         t.notOk(m('\\?')('o'))

@@ -10,7 +10,6 @@ module.exports = function (t) {
         t.ok(m('**')('one'))
         t.ok(m('**')('one/'))
         t.ok(m('**')('t/'))
-        t.ok(m('**')('/'))
         t.ok(m('**')('///'))
         t.ok(m('**')('one/three'))
         t.ok(m('**')('two/three'))
@@ -68,7 +67,6 @@ module.exports = function (t) {
         t.notOk(m('**e')('two'))
 
         if (sep) {
-          t.notOk(m('**two')('one/two'))
           t.notOk(m('**two')('one/two'))
           t.notOk(m('o**')('o/two'))
           t.notOk(m('o**')('o/two/three'))

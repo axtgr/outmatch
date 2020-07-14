@@ -3,9 +3,19 @@ var outmatch = require('../src')
 // TODO: add '\\', '//' and separators with wildcards
 var SEPARATORS = ['', '/', '.', ' ', 'sep']
 
+var testSet = {}
+
 function match(separator) {
   return function (pattern) {
     return function (sample) {
+      var args = { separator: separator, pattern: pattern, sample: sample }
+      var argsStr = JSON.stringify(args)
+
+      if (testSet[argsStr]) {
+        throw new Error('Duplicate test found: ' + argsStr)
+      }
+
+      testSet[argsStr] = true
       pattern = pattern.replace(/\//g, separator)
       sample = sample.replace(/\//g, separator)
       return outmatch(pattern, separator).test(sample)

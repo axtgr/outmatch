@@ -79,9 +79,13 @@ function split(pattern, separator) {
 
 function buildBasicPattern(pattern, wildcard) {
   var result = ''
-  var parens = []
   var openingBracket = pattern.length
   var closingBracket = -1
+  var parenModifiers = []
+  var openingParens = 0
+  var closingParens = 0
+  var parensHandledUntil = -1
+  var searchingForParens = false
 
   for (var i = 0; i < pattern.length; i++) {
     var char = pattern[i]
@@ -133,14 +137,54 @@ function buildBasicPattern(pattern, wildcard) {
 
     if (char === '[' && i > closingBracket && i < pattern.length - 1) {
       openingBracket = i
-    } else if (parens.length > 0 && char === ')') {
-      result += ')' + parens.pop()
-    } else if (pattern[i + 1] === '(') {
-      parens.push(char === '@' ? '' : char)
-      result += '('
-      i++
-    } else if (char === '*') {
-      if (result[result.length - 1] !== '*') {
+      continue
+    }
+
+    if (
+      pattern[i + 1] === '(' &&
+      (char === '@' || char === '?' || char === '*' || char === '+')
+    ) {
+      if (searchingForParens) {
+        parenModifiers.push(char)
+        openingParens++
+      } else if (i > parensHandledUntil) {
+        parensHandledUntil = i
+        searchingForParens = true
+        openingParens++
+        parenModifiers.push(char)
+      } else if (closingParens >= openingParens) {
+        if (i > parensHandledUntil) {
+          parensHandledUntil = i
+        }
+        result += '('
+        openingParens--
+        i++
+        continue
+      }
+    } else if (char === ')') {
+      if (searchingForParens) {
+        closingParens++
+      } else if (closingParens) {
+        var modifier = parenModifiers.pop()
+        result += modifier === '@' ? ')' : ')' + modifier
+        closingParens--
+        continue
+      }
+    } else if (char === '|' && closingParens) {
+      result += '|'
+      continue
+    }
+
+    if (searchingForParens) {
+      if (closingParens === openingParens || i === pattern.length - 1) {
+        searchingForParens = false
+        i = parensHandledUntil - 1
+      }
+      continue
+    }
+
+    if (char === '*') {
+      if (pattern[i - 1] !== '*') {
         result += wildcard + '*'
       }
     } else if (char === '?') {
@@ -155,7 +199,7 @@ function buildBasicPattern(pattern, wildcard) {
       char === '(' ||
       char === ')' ||
       char === '[' ||
-      (char === '|' && parens.length === 0)
+      char === '|'
     ) {
       result += '\\' + char
     } else {

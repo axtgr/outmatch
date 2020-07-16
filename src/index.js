@@ -80,6 +80,8 @@ function split(pattern, separator) {
 function buildBasicPattern(pattern, wildcard) {
   var result = ''
   var parens = []
+  var openingBracket = pattern.length
+  var closingBracket = -1
 
   for (var i = 0; i < pattern.length; i++) {
     var char = pattern[i]
@@ -91,14 +93,51 @@ function buildBasicPattern(pattern, wildcard) {
       continue
     }
 
-    if (parens.length > 0 && char === ')') {
+    if (i > openingBracket && i <= closingBracket) {
+      // We are certainly in a complete character class
+      // and should treat almost all characters literally
+      if (i === closingBracket) {
+        result += ']'
+        openingBracket = pattern.length
+      } else if (char === '-' && i === closingBracket - 1) {
+        result += '\\-'
+      } else if (char === '!' && i === openingBracket + 1) {
+        result += '^'
+      } else if (char === ']') {
+        result += '\\]'
+      } else {
+        result += char
+      }
+      continue
+    }
+
+    if (i > openingBracket) {
+      // We are in an open character class and are looking for a closing bracket
+      // to make sure the class is terminated
+      if (char === ']' && i > openingBracket + 1 && i > closingBracket) {
+        // Closing bracket is found; return to openingBracket
+        // and treat all the in-between chars literally
+        result += '['
+        closingBracket = i
+        i = openingBracket
+      } else if (i === pattern.length - 1) {
+        // Closing bracket is not found; return to the opening bracket
+        // and treat all the in-between chars as usual
+        result += '\\['
+        i = openingBracket
+        openingBracket = pattern.length
+        closingBracket = pattern.length
+      }
+      continue
+    }
+
+    if (char === '[' && i > closingBracket && i < pattern.length - 1) {
+      openingBracket = i
+    } else if (parens.length > 0 && char === ')') {
       result += ')' + parens.pop()
     } else if (pattern[i + 1] === '(') {
       parens.push(char === '@' ? '' : char)
       result += '('
-      i++
-    } else if (char === '[' && pattern[i + 1] === '!') {
-      result += '[^'
       i++
     } else if (char === '*') {
       if (result[result.length - 1] !== '*') {
@@ -115,6 +154,7 @@ function buildBasicPattern(pattern, wildcard) {
       char === '}' ||
       char === '(' ||
       char === ')' ||
+      char === '[' ||
       (char === '|' && parens.length === 0)
     ) {
       result += '\\' + char

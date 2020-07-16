@@ -25,22 +25,5 @@ module.exports = function (t) {
 
   t.test('Treats unused RegExp characters literally', function (t) {
     t.ok(outmatch('^$.+-|)').test('^$.+-|)'))
-    t.notOk(outmatch('[].').test('[]?'))
-    t.notOk(outmatch('one', '/').test('one[].*+{}]][[..$'))
-    t.throws(function () {
-      outmatch('[')
-    })
-    t.throws(function () {
-      outmatch('@(one')
-    })
-    t.throws(function () {
-      outmatch('[].*+{}]][[..$', '/')
-    })
-    t.throws(function () {
-      outmatch('one[].*+{}]  ][[..$', '/')
-    })
-    t.throws(function () {
-      outmatch('one[].*+{}]][[..$', '/')
-    })
   })
 }

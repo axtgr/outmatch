@@ -1,9 +1,9 @@
 var testSeparators = require('./_utils').testSeparators
 
 module.exports = function (t) {
-  t.test('[]', function (t) {
+  t.test('[] - character class', function (t) {
     t.test(
-      'Match one character from the given list',
+      'Matches one character from the given list',
       testSeparators(function (t, m) {
         // TODO: add cases with separators
         t.ok(m('[abc]')('a'))
@@ -20,7 +20,7 @@ module.exports = function (t) {
     )
 
     t.test(
-      'Match one character from the given range',
+      'Matches one character from the given range',
       testSeparators(function (t, m) {
         t.ok(m('[a-z]')('g'))
         t.ok(m('[a-z]')('z'))
@@ -61,7 +61,7 @@ module.exports = function (t) {
     )
 
     t.test(
-      'When - is at the beginning or end of a class, it is treated literally',
+      'When - is at the beginning or end of a character class, it is treated literally',
       testSeparators(function (t, m) {
         t.ok(m('[-z]')('-'))
         t.ok(m('[-z]')('z'))
@@ -77,7 +77,7 @@ module.exports = function (t) {
     )
 
     t.test(
-      'When ] is at the beginning of a class, it is treated as a member of the class',
+      'When ] is at the beginning of a character class, it is treated as a member of the class',
       testSeparators(function (t, m) {
         t.ok(m('[]]')(']'))
         t.ok(m('[]z]')(']'))

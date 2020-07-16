@@ -1,7 +1,7 @@
 var testSeparators = require('./_utils').testSeparators
 
 module.exports = function (t) {
-  t.test('*', function (t) {
+  t.test('* - wildcard', function (t) {
     t.test(
       'Matches 0 or more non-separator characters',
       testSeparators(function (t, m, sep) {

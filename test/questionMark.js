@@ -1,7 +1,7 @@
 var testSeparators = require('./_utils').testSeparators
 
 module.exports = function (t) {
-  t.test('?', function (t) {
+  t.test('? - single-char wildcard', function (t) {
     t.test(
       'Matches one non-separator character',
       testSeparators(function (t, m, sep) {

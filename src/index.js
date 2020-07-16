@@ -97,6 +97,8 @@ function buildBasicPattern(pattern, wildcard) {
       continue
     }
 
+    // HANDLE BRACKETS
+
     if (i > openingBracket && i <= closingBracket) {
       // We are certainly in a complete character class
       // and should treat almost all characters literally
@@ -140,6 +142,8 @@ function buildBasicPattern(pattern, wildcard) {
       continue
     }
 
+    // HANDLE PARENS
+
     if (
       pattern[i + 1] === '(' &&
       (char === '@' || char === '?' || char === '*' || char === '+')
@@ -182,6 +186,8 @@ function buildBasicPattern(pattern, wildcard) {
       }
       continue
     }
+
+    // HANDLE OTHER STUFF
 
     if (char === '*') {
       if (pattern[i - 1] !== '*') {

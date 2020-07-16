@@ -1,7 +1,7 @@
 var testSeparators = require('./_utils').testSeparators
 
 module.exports = function (t) {
-  t.test('**', function (t) {
+  t.test('** - globstar', function (t) {
     t.test(
       'Matches 0 or more segments when it takes a whole segment (/**/)',
       testSeparators(function (t, m, sep) {

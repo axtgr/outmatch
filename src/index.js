@@ -77,6 +77,67 @@ function split(pattern, separator) {
   return segments
 }
 
+function processBraces(pattern) {
+  var result = ''
+  var scanning = false
+  var openingBraces = 0
+  var closingBraces = 0
+  var bracesHandledUntil = -1
+
+  for (var i = 0; i < pattern.length; i++) {
+    var char = pattern[i]
+
+    if (char === '\\') {
+      if (i < pattern.length - 1) {
+        result += '\\' + pattern[++i]
+      }
+      continue
+    }
+
+    if (char === '{') {
+      if (scanning) {
+        openingBraces++
+      } else if (i > bracesHandledUntil) {
+        bracesHandledUntil = i
+        scanning = true
+        openingBraces++
+      } else if (closingBraces >= openingBraces) {
+        if (i > bracesHandledUntil) {
+          bracesHandledUntil = i
+        }
+        result += '@('
+        openingBraces--
+        continue
+      } else {
+        openingBraces--
+      }
+    } else if (char === '}') {
+      if (scanning) {
+        closingBraces++
+      } else if (closingBraces) {
+        result += ')'
+        closingBraces--
+        continue
+      }
+    } else if (!scanning && char === ',' && closingBraces) {
+      result += '|'
+      continue
+    }
+
+    if (scanning) {
+      if (closingBraces === openingBraces || i === pattern.length - 1) {
+        scanning = false
+        i = bracesHandledUntil - 1
+      }
+      continue
+    }
+
+    result += char
+  }
+
+  return result
+}
+
 function buildBasicPattern(pattern, wildcard) {
   var result = ''
   var openingBracket = pattern.length
@@ -256,15 +317,15 @@ function buildRegExpPattern(pattern, options) {
     return '.*'
   }
 
-  var regExpPattern
+  pattern = processBraces(pattern)
 
   if (options.separator) {
-    regExpPattern = buildSeparatedPattern(pattern, options)
+    pattern = buildSeparatedPattern(pattern, options)
   } else {
-    regExpPattern = buildBasicPattern(pattern, '.')
+    pattern = buildBasicPattern(pattern, '.')
   }
 
-  return regExpPattern
+  return pattern
 }
 
 function outmatch(patterns, options) {

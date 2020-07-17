@@ -164,6 +164,8 @@ function buildBasicPattern(pattern, wildcard) {
         openingParens--
         i++
         continue
+      } else {
+        openingParens--
       }
     } else if (char === ')') {
       if (searchingForParens) {

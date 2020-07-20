@@ -2,30 +2,33 @@
 
 'use strict'
 
-function escapeRegExpChars(str) {
+function escapeRegExpChar(char) {
+  if (
+    char === '-' ||
+    char === '^' ||
+    char === '$' ||
+    char === '+' ||
+    char === '.' ||
+    char === '(' ||
+    char === ')' ||
+    char === '|' ||
+    char === '[' ||
+    char === ']' ||
+    char === '{' ||
+    char === '}' ||
+    char === '*' ||
+    char === '?'
+  ) {
+    return '\\' + char
+  } else {
+    return char
+  }
+}
+
+function escapeRegExpString(str) {
   var result = ''
   for (var i = 0; i < str.length; i++) {
-    var char = str[i]
-    if (
-      char === '-' ||
-      char === '^' ||
-      char === '$' ||
-      char === '+' ||
-      char === '.' ||
-      char === '(' ||
-      char === ')' ||
-      char === '|' ||
-      char === '[' ||
-      char === ']' ||
-      char === '{' ||
-      char === '}' ||
-      char === '*' ||
-      char === '?'
-    ) {
-      result += '\\' + char
-    } else {
-      result += char
-    }
+    result += escapeRegExpChar(str[i])
   }
   return result
 }
@@ -108,7 +111,7 @@ function expandBraces(pattern) {
   return results
 }
 
-function buildBasicPattern(pattern, wildcard) {
+function buildBasicPattern(pattern, options, wildcard) {
   var result = ''
   var openingBracket = pattern.length
   var closingBracket = -1
@@ -117,6 +120,8 @@ function buildBasicPattern(pattern, wildcard) {
   var closingParens = 0
   var parensHandledUntil = -1
   var scanningForParens = false
+
+  wildcard = wildcard || '.'
 
   for (var i = 0; i < pattern.length; i++) {
     var char = pattern[i]
@@ -228,21 +233,8 @@ function buildBasicPattern(pattern, wildcard) {
       }
     } else if (char === '?') {
       result += wildcard
-    } else if (
-      char === '^' ||
-      char === '$' ||
-      char === '+' ||
-      char === '.' ||
-      char === '{' ||
-      char === '}' ||
-      char === '(' ||
-      char === ')' ||
-      char === '[' ||
-      char === '|'
-    ) {
-      result += '\\' + char
     } else {
-      result += char
+      result += escapeRegExpChar(char)
     }
   }
 
@@ -252,7 +244,7 @@ function buildBasicPattern(pattern, wildcard) {
 function buildSeparatedPattern(pattern, options) {
   var separator = options.separator
   var segments = pattern.split(separator)
-  var escapedSeparator = escapeRegExpChars(separator)
+  var escapedSeparator = escapeRegExpString(separator)
   var result = ''
   var wildcard
 
@@ -268,13 +260,13 @@ function buildSeparatedPattern(pattern, options) {
       if (segment === '**') {
         result += '(' + wildcard + '*' + escapedSeparator + ')*'
       } else {
-        result += buildBasicPattern(segment, wildcard) + escapedSeparator
+        result += buildBasicPattern(segment, options, wildcard) + escapedSeparator
       }
     } else {
       if (segment === '**') {
         result += '.*'
       } else {
-        result += buildBasicPattern(segment, wildcard)
+        result += buildBasicPattern(segment, options, wildcard)
       }
     }
   }
@@ -282,24 +274,9 @@ function buildSeparatedPattern(pattern, options) {
   return result
 }
 
-function buildRegExpPattern(pattern, options) {
-  if (pattern === '**') {
-    return '.*'
-  }
-
-  if (options.separator) {
-    pattern = buildSeparatedPattern(pattern, options)
-  } else {
-    pattern = buildBasicPattern(pattern, '.')
-  }
-
-  return pattern
-}
-
-function outmatch(patterns, options) {
-  var regExpPattern = ''
-
-  options = options && typeof options === 'object' ? options : { separator: options }
+function buildRegExpPattern(patterns, options) {
+  var result = ''
+  var buildFn = options.separator ? buildSeparatedPattern : buildBasicPattern
 
   if (options['{}'] !== false) {
     if (Array.isArray(patterns)) {
@@ -325,22 +302,28 @@ function outmatch(patterns, options) {
   }
 
   if (Array.isArray(patterns)) {
-    regExpPattern = '^('
+    result = '^('
     for (var k = 0; k < patterns.length; k++) {
       if (k > 0) {
-        regExpPattern += '|'
+        result += '|'
       }
-      regExpPattern += buildRegExpPattern(patterns[k], options)
+      result += buildFn(patterns[k], options)
     }
-    regExpPattern += ')$'
+    result += ')$'
   } else if (typeof patterns === 'string') {
-    regExpPattern = '^' + buildRegExpPattern(patterns, options) + '$'
+    result = '^' + buildFn(patterns, options) + '$'
   } else {
     throw new TypeError(
       'The "patterns" argument must be a string or an array of strings'
     )
   }
 
+  return result
+}
+
+function outmatch(patterns, options) {
+  options = options && typeof options === 'object' ? options : { separator: options }
+  var regExpPattern = buildRegExpPattern(patterns, options)
   return new RegExp(regExpPattern)
 }
 

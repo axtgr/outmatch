@@ -17,8 +17,8 @@ function formatNumber(number) {
 }
 
 var OPTIONS = {
-  outmatch: null,
-  outmatchSep: { separator: '/' },
+  outmatch: { '{}': false },
+  outmatchSep: { separator: '/', '{}': false },
   globrex: { globstar: false, filepath: false, extended: true, strict: true },
   globrexSep: { globstar: true, filepath: true, extended: true, strict: true },
   picomatchSep: {
@@ -102,17 +102,17 @@ new Suite('Matching')
   .run()
 
 // Compilation
-//   outmatch                  1,503,296 ops/sec
-//   outmatch separated          893,769 ops/sec
-//   globrex                   1,066,288 ops/sec
-//   globrex separated           376,162 ops/sec
-//   picomatch                   192,209 ops/sec
-//   picomatch separated         191,639 ops/sec
+//   outmatch                  1,609,454 ops/sec
+//   outmatch separated          845,102 ops/sec
+//   globrex                   1,250,397 ops/sec
+//   globrex separated           382,384 ops/sec
+//   picomatch                   189,945 ops/sec
+//   picomatch separated         193,740 ops/sec
 
 // Matching
-//   outmatch                 28,046,617 ops/sec
-//   outmatch separated       25,694,431 ops/sec
-//   globrex                  28,052,343 ops/sec
-//   globrex separated        23,364,491 ops/sec
-//   picomatch separated      10,458,095 ops/sec
-//   matcher                   1,623,032 ops/sec
+//   outmatch                 28,379,367 ops/sec
+//   outmatch separated       26,202,168 ops/sec
+//   globrex                  28,636,718 ops/sec
+//   globrex separated        23,280,770 ops/sec
+//   picomatch separated      10,435,150 ops/sec
+//   matcher                   1,610,490 ops/sec

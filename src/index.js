@@ -36,7 +36,7 @@ function expandBraces(pattern) {
   var closingBraces = 0
   var handledUntil = -1
   var results = ['']
-  var newResults, segment, alternatives, i, j, k, l
+  var newResults, span, alternatives, i, j, k, l
 
   for (i = 0; i < pattern.length; i++) {
     var char = pattern[i]
@@ -50,9 +50,9 @@ function expandBraces(pattern) {
       if (scanning) {
         openingBraces++
       } else if (i > handledUntil && !openingBraces) {
-        segment = pattern.substring(handledUntil + 1, i)
+        span = pattern.substring(handledUntil + 1, i)
         for (j = 0; j < results.length; j++) {
-          results[j] += segment
+          results[j] += span
         }
         alternatives = []
         handledUntil = i
@@ -65,8 +65,8 @@ function expandBraces(pattern) {
       if (scanning) {
         closingBraces++
       } else if (closingBraces === 1) {
-        segment = pattern.substring(handledUntil + 1, i)
-        alternatives.push(expandBraces(segment))
+        span = pattern.substring(handledUntil + 1, i)
+        alternatives.push(expandBraces(span))
         newResults = []
         for (j = 0; j < results.length; j++) {
           for (k = 0; k < alternatives.length; k++) {
@@ -78,30 +78,31 @@ function expandBraces(pattern) {
         results = newResults
         handledUntil = i
         closingBraces--
-        continue
       } else {
         closingBraces--
       }
     } else if (!scanning && char === ',' && closingBraces === 1) {
-      segment = pattern.substring(handledUntil + 1, i)
-      alternatives.push(expandBraces(segment))
+      span = pattern.substring(handledUntil + 1, i)
+      alternatives.push(expandBraces(span))
       handledUntil = i
-      continue
     }
 
-    if (scanning) {
-      if (closingBraces === openingBraces || i === pattern.length - 1) {
-        scanning = false
-        i = handledUntil - 1
-      }
-      continue
+    if (scanning && (closingBraces === openingBraces || i === pattern.length - 1)) {
+      scanning = false
+      i = handledUntil - 1
     }
   }
 
+  if (handledUntil === -1) {
+    return [pattern]
+  }
+
   var unhandledFrom = pattern[handledUntil] === '{' ? handledUntil : handledUntil + 1
-  segment = pattern.substr(unhandledFrom)
-  for (j = 0; j < results.length; j++) {
-    results[j] += segment
+  if (unhandledFrom < pattern.length) {
+    span = pattern.substr(unhandledFrom)
+    for (j = 0; j < results.length; j++) {
+      results[j] += span
+    }
   }
 
   return results
@@ -115,7 +116,7 @@ function buildBasicPattern(pattern, wildcard) {
   var openingParens = 0
   var closingParens = 0
   var parensHandledUntil = -1
-  var searchingForParens = false
+  var scanningForParens = false
 
   for (var i = 0; i < pattern.length; i++) {
     var char = pattern[i]
@@ -178,12 +179,12 @@ function buildBasicPattern(pattern, wildcard) {
       pattern[i + 1] === '(' &&
       (char === '@' || char === '?' || char === '*' || char === '+')
     ) {
-      if (searchingForParens) {
+      if (scanningForParens) {
         parenModifiers.push(char)
         openingParens++
       } else if (i > parensHandledUntil) {
         parensHandledUntil = i
-        searchingForParens = true
+        scanningForParens = true
         openingParens++
         parenModifiers.push(char)
       } else if (closingParens >= openingParens) {
@@ -198,7 +199,7 @@ function buildBasicPattern(pattern, wildcard) {
         openingParens--
       }
     } else if (char === ')') {
-      if (searchingForParens) {
+      if (scanningForParens) {
         closingParens++
       } else if (closingParens) {
         var modifier = parenModifiers.pop()
@@ -211,9 +212,9 @@ function buildBasicPattern(pattern, wildcard) {
       continue
     }
 
-    if (searchingForParens) {
+    if (scanningForParens) {
       if (closingParens === openingParens || i === pattern.length - 1) {
-        searchingForParens = false
+        scanningForParens = false
         i = parensHandledUntil - 1
       }
       continue
@@ -251,23 +252,23 @@ function buildBasicPattern(pattern, wildcard) {
 function buildSeparatedPattern(pattern, options) {
   var separator = options.separator
   var segments = pattern.split(separator)
-  var escSeparator = escapeRegExpChars(separator)
+  var escapedSeparator = escapeRegExpChars(separator)
   var result = ''
   var wildcard
 
   if (separator.length > 1) {
-    wildcard = '((?!' + escSeparator + ').)'
+    wildcard = '((?!' + escapedSeparator + ').)'
   } else {
-    wildcard = '[^' + escSeparator + ']'
+    wildcard = '[^' + escapedSeparator + ']'
   }
 
   for (var i = 0; i < segments.length; i++) {
     var segment = segments[i]
     if (i < segments.length - 1) {
       if (segment === '**') {
-        result += '(' + wildcard + '*' + escSeparator + ')*'
+        result += '(' + wildcard + '*' + escapedSeparator + ')*'
       } else {
-        result += buildBasicPattern(segment, wildcard) + escSeparator
+        result += buildBasicPattern(segment, wildcard) + escapedSeparator
       }
     } else {
       if (segment === '**') {

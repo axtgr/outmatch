@@ -40,7 +40,32 @@ module.exports = function (t) {
         t.ok(m('}')('}'))
         t.ok(m('{{')('{{'))
         t.ok(m('}}')('}}'))
-        t.ok(m('{}{')('{'))
+        t.skip(m('{}{')('{'))
+      })
+    )
+
+    t.test(
+      "Separators don't split braces",
+      testSeparators(function (t, m) {
+        t.ok(m('{one,two/three}')('one'))
+        t.ok(m('{one,two/three}')('two/three'))
+        t.ok(m('src/{bin,test/unit,test/integration}/index.js')('src/bin/index.js'))
+        t.ok(
+          m('src/{bin,test/unit,test/integration}/index.js')('src/test/unit/index.js')
+        )
+        t.ok(
+          m('src/{bin,test/unit,test/integration}/index.js')(
+            'src/test/integration/index.js'
+          )
+        )
+        t.notOk(m('src/{bin,test/unit,test/integration}/index.js')('bin/index.js'))
+        t.notOk(m('src/{bin,test/unit,test/integration}/index.js')('src/test/index.js'))
+        t.notOk(
+          m('src/{bin,test/unit,test/integration}/index.js')('src/bin/unit/index.js')
+        )
+        t.ok(m('src/{foo,bar/**}/?*.js')('src/foo/o.js'))
+        t.ok(m('src/{foo,bar/**}/?*.js')('src/bar/one.js'))
+        t.ok(m('src/{foo,bar/**}/?*.js')('src/bar/baz/qux/two.js'))
       })
     )
 

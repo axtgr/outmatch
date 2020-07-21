@@ -1,29 +1,33 @@
+var suite = require('./_utils').suite
 var outmatch = require('../src')
 
-module.exports = function (t) {
+module.exports = suite(function (t) {
   t.test('Returns a RegExp', function (t) {
     t.ok(outmatch('') instanceof RegExp)
   })
 
   t.test('Accepts an array of patterns', function (t) {
-    t.ok(outmatch(['one']).test('one'))
-    t.notOk(outmatch(['one']).test('two'))
-    t.ok(outmatch(['**', 'one']).test('whatever'))
-    t.ok(outmatch(['one', 'two', 'three']).test('one'))
-    t.ok(outmatch(['one', 'two', 'three']).test('two'))
-    t.ok(outmatch(['one', 'two', 'three']).test('three'))
-    t.notOk(outmatch(['one', 'two', 'three']).test('four'))
-    t.ok(outmatch(['one', 'one/two'], '/').test('one'))
-    t.ok(outmatch(['one', 'one/two'], '/').test('one/two'))
-    t.notOk(outmatch(['one', 'one/two'], '/').test('two'))
-    t.notOk(outmatch(['one', 'one/two'], '/').test('onetwo'))
-    t.ok(outmatch(['*', '*/*'], '/').test('one'))
-    t.ok(outmatch(['*', '*/*'], '/').test('two'))
-    t.ok(outmatch(['*', '*/*'], '/').test('one/two'))
-    t.notOk(outmatch(['*', '*/*'], '/').test('one/two/three'))
+    t.match(['one'])('one')
+    t.dontMatch(['one'])('two')
+    t.match(['**', 'one'])('whatever')
+    t.match(['one', 'two', 'three'])('one')
+    t.match(['one', 'two', 'three'])('two')
+    t.match(['one', 'two', 'three'])('three')
+    t.dontMatch(['one', 'two', 'three'])('four')
+
+    t.options({ separator: '/' })
+
+    t.match(['one', 'one/two'])('one')
+    t.match(['one', 'one/two'])('one/two')
+    t.dontMatch(['one', 'one/two'])('two')
+    t.dontMatch(['one', 'one/two'])('onetwo')
+    t.match(['*', '*/*'])('one')
+    t.match(['*', '*/*'])('two')
+    t.match(['*', '*/*'])('one/two')
+    t.dontMatch(['*', '*/*'])('one/two/three')
   })
 
   t.test('Treats unused RegExp characters literally', function (t) {
-    t.ok(outmatch('^$.+-|)').test('^$.+-|)'))
+    t.match('^$.+-|)')('^$.+-|)')
   })
-}
+})

@@ -1,97 +1,94 @@
-var testSeparators = require('./_utils').testSeparators
+var suite = require('./_utils').suite
 
-module.exports = function (t) {
+module.exports = suite(function (t) {
   t.test('** - globstar', function (t) {
-    t.test(
+    t.testPerSeparator(
       'Matches 0 or more segments when it takes a whole segment (/**/)',
-      testSeparators(function (t, m, sep) {
-        t.ok(m('**')(''))
-        t.ok(m('**')('/'))
-        t.ok(m('**')('one'))
-        t.ok(m('**')('one/'))
-        t.ok(m('**')('t/'))
-        t.ok(m('**')('///'))
-        t.ok(m('**')('one/three'))
-        t.ok(m('**')('two/three'))
-        t.ok(m('**')('one/three///'))
-        t.ok(m('**')('/three'))
-        t.ok(m('**')('//three'))
-        t.ok(m('one/**')('one/two'))
-        t.ok(m('one/**')('one/two/'))
-        t.ok(m('one/**')('one/two/three'))
-        t.ok(m('one/**')('one/'))
-        t.ok(m('one/**')('one/t/t'))
-        t.ok(m('one/**')('one/*/ **'))
-        t.ok(m('one/**')('one/***'))
-        t.ok(m('**/')('/one/'))
-        t.ok(m('**/one')('/one'))
-        t.ok(m('one/**/two')('one/two'))
-        t.ok(m('one/**/three')('one/two/three'))
-        t.ok(m('one/**/four')('one/two/three/four'))
-        t.notOk(m('one/**')(''))
-        t.notOk(m('one/**')('/'))
-        t.notOk(m('one/**')('//'))
-        t.notOk(m('one/**')('two'))
-        t.notOk(m('**/one')(''))
-        t.notOk(m('**/one')('/'))
-        t.notOk(m('**/one')('//'))
-        t.notOk(m('**/one')('two'))
+      function (t, sep) {
+        t.match('**')('')
+        t.match('**')('/')
+        t.match('**')('one')
+        t.match('**')('one/')
+        t.match('**')('t/')
+        t.match('**')('///')
+        t.match('**')('one/three')
+        t.match('**')('two/three')
+        t.match('**')('one/three///')
+        t.match('**')('/three')
+        t.match('**')('//three')
+        t.match('one/**')('one/two')
+        t.match('one/**')('one/two/')
+        t.match('one/**')('one/two/three')
+        t.match('one/**')('one/')
+        t.match('one/**')('one/t/t')
+        t.match('one/**')('one/*/ **')
+        t.match('one/**')('one/***')
+        t.match('**/')('/one/')
+        t.match('**/one')('/one')
+        t.match('one/**/three')('one/two/three')
+        t.match('one/**/four')('one/two/three/four')
+        t.dontMatch('one/**')('')
+        t.dontMatch('one/**')('/')
+        t.dontMatch('one/**')('//')
+        t.dontMatch('one/**')('two')
+        t.dontMatch('**/one')('')
+        t.dontMatch('**/one')('/')
+        t.dontMatch('**/one')('//')
+        t.dontMatch('**/one')('two')
+        t.dontMatch('one/**')('one')
+        t.dontMatch('one/**')('/one')
+        t.dontMatch('**/one')('one/')
+        t.dontMatch('**/')('/one')
+        t.dontMatch('**/')('/one/two')
 
         if (sep) {
-          t.notOk(m('one/**')('one'))
-          t.notOk(m('one/**')('/one'))
-          t.notOk(m('**/one')('one/'))
-          t.notOk(m('**/')('/one'))
-          t.notOk(m('**/')('/one/two'))
+          t.match('one/**/two')('one/two')
         }
-      })
+      }
     )
 
-    t.test(
+    t.testPerSeparator(
       "Behaves as * when it doesn't take a whole segment (/one**/) or no separator is given",
-      testSeparators(function (t, m, sep) {
+      function (t, sep) {
         // TODO: add cases with separators
 
-        t.ok(m('o**')('o'))
-        t.ok(m('o**')('one'))
-        t.ok(m('o**')('onetwo'))
-        t.ok(m('**e')('one'))
-        t.ok(m('**e')('twoone'))
-        t.ok(m('one**')('one'))
-        t.notOk(m('one**')('on'))
-        t.notOk(m('one**')('ont'))
-        t.notOk(m('one**')('onte'))
-        t.notOk(m('o**')(''))
-        t.notOk(m('o**')('two'))
-        t.notOk(m('**e')(''))
-        t.notOk(m('**e')('two'))
+        t.match('o**')('o')
+        t.match('o**')('one')
+        t.match('o**')('onetwo')
+        t.match('**e')('one')
+        t.match('**e')('twoone')
+        t.match('one**')('one')
+        t.dontMatch('one**')('on')
+        t.dontMatch('one**')('ont')
+        t.dontMatch('one**')('onte')
+        t.dontMatch('o**')('')
+        t.dontMatch('o**')('two')
+        t.dontMatch('**e')('')
+        t.dontMatch('**e')('two')
 
         if (sep) {
-          t.notOk(m('**two')('one/two'))
-          t.notOk(m('o**')('o/two'))
-          t.notOk(m('o**')('o/two/three'))
-          t.notOk(m('**e')('two/one'))
-          t.notOk(m('**e')('three/two/one'))
+          t.dontMatch('**two')('one/two')
+          t.dontMatch('o**')('o/two')
+          t.dontMatch('o**')('o/two/three')
+          t.dontMatch('**e')('two/one')
+          t.dontMatch('**e')('three/two/one')
         } else {
-          t.ok(m('one**')('one/two'))
+          t.match('one**')('one/two')
         }
-      })
+      }
     )
 
-    t.test(
-      'When escaped, treated literally',
-      testSeparators(function (t, m) {
-        // TODO: add cases with separators
+    t.testPerSeparator('When escaped, treated literally', function (t) {
+      // TODO: add cases with separators
 
-        t.ok(m('one/\\*\\*')('one/**'))
-        t.notOk(m('one/\\*\\*')('one/two'))
-        t.ok(m('\\*\\*')('**'))
-        t.ok(m('one\\*\\*')('one**'))
-        t.notOk(m('\\*\\*')('!!'))
-        t.notOk(m('\\*\\*')('one/two'))
-        t.notOk(m('one\\*\\*')('one!!'))
-        t.notOk(m('one/\\*\\*')('one/!!'))
-      })
-    )
+      t.match('one/\\*\\*')('one/**')
+      t.dontMatch('one/\\*\\*')('one/two')
+      t.match('\\*\\*')('**')
+      t.match('one\\*\\*')('one**')
+      t.dontMatch('\\*\\*')('!!')
+      t.dontMatch('\\*\\*')('one/two')
+      t.dontMatch('one\\*\\*')('one!!')
+      t.dontMatch('one/\\*\\*')('one/!!')
+    })
   })
-}
+})

@@ -1,74 +1,64 @@
-var testSeparators = require('./_utils').testSeparators
+var suite = require('./_utils').suite
 
-module.exports = function (t) {
+module.exports = suite(function (t) {
   t.test('{} - braces', function (t) {
-    t.test(
+    t.testPerSeparator(
       'Matches one of the given subpatterns exactly one time',
-      testSeparators(function (t, m) {
-        t.ok(m('{one,two}')('one'))
-        t.ok(m('{one,two}')('two'))
-        t.notOk(m('{one,two}')(''))
-        t.notOk(m('{one,two}')('{one,two}'))
-        t.notOk(m('{one,two}')('onetwo'))
-        t.notOk(m('{one,two}')('oneone'))
-        t.ok(m('{one,two,three,four}')('three'))
-        t.notOk(m('{one,two,three,four}')('five'))
-        t.notOk(m('{one,two,three,four}')('onetwo'))
-      })
+      function (t) {
+        t.match('{one,two}')('one')
+        t.match('{one,two}')('two')
+        t.dontMatch('{one,two}')('')
+        t.dontMatch('{one,two}')('{one,two}')
+        t.dontMatch('{one,two}')('onetwo')
+        t.dontMatch('{one,two}')('oneone')
+        t.match('{one,two,three,four}')('three')
+        t.dontMatch('{one,two,three,four}')('five')
+        t.dontMatch('{one,two,three,four}')('onetwo')
+      }
     )
 
-    t.test(
-      ', is treated literally when not in braces',
-      testSeparators(function (t, m) {
-        t.ok(m(',')(','))
-        t.notOk(m(',')(''))
-        t.ok(m('o,e')('o,e'))
-        t.notOk(m('o,e')('o'))
-        t.notOk(m('o,e')(','))
-        t.ok(m('{o,e')('{o,e'))
-        t.notOk(m('{o,e')('o'))
-        t.ok(m(',,,')(',,,'))
-        t.ok(m(',{,')(',{,'))
-        t.ok(m('one,two')('one,two'))
-      })
-    )
+    t.testPerSeparator(', is treated literally when not in braces', function (t) {
+      t.match(',')(',')
+      t.dontMatch(',')('')
+      t.match('o,e')('o,e')
+      t.dontMatch('o,e')('o')
+      t.dontMatch('o,e')(',')
+      t.match('{o,e')('{o,e')
+      t.dontMatch('{o,e')('o')
+      t.match(',,,')(',,,')
+      t.match(',{,')(',{,')
+      t.match('one,two')('one,two')
+    })
 
-    t.test(
-      'When unmatched, treated as other chars',
-      testSeparators(function (t, m) {
-        t.ok(m('{')('{'))
-        t.ok(m('}')('}'))
-        t.ok(m('{{')('{{'))
-        t.ok(m('}}')('}}'))
-        t.skip(m('{}{')('{'))
-      })
-    )
+    t.testPerSeparator('When unmatched, treated as other chars', function (t) {
+      t.match('{')('{')
+      t.match('}')('}')
+      t.match('{{')('{{')
+      t.match('}}')('}}')
+      t.skip('{}{', '{')
+    })
 
-    t.test(
-      "Separators don't split braces",
-      testSeparators(function (t, m) {
-        t.ok(m('{one,two/three}')('one'))
-        t.ok(m('{one,two/three}')('two/three'))
-        t.ok(m('src/{bin,test/unit,test/integration}/index.js')('src/bin/index.js'))
-        t.ok(
-          m('src/{bin,test/unit,test/integration}/index.js')('src/test/unit/index.js')
-        )
-        t.ok(
-          m('src/{bin,test/unit,test/integration}/index.js')(
-            'src/test/integration/index.js'
-          )
-        )
-        t.notOk(m('src/{bin,test/unit,test/integration}/index.js')('bin/index.js'))
-        t.notOk(m('src/{bin,test/unit,test/integration}/index.js')('src/test/index.js'))
-        t.notOk(
-          m('src/{bin,test/unit,test/integration}/index.js')('src/bin/unit/index.js')
-        )
-        t.ok(m('src/{foo,bar/**}/?*.js')('src/foo/o.js'))
-        t.ok(m('src/{foo,bar/**}/?*.js')('src/bar/one.js'))
-        t.ok(m('src/{foo,bar/**}/?*.js')('src/bar/baz/qux/two.js'))
-      })
-    )
+    t.testPerSeparator("Separators don't split braces", function (t, sep) {
+      t.match('{one,two/three}')('one')
+      t.match('{one,two/three}')('two/three')
+      t.match('src/{bin,test/unit,test/integration}/index.js')('src/bin/index.js')
+      t.match('src/{bin,test/unit,test/integration}/index.js')('src/test/unit/index.js')
+      t.match('src/{bin,test/unit,test/integration}/index.js')(
+        'src/test/integration/index.js'
+      )
+      t.dontMatch('src/{bin,test/unit,test/integration}/index.js')('bin/index.js')
+      t.dontMatch('src/{bin,test/unit,test/integration}/index.js')('src/test/index.js')
+      t.dontMatch('src/{bin,test/unit,test/integration}/index.js')(
+        'src/bin/unit/index.js'
+      )
+      t.match('src/{foo,bar/**}/?*.js')('src/foo/o.js')
+      t.match('src/{foo,bar/**}/?*.js')('src/bar/baz/qux/two.js')
+
+      if (sep) {
+        t.match('src/{foo,bar/**}/?*.js')('src/bar/one.js')
+      }
+    })
 
     // TODO: add tests for escaped braces
   })
-}
+})

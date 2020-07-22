@@ -30,12 +30,28 @@ module.exports = suite(function (t) {
       t.match('one,two')('one,two')
     })
 
-    t.testPerSeparator('When unmatched, treated as other chars', function (t) {
+    t.testPerSeparator('When unmatched, treated literally', function (t) {
       t.match('{')('{')
       t.match('}')('}')
       t.match('{{')('{{')
       t.match('}}')('}}')
       t.skip('{}{', '{')
+    })
+
+    t.testPerSeparator('When turned off in options, treated literally', function (t) {
+      t.options({ '{}': false })
+
+      t.match('{one,two}')('{one,two}')
+      t.dontMatch('{one,two}')('')
+      t.dontMatch('{one,two}')('one')
+      t.dontMatch('{one,two}')('two')
+      t.match('one/{two,three}/four')('one/{two,three}/four')
+      t.dontMatch('one/{two,three}/four')('one/two/four')
+      t.dontMatch('one/{two,three}/four')('one/three/four')
+      t.dontMatch('one/{two,three}/four')('one//four')
+      t.match('{one,two/three}')('{one,two/three}')
+      t.dontMatch('{one,two/three}')('one')
+      t.dontMatch('{one,two/three}')('two/three')
     })
 
     t.testPerSeparator("Separators don't split braces", function (t, sep) {

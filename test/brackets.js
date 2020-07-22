@@ -85,6 +85,30 @@ module.exports = suite(function (t) {
       }
     )
 
+    t.testPerSeparator('When turned off in options, treated literally', function (t) {
+      t.options({ '[]': false })
+
+      t.match('[abc]')('[abc]')
+      t.dontMatch('[abc]')('')
+      t.dontMatch('[abc]')('a')
+      t.dontMatch('[abc]')('b')
+      t.dontMatch('[abc]')('[]')
+      t.match('[a-z]')('[a-z]')
+      t.dontMatch('[a-z]')('')
+      t.dontMatch('[a-z]')('a')
+      t.dontMatch('[a-z]')('-')
+      t.dontMatch('[a-z]')('z')
+      t.dontMatch('[a-z]')('[]')
+      t.match('[a/c]')('[a/c]')
+      t.dontMatch('[a/c]')('')
+      t.dontMatch('[a/c]')('a')
+      t.dontMatch('[a/c]')('/')
+      t.match('one/[tw]o')('one/[tw]o')
+      t.dontMatch('one/[tw]o')('one/to')
+      t.match('one/[tw]o/three')('one/[tw]o/three')
+      t.dontMatch('one/[tw]o/three')('one/to/three')
+    })
+
     t.testPerSeparator('[] is treated literally', function (t) {
       t.match('[]')('[]')
       t.match('on[]/two')('on[]/two')

@@ -86,6 +86,20 @@ module.exports = suite(function (t) {
       }
     })
 
+    t.testPerSeparator('When turned off in options, treated literally', function (t) {
+      t.options({ '?': false })
+
+      t.match('?')('?')
+      t.dontMatch('?')('a')
+      t.dontMatch('?')('')
+      t.dontMatch('?')('/')
+      t.match('a?c')('a?c')
+      t.dontMatch('a?c')('abc')
+      t.dontMatch('a?c')('a/c')
+      t.match('o?e/t?o')('o?e/t?o')
+      t.dontMatch('o?e/t?o')('one/two')
+    })
+
     t.testPerSeparator('When escaped, treated literally', function (t) {
       // TODO: add cases with separators, multiple backslashes
 

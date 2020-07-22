@@ -133,5 +133,20 @@ module.exports = suite(function (t) {
       t.dontMatch('o\\*e')('\\**')
       t.dontMatch('o\\*e')('\\')
     })
+
+    t.testPerSeparator('When turned off in options, treated literally', function (t) {
+      t.options({ '*': false })
+
+      t.match('*')('*')
+      t.dontMatch('*')('')
+      t.dontMatch('*')('one')
+      t.dontMatch('*')('/')
+      t.match('one*two')('one*two')
+      t.dontMatch('one*two')('onetwo')
+      t.dontMatch('one*two')('onethreetwo')
+      t.dontMatch('one*two')('one/two')
+      t.match('o*e/t*o')('o*e/t*o')
+      t.dontMatch('o*e/t*o')('one/two')
+    })
   })
 })

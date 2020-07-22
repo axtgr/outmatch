@@ -90,5 +90,29 @@ module.exports = suite(function (t) {
       t.dontMatch('one\\*\\*')('one!!')
       t.dontMatch('one/\\*\\*')('one/!!')
     })
+
+    t.testPerSeparator('When turned off in options, behaves as a singular *', function (
+      t,
+      sep
+    ) {
+      t.options({ '**': false })
+
+      t.match('**')('')
+      t.match('**')('**')
+      t.match('**')('one')
+      t.match('one/**')('one/**')
+      t.match('one/**')('one/two')
+      t.match('one/**')('one/')
+      t.dontMatch('one/**')('one')
+      t.match('one/**/three')('one/**/three')
+      t.dontMatch('one/**/three')('one/three')
+      t.match('one/**/three')('one/two/three')
+
+      if (sep) {
+        t.dontMatch('one/**/three')('one/two/four/three')
+      } else {
+        t.match('one/**/three')('one/two/four/three')
+      }
+    })
   })
 })

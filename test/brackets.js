@@ -132,16 +132,13 @@ module.exports = suite(function (t) {
 
     t.testPerSeparator(
       'Separators in the middle of a character class interrupt it, so [] are treated literally',
-      function (t, sep) {
+      function (t) {
         t.dontMatch('[/]')('[]')
         t.match('[/')('[/')
         t.dontMatch('[/')('[')
         t.dontMatch('[/')('/')
-
-        if (sep) {
-          t.match('[/]')('[/]')
-          t.dontMatch('[/]')('/')
-        }
+        t.matchWhenSeparated('[/]')('[/]')
+        t.dontMatchWhenSeparated('[/]')('/')
       }
     )
 

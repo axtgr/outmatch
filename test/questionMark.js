@@ -2,7 +2,7 @@ var suite = require('./_utils').suite
 
 module.exports = suite(function (t) {
   t.test('? - single-char wildcard', function (t) {
-    t.testPerSeparator('Matches one non-separator character', function (t, sep) {
+    t.testPerSeparator('Matches one non-separator character', function (t) {
       t.match('?')('o')
       t.match('?')('t')
       t.match('??')('on')
@@ -67,23 +67,21 @@ module.exports = suite(function (t) {
       t.dontMatch('/??')('on')
       t.dontMatch('o?e/tw?')('onetwo')
 
-      if (sep) {
-        t.dontMatch('?')('/')
-        t.dontMatch('??')('//')
-        t.dontMatch('???')('/on')
-        t.dontMatch('???')('///')
-        t.dontMatch('on?')('on/')
-        t.dontMatch('?one')('/one')
-        t.dontMatch('o??')('o/e')
-        t.dontMatch('o??')('o//')
-        t.dontMatch('o???')('on/e')
-        t.dontMatch('one?two')('one/two')
-        t.dontMatch('?/')('//')
-        t.dontMatch('?/?')('///')
-        t.dontMatch('/?')('//')
-        t.dontMatch('/??')('///')
-        t.dontMatch('one/tw?')('one/tw/')
-      }
+      t.dontMatchWhenSeparated('?')('/')
+      t.dontMatchWhenSeparated('??')('//')
+      t.dontMatchWhenSeparated('???')('/on')
+      t.dontMatchWhenSeparated('???')('///')
+      t.dontMatchWhenSeparated('on?')('on/')
+      t.dontMatchWhenSeparated('?one')('/one')
+      t.dontMatchWhenSeparated('o??')('o/e')
+      t.dontMatchWhenSeparated('o??')('o//')
+      t.dontMatchWhenSeparated('o???')('on/e')
+      t.dontMatchWhenSeparated('one?two')('one/two')
+      t.dontMatchWhenSeparated('?/')('//')
+      t.dontMatchWhenSeparated('?/?')('///')
+      t.dontMatchWhenSeparated('/?')('//')
+      t.dontMatchWhenSeparated('/??')('///')
+      t.dontMatchWhenSeparated('one/tw?')('one/tw/')
     })
 
     t.testPerSeparator('When turned off in options, treated literally', function (t) {

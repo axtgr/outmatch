@@ -2,7 +2,7 @@ var suite = require('./_utils').suite
 
 module.exports = suite(function (t) {
   t.test('Mixed wildcards', function (t) {
-    t.testPerSeparator('? and *', function (t, sep) {
+    t.testPerSeparator('? and *', function (t) {
       t.match('?*')('onetwo')
       t.match('?*')('o')
       t.dontMatch('?*')('')
@@ -30,22 +30,20 @@ module.exports = suite(function (t) {
       t.dontMatch('?*?/*/*')('one/two')
       t.dontMatch('?*/*')('one')
 
-      if (sep) {
-        t.dontMatch('?*')('/')
-        t.dontMatch('*?')('/')
-        t.dontMatch('?ne*')('one/two')
-        t.dontMatch('?*?/*')('one/two/three')
-        t.dontMatch('?*?/*/*')('one/two/three/four')
-        t.dontMatch('?*')('one/')
-        t.dontMatch('?*')('/one')
-        t.dontMatch('?*/*')('one/two/')
-        t.dontMatch('?*?')('/one')
-        t.dontMatch('?*?')('o/e')
-        t.dontMatch('?*/*')('one/two/three')
-      }
+      t.dontMatchWhenSeparated('?*')('/')
+      t.dontMatchWhenSeparated('*?')('/')
+      t.dontMatchWhenSeparated('?ne*')('one/two')
+      t.dontMatchWhenSeparated('?*?/*')('one/two/three')
+      t.dontMatchWhenSeparated('?*?/*/*')('one/two/three/four')
+      t.dontMatchWhenSeparated('?*')('one/')
+      t.dontMatchWhenSeparated('?*')('/one')
+      t.dontMatchWhenSeparated('?*/*')('one/two/')
+      t.dontMatchWhenSeparated('?*?')('/one')
+      t.dontMatchWhenSeparated('?*?')('o/e')
+      t.dontMatchWhenSeparated('?*/*')('one/two/three')
     })
 
-    t.testPerSeparator('* and **', function (t, sep) {
+    t.testPerSeparator('* and **', function (t) {
       t.match('*/**')('/')
       t.match('*/**')('one/two')
       t.match('**/*')('one/two')
@@ -100,15 +98,13 @@ module.exports = suite(function (t) {
       // TODO: decide on this one
       t.skip('**/*', '')
 
-      if (sep) {
-        t.match('**/*')('one')
-        t.match('*/**/*')('one/two')
-        t.match('one/**/two/*')('one/two/three')
-        t.match('*/**/*/**')('one/two/three')
-      }
+      t.matchWhenSeparated('**/*')('one')
+      t.matchWhenSeparated('*/**/*')('one/two')
+      t.matchWhenSeparated('one/**/two/*')('one/two/three')
+      t.matchWhenSeparated('*/**/*/**')('one/two/three')
     })
 
-    t.testPerSeparator('? and **', function (t, sep) {
+    t.testPerSeparator('? and **', function (t) {
       t.match('?**')('o')
       t.match('?**')('one')
       t.dontMatch('?**')('')
@@ -127,13 +123,11 @@ module.exports = suite(function (t) {
       t.dontMatch('???/**/???')('one')
       t.dontMatch('???/**/???')('onetwo')
 
-      if (sep) {
-        t.match('**/?')('o')
-        t.match('???/**/???')('one/two')
-      }
+      t.matchWhenSeparated('**/?')('o')
+      t.matchWhenSeparated('???/**/???')('one/two')
     })
 
-    t.testPerSeparator('?, * and **', function (t, sep) {
+    t.testPerSeparator('?, * and **', function (t) {
       t.match('?*/**')('one/two')
       t.match('?*/?**')('one/two')
       t.match('?*?/**')('one/')
@@ -155,11 +149,9 @@ module.exports = suite(function (t) {
       t.dontMatch('*/**/?*')('o')
       t.dontMatch('*/**/?*')('o/')
 
-      if (sep) {
-        t.match('*/**/?*')('/o')
-        t.match('*/**/?*')('/one')
-        t.match('*/**/?*')('one/two')
-      }
+      t.matchWhenSeparated('*/**/?*')('/o')
+      t.matchWhenSeparated('*/**/?*')('/one')
+      t.matchWhenSeparated('*/**/?*')('one/two')
     })
 
     // TODO: add tests for escaped wildcards

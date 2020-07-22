@@ -2,7 +2,7 @@ var suite = require('./_utils').suite
 
 module.exports = suite(function (t) {
   t.test('* - wildcard', function (t) {
-    t.testPerSeparator('Matches 0 or more non-separator characters', function (t, sep) {
+    t.testPerSeparator('Matches 0 or more non-separator characters', function (t) {
       t.match('*')('')
       t.match('*')('o')
       t.match('*')('one')
@@ -68,26 +68,24 @@ module.exports = suite(function (t) {
       t.dontMatch('one/*')('/one')
       t.dontMatch('*/one')('one')
       t.dontMatch('*/one')('one/')
+      t.dontMatch('o*n*e')('one/')
 
-      if (sep) {
-        t.dontMatch('*')('/')
-        t.dontMatch('*')('//')
-        t.dontMatch('*')('one/two')
-        t.dontMatch('*')('one/')
-        t.dontMatch('*')('/one')
-        t.dontMatch('one/*')('one/two/three')
-        t.dontMatch('*two')('one/two')
-        t.dontMatch('*n*')('n/')
-        t.dontMatch('*n*')('one/')
-        t.dontMatch('*n*')('/n')
-        t.dontMatch('*n*')('/n/')
-        t.dontMatch('o*n*e')('one/')
-        t.dontMatch('o*n*e')('o/ne')
-        t.dontMatch('o*n*e')('on/e')
-        t.dontMatch('o*n*e')('o/n/e')
-        t.dontMatch('*ne/*o')('/ne/o')
-        t.dontMatch('*/*o')('//o')
-      }
+      t.dontMatchWhenSeparated('*')('/')
+      t.dontMatchWhenSeparated('*')('//')
+      t.dontMatchWhenSeparated('*')('one/two')
+      t.dontMatchWhenSeparated('*')('one/')
+      t.dontMatchWhenSeparated('*')('/one')
+      t.dontMatchWhenSeparated('one/*')('one/two/three')
+      t.dontMatchWhenSeparated('*two')('one/two')
+      t.dontMatchWhenSeparated('*n*')('n/')
+      t.dontMatchWhenSeparated('*n*')('one/')
+      t.dontMatchWhenSeparated('*n*')('/n')
+      t.dontMatchWhenSeparated('*n*')('/n/')
+      t.dontMatchWhenSeparated('o*n*e')('o/ne')
+      t.dontMatchWhenSeparated('o*n*e')('on/e')
+      t.dontMatchWhenSeparated('o*n*e')('o/n/e')
+      t.dontMatchWhenSeparated('*ne/*o')('/ne/o')
+      t.dontMatchWhenSeparated('*/*o')('//o')
     })
 
     t.testPerSeparator('When escaped, treated literally', function (t) {

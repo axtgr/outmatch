@@ -4,7 +4,7 @@ module.exports = suite(function (t) {
   t.test('** - globstar', function (t) {
     t.testPerSeparator(
       'Matches 0 or more segments when it takes a whole segment (/**/)',
-      function (t, sep) {
+      function (t) {
         t.match('**')('')
         t.match('**')('/')
         t.match('**')('one')
@@ -40,16 +40,13 @@ module.exports = suite(function (t) {
         t.dontMatch('**/one')('one/')
         t.dontMatch('**/')('/one')
         t.dontMatch('**/')('/one/two')
-
-        if (sep) {
-          t.match('one/**/two')('one/two')
-        }
+        t.matchWhenSeparated('one/**/two')('one/two')
       }
     )
 
     t.testPerSeparator(
       "Behaves as * when it doesn't take a whole segment (/one**/) or no separator is given",
-      function (t, sep) {
+      function (t) {
         // TODO: add cases with separators
 
         t.match('o**')('o')
@@ -66,15 +63,12 @@ module.exports = suite(function (t) {
         t.dontMatch('**e')('')
         t.dontMatch('**e')('two')
 
-        if (sep) {
-          t.dontMatch('**two')('one/two')
-          t.dontMatch('o**')('o/two')
-          t.dontMatch('o**')('o/two/three')
-          t.dontMatch('**e')('two/one')
-          t.dontMatch('**e')('three/two/one')
-        } else {
-          t.match('one**')('one/two')
-        }
+        t.dontMatchWhenSeparated('**two')('one/two')
+        t.dontMatchWhenSeparated('o**')('o/two')
+        t.dontMatchWhenSeparated('o**')('o/two/three')
+        t.dontMatchWhenSeparated('**e')('two/one')
+        t.dontMatchWhenSeparated('**e')('three/two/one')
+        t.dontMatchWhenSeparated('one**')('one/two')
       }
     )
 
@@ -92,8 +86,7 @@ module.exports = suite(function (t) {
     })
 
     t.testPerSeparator('When turned off in options, behaves as a singular *', function (
-      t,
-      sep
+      t
     ) {
       t.options({ '**': false })
 
@@ -107,12 +100,7 @@ module.exports = suite(function (t) {
       t.match('one/**/three')('one/**/three')
       t.dontMatch('one/**/three')('one/three')
       t.match('one/**/three')('one/two/three')
-
-      if (sep) {
-        t.dontMatch('one/**/three')('one/two/four/three')
-      } else {
-        t.match('one/**/three')('one/two/four/three')
-      }
+      t.dontMatchWhenSeparated('one/**/three')('one/two/four/three')
     })
   })
 })

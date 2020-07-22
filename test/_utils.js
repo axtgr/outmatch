@@ -115,6 +115,22 @@ function decorateT(t, options) {
       })
     }
   }
+
+  t.matchWhenSeparated = function (pattern) {
+    if (options.separator) {
+      return t.match(pattern)
+    } else {
+      return t.dontMatch(pattern)
+    }
+  }
+
+  t.dontMatchWhenSeparated = function (pattern) {
+    if (options.separator) {
+      return t.dontMatch(pattern)
+    } else {
+      return t.match(pattern)
+    }
+  }
 }
 
 function suite(fn) {

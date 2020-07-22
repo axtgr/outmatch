@@ -196,20 +196,18 @@ module.exports = suite(function (t) {
 
     t.testPerSeparator(
       'Separators between () make them be treated literally',
-      function (t, sep) {
+      function (t) {
         t.dontMatch('@(one/two)')('one')
         t.dontMatch('?(one/two)')('one')
         t.dontMatch('*(one/two)')('one')
         t.dontMatch('+(one/two)')('one')
 
-        if (sep) {
-          t.match('@(one/two)')('@(one/two)')
-          t.match('?(one/two)')('?(one/two)')
-          t.match('?(one/two)')('o(one/two)')
-          t.match('*(one/two)')('*(one/two)')
-          t.match('*(one/two)')('one(one/two)')
-          t.match('+(one/two)')('+(one/two)')
-        }
+        t.matchWhenSeparated('@(one/two)')('@(one/two)')
+        t.matchWhenSeparated('?(one/two)')('?(one/two)')
+        t.matchWhenSeparated('?(one/two)')('o(one/two)')
+        t.matchWhenSeparated('*(one/two)')('*(one/two)')
+        t.matchWhenSeparated('*(one/two)')('one(one/two)')
+        t.matchWhenSeparated('+(one/two)')('+(one/two)')
       }
     )
 

@@ -54,7 +54,7 @@ module.exports = suite(function (t) {
       t.dontMatch('{one,two/three}')('two/three')
     })
 
-    t.testPerSeparator("Separators don't split braces", function (t, sep) {
+    t.testPerSeparator("Separators don't split braces", function (t) {
       t.match('{one,two/three}')('one')
       t.match('{one,two/three}')('two/three')
       t.match('src/{bin,test/unit,test/integration}/index.js')('src/bin/index.js')
@@ -70,9 +70,7 @@ module.exports = suite(function (t) {
       t.match('src/{foo,bar/**}/?*.js')('src/foo/o.js')
       t.match('src/{foo,bar/**}/?*.js')('src/bar/baz/qux/two.js')
 
-      if (sep) {
-        t.match('src/{foo,bar/**}/?*.js')('src/bar/one.js')
-      }
+      t.matchWhenSeparated('src/{foo,bar/**}/?*.js')('src/bar/one.js')
     })
 
     // TODO: add tests for escaped braces

@@ -277,9 +277,24 @@ function buildSeparatedPattern(pattern, options) {
   return result
 }
 
+function handleNegation(pattern) {
+  var isNegated = false
+
+  for (var i = 0; i < pattern.length && pattern[i] === '!'; i++) {
+    isNegated = !isNegated
+  }
+
+  return {
+    isNegated: isNegated,
+    pattern: i > 0 ? pattern.substr(i) : pattern,
+  }
+}
+
 function buildRegExpPattern(patterns, options) {
-  var result = ''
+  var supportNegation = options['!'] !== false
   var buildFn = options.separator ? buildSeparatedPattern : buildBasicPattern
+  var result = ''
+  var negation
 
   if (options['{}'] !== false) {
     if (Array.isArray(patterns)) {
@@ -310,11 +325,26 @@ function buildRegExpPattern(patterns, options) {
       if (k > 0) {
         result += '|'
       }
-      result += buildFn(patterns[k], options)
+
+      negation = handleNegation(patterns[k])
+      if (negation.isNegated) {
+        result += '(?!^' + buildFn(negation.pattern, options) + '$).*'
+      } else {
+        result += buildFn(negation.pattern, options)
+      }
     }
     result += ')$'
   } else if (typeof patterns === 'string') {
-    result = '^' + buildFn(patterns, options) + '$'
+    if (supportNegation) {
+      negation = handleNegation(patterns)
+      if (negation.isNegated) {
+        result = '^(?!^' + buildFn(negation.pattern, options) + '$).*$'
+      } else {
+        result = '^' + buildFn(negation.pattern, options) + '$'
+      }
+    } else {
+      result = '^' + buildFn(patterns, options) + '$'
+    }
   } else {
     throw new TypeError(
       'The "patterns" argument must be a string or an array of strings'

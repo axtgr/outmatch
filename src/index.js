@@ -5,25 +5,7 @@
 var expandBraces = require('./expandBraces')
 var build = require('./build')
 
-function negatePattern(pattern, options, buildFn) {
-  var isNegated = false
-
-  for (var i = 0; i < pattern.length && pattern[i] === '!'; i++) {
-    isNegated = !isNegated
-  }
-
-  if (i > 0) {
-    pattern = pattern.substr(i)
-  }
-
-  if (isNegated) {
-    return '(?!^' + buildFn(pattern, options) + '$).*'
-  } else {
-    return buildFn(pattern, options)
-  }
-}
-
-function expandPatterns(patterns) {
+function expand(patterns) {
   if (Array.isArray(patterns)) {
     var results = []
     for (var i = 0; i < patterns.length; i++) {
@@ -40,13 +22,9 @@ function expandPatterns(patterns) {
   throw new TypeError('Patterns must be a string or an array of strings')
 }
 
-function buildRegExpPattern(patterns, options) {
-  var supportNegation = options['!'] !== false
-  var buildFn = options.separator ? build.separatedPattern : build.basicPattern
-  var result = ''
-
+function parse(patterns, options) {
   if (options['{}'] !== false) {
-    patterns = expandPatterns(patterns)
+    patterns = expand(patterns)
   }
 
   if (Array.isArray(patterns) && patterns.length === 1) {
@@ -54,20 +32,16 @@ function buildRegExpPattern(patterns, options) {
   }
 
   if (Array.isArray(patterns)) {
-    result = ''
+    var result = ''
     for (var k = 0; k < patterns.length; k++) {
       if (k > 0) {
         result += '|'
       }
-      result += negatePattern(patterns[k], options, buildFn)
+      result += build(patterns[k], options)
     }
     return '^(' + result + ')$'
   } else if (typeof patterns === 'string') {
-    if (supportNegation) {
-      return '^' + negatePattern(patterns, options, buildFn) + '$'
-    } else {
-      return '^' + buildFn(patterns, options) + '$'
-    }
+    return '^' + build(patterns, options) + '$'
   }
 
   throw new TypeError('Patterns must be a string or an array of strings')
@@ -75,7 +49,7 @@ function buildRegExpPattern(patterns, options) {
 
 function outmatch(patterns, options) {
   options = options && typeof options === 'object' ? options : { separator: options }
-  var regExpPattern = buildRegExpPattern(patterns, options)
+  var regExpPattern = parse(patterns, options)
   return new RegExp(regExpPattern)
 }
 

@@ -197,7 +197,26 @@ function buildSeparatedPattern(pattern, options) {
   return result
 }
 
-module.exports = {
-  basicPattern: buildBasicPattern,
-  separatedPattern: buildSeparatedPattern,
+function build(pattern, options) {
+  var buildFn = options.separator ? buildSeparatedPattern : buildBasicPattern
+  var supportNegation = options['!'] !== false
+  var negate = false
+
+  if (supportNegation) {
+    for (var i = 0; i < pattern.length && pattern[i] === '!'; i++) {
+      negate = !negate
+    }
+
+    if (i > 0) {
+      pattern = pattern.substr(i)
+    }
+  }
+
+  if (negate) {
+    return '(?!^' + buildFn(pattern, options) + '$).*'
+  } else {
+    return buildFn(pattern, options)
+  }
 }
+
+module.exports = build

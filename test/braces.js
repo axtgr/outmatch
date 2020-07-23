@@ -17,25 +17,43 @@ module.exports = suite(function (t) {
       }
     )
 
-    t.testPerSeparator(', is treated literally when not in braces', function (t) {
-      t.match(',')(',')
-      t.dontMatch(',')('')
-      t.match('o,e')('o,e')
-      t.dontMatch('o,e')('o')
-      t.dontMatch('o,e')(',')
-      t.match('{o,e')('{o,e')
-      t.dontMatch('{o,e')('o')
-      t.match(',,,')(',,,')
-      t.match(',{,')(',{,')
-      t.match('one,two')('one,two')
-    })
+    t.testPerSeparator(
+      'When there is no comma and no range inside, treated literally',
+      function (t) {
+        t.match('{}')('{}')
+        t.match('one{}')('one{}')
+        t.match('{}two')('{}two')
+        t.match('one{}two')('one{}two')
+        t.match('{two}')('{two}')
+        t.match('one{two}')('one{two}')
+        t.match('{two}three')('{two}three')
+        t.match('one{two}three')('one{two}three')
+        t.match('{one/two}')('{one/two}')
+        t.match('one{two/three}/four')('one{two/three}/four')
+      }
+    )
+
+    t.testPerSeparator(
+      'When the range inside is incomplete or there are more than one separator, treated literally',
+      function (t) {
+        t.match('{..1}')('{..1}')
+        t.match('{1..}')('{1..}')
+        t.match('{1..2..3}')('{1..2..3}')
+        t.match('{1..2..3..4..5}')('{1..2..3..4..5}')
+      }
+    )
 
     t.testPerSeparator('When unmatched, treated literally', function (t) {
       t.match('{')('{')
       t.match('}')('}')
       t.match('{{')('{{')
       t.match('}}')('}}')
-      t.skip('{}{', '{')
+      t.match('{}{', '{}{')
+      t.match('}{one}{', '}{one}{')
+      t.match('{..1')('{..1')
+      t.match('..1}')('..1}')
+      t.match('{1..2')('{1..2')
+      t.match('1..2}')('1..2}')
     })
 
     t.testPerSeparator('When turned off in options, treated literally', function (t) {
@@ -52,6 +70,19 @@ module.exports = suite(function (t) {
       t.match('{one,two/three}')('{one,two/three}')
       t.dontMatch('{one,two/three}')('one')
       t.dontMatch('{one,two/three}')('two/three')
+    })
+
+    t.testPerSeparator(', is treated literally when not in braces', function (t) {
+      t.match(',')(',')
+      t.dontMatch(',')('')
+      t.match('o,e')('o,e')
+      t.dontMatch('o,e')('o')
+      t.dontMatch('o,e')(',')
+      t.match('{o,e')('{o,e')
+      t.dontMatch('{o,e')('o')
+      t.match(',,,')(',,,')
+      t.match(',{,')(',{,')
+      t.match('one,two')('one,two')
     })
 
     t.testPerSeparator("Separators don't split braces", function (t) {

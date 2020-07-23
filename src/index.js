@@ -33,6 +33,35 @@ function escapeRegExpString(str) {
   return result
 }
 
+function processNoCommaBraces(span) {
+  if (span.length < 3) {
+    return '{' + span + '}'
+  }
+
+  var separatorI = -1
+
+  for (var i = 2; i < span.length; i++) {
+    if (span[i] === '.' && span[i - 1] === '.') {
+      if (separatorI > -1) {
+        return '{' + span + '}'
+      }
+
+      separatorI = i - 1
+    }
+  }
+
+  if (separatorI > -1) {
+    var rangeStart = span.substr(0, separatorI)
+    var rangeEnd = span.substr(separatorI + 2)
+
+    if (rangeStart.length > 0 && rangeEnd.length > 0) {
+      return '[' + span.substr(0, separatorI) + '-' + span.substr(separatorI + 2) + ']'
+    }
+  }
+
+  return '{' + span + '}'
+}
+
 function expandBraces(pattern) {
   var scanning = false
   var openingBraces = 0
@@ -69,16 +98,25 @@ function expandBraces(pattern) {
         closingBraces++
       } else if (closingBraces === 1) {
         span = pattern.substring(handledUntil + 1, i)
-        alternatives.push(expandBraces(span))
-        newResults = []
-        for (j = 0; j < results.length; j++) {
-          for (k = 0; k < alternatives.length; k++) {
-            for (l = 0; l < alternatives[k].length; l++) {
-              newResults.push(results[j] + alternatives[k][l])
+
+        if (alternatives.length > 0) {
+          alternatives.push(expandBraces(span))
+          newResults = []
+          for (j = 0; j < results.length; j++) {
+            for (k = 0; k < alternatives.length; k++) {
+              for (l = 0; l < alternatives[k].length; l++) {
+                newResults.push(results[j] + alternatives[k][l])
+              }
             }
           }
+          results = newResults
+        } else {
+          span = processNoCommaBraces(span)
+          for (j = 0; j < results.length; j++) {
+            results[j] += span
+          }
         }
-        results = newResults
+
         handledUntil = i
         closingBraces--
       } else {

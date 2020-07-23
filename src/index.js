@@ -277,42 +277,48 @@ function buildSeparatedPattern(pattern, options) {
   return result
 }
 
-function handleNegation(pattern) {
+function negatePattern(pattern, options, buildFn) {
   var isNegated = false
 
   for (var i = 0; i < pattern.length && pattern[i] === '!'; i++) {
     isNegated = !isNegated
   }
 
-  return {
-    isNegated: isNegated,
-    pattern: i > 0 ? pattern.substr(i) : pattern,
+  if (i > 0) {
+    pattern = pattern.substr(i)
   }
+
+  if (isNegated) {
+    return '(?!^' + buildFn(pattern, options) + '$).*'
+  } else {
+    return buildFn(pattern, options)
+  }
+}
+
+function expandPatterns(patterns) {
+  if (Array.isArray(patterns)) {
+    var results = []
+    for (var i = 0; i < patterns.length; i++) {
+      var expandedPattern = expandBraces(patterns[i])
+      for (var j = 0; j < expandedPattern.length; j++) {
+        results.push(expandedPattern[j])
+      }
+    }
+    return results
+  } else if (typeof patterns === 'string') {
+    return expandBraces(patterns)
+  }
+
+  throw new TypeError('Patterns must be a string or an array of strings')
 }
 
 function buildRegExpPattern(patterns, options) {
   var supportNegation = options['!'] !== false
   var buildFn = options.separator ? buildSeparatedPattern : buildBasicPattern
   var result = ''
-  var negation
 
   if (options['{}'] !== false) {
-    if (Array.isArray(patterns)) {
-      var newPatterns = []
-      for (var i = 0; i < patterns.length; i++) {
-        var expandedPattern = expandBraces(patterns[i])
-        for (var j = 0; j < expandedPattern.length; j++) {
-          newPatterns.push(expandedPattern[j])
-        }
-      }
-      patterns = newPatterns
-    } else if (typeof patterns === 'string') {
-      patterns = expandBraces(patterns)
-    } else {
-      throw new TypeError(
-        'The "patterns" argument must be a string or an array of strings'
-      )
-    }
+    patterns = expandPatterns(patterns)
   }
 
   if (Array.isArray(patterns) && patterns.length === 1) {
@@ -320,38 +326,23 @@ function buildRegExpPattern(patterns, options) {
   }
 
   if (Array.isArray(patterns)) {
-    result = '^('
+    result = ''
     for (var k = 0; k < patterns.length; k++) {
       if (k > 0) {
         result += '|'
       }
-
-      negation = handleNegation(patterns[k])
-      if (negation.isNegated) {
-        result += '(?!^' + buildFn(negation.pattern, options) + '$).*'
-      } else {
-        result += buildFn(negation.pattern, options)
-      }
+      result += negatePattern(patterns[k], options, buildFn)
     }
-    result += ')$'
+    return '^(' + result + ')$'
   } else if (typeof patterns === 'string') {
     if (supportNegation) {
-      negation = handleNegation(patterns)
-      if (negation.isNegated) {
-        result = '^(?!^' + buildFn(negation.pattern, options) + '$).*$'
-      } else {
-        result = '^' + buildFn(negation.pattern, options) + '$'
-      }
+      return '^' + negatePattern(patterns, options, buildFn) + '$'
     } else {
-      result = '^' + buildFn(patterns, options) + '$'
+      return '^' + buildFn(patterns, options) + '$'
     }
-  } else {
-    throw new TypeError(
-      'The "patterns" argument must be a string or an array of strings'
-    )
   }
 
-  return result
+  throw new TypeError('Patterns must be a string or an array of strings')
 }
 
 function outmatch(patterns, options) {

@@ -89,7 +89,8 @@ function expandBraces(pattern) {
       } else {
         closingBraces--
       }
-    } else if (!scanning && char === ',' && closingBraces === 1) {
+    } else if (!scanning && char === ',' && closingBraces - openingBraces === 1) {
+      // closingBraces - openingBraces === 1 means we are in top-level braces
       span = pattern.substring(handledUntil + 1, i)
       alternatives.push(expandBraces(span))
       handledUntil = i

@@ -8,7 +8,7 @@ function processNoCommaBraces(span) {
   var separatorI = -1
 
   for (var i = 2; i < span.length; i++) {
-    if (span[i] === '.' && span[i - 1] === '.') {
+    if (span[i] === '.' && span[i - 1] === '.' && (i < 2 || span[i - 2] !== '\\')) {
       if (separatorI > -1) {
         return '{' + span + '}'
       }

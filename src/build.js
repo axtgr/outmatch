@@ -52,7 +52,7 @@ function buildBasicPattern(pattern, options, wildcard) {
 
     if (char === '\\') {
       if (i < pattern.length - 1) {
-        result += '\\' + pattern[++i]
+        result += escapeRegExpChar(pattern[++i])
       }
       continue
     }

@@ -32,7 +32,10 @@ function escapeRegExpString(str) {
 }
 
 function buildBasicPattern(pattern, options, wildcard) {
-  var result = ''
+  var supportBrackets = options['[]'] !== false
+  var supportParens = options['()'] !== false
+  var supportQMark = options['?'] !== false
+  var supportStar = options['*'] !== false
   var openingBracket = pattern.length
   var closingBracket = -1
   var parenModifiers = []
@@ -40,10 +43,8 @@ function buildBasicPattern(pattern, options, wildcard) {
   var closingParens = 0
   var parensHandledUntil = -1
   var scanningForParens = false
-  var supportBrackets = options['[]'] !== false
-  var supportParens = options['()'] !== false
-  var supportQMark = options['?'] !== false
-  var supportStar = options['*'] !== false
+  var result = ''
+  var buffer
 
   wildcard = wildcard || '.'
 
@@ -105,7 +106,7 @@ function buildBasicPattern(pattern, options, wildcard) {
     if (supportParens) {
       if (
         pattern[i + 1] === '(' &&
-        (char === '@' || char === '?' || char === '*' || char === '+')
+        (char === '@' || char === '?' || char === '*' || char === '+' || char === '!')
       ) {
         if (scanningForParens) {
           parenModifiers.push(char)
@@ -119,7 +120,13 @@ function buildBasicPattern(pattern, options, wildcard) {
           if (i > parensHandledUntil) {
             parensHandledUntil = i
           }
-          result += '('
+          if (char === '!') {
+            result += '((?!'
+            buffer = result
+            result = ''
+          } else {
+            result += '('
+          }
           openingParens--
           i++
           continue
@@ -131,7 +138,14 @@ function buildBasicPattern(pattern, options, wildcard) {
           closingParens++
         } else if (closingParens) {
           var modifier = parenModifiers.pop()
-          result += modifier === '@' ? ')' : ')' + modifier
+          if (modifier === '!') {
+            buffer += result + ').*|(' + result + ').+)'
+            result = buffer
+          } else if (modifier === '@') {
+            result += ')'
+          } else {
+            result += ')' + modifier
+          }
           closingParens--
           continue
         }
@@ -203,7 +217,11 @@ function build(pattern, options) {
   var negate = false
 
   if (supportNegation) {
-    for (var i = 0; i < pattern.length && pattern[i] === '!'; i++) {
+    for (
+      var i = 0;
+      i < pattern.length && pattern[i] === '!' && pattern[i + 1] !== '(';
+      i++
+    ) {
       negate = !negate
     }
 

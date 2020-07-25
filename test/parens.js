@@ -73,6 +73,41 @@ module.exports = suite(function (t) {
     )
 
     t.testPerSeparator(
+      '!() matches anything except for the given subpatterns',
+      function (t) {
+        t.dontMatch('!(one)')('one')
+        t.match('!(one)')('')
+        t.match('!(one)')('two')
+        t.match('!(one)')('onetwo')
+        t.match('!(one)')('twoone')
+        t.match('!(one)')('one/two')
+        t.match('!(one)')('one/')
+
+        t.dontMatch('!(one|two)three')('onethree')
+        t.dontMatch('!(one|two)three')('twothree')
+        t.dontMatch('!(one|two)three')('')
+        t.match('!(one|two)three')('!(one|two)three')
+        t.match('!(one|two)three')('three')
+        t.match('!(one|two)three')('onetwothree')
+        t.match('!(one|two)three')('twoonethree')
+        t.match('!(one|two)three')('onefourthree')
+        t.match('!(one|two)three')('one/three')
+        t.match('!(one|two)three')('two/three')
+
+        t.dontMatch('three!(one|two)')('threeone')
+        t.dontMatch('three!(one|two)')('threetwo')
+        t.dontMatch('three!(one|two)')('')
+        t.match('three!(one|two)')('three!(one|two)')
+        t.match('three!(one|two)')('three')
+        t.match('three!(one|two)')('threeonetwo')
+        t.match('three!(one|two)')('threetwoone')
+        t.match('three!(one|two)')('threeonefour')
+        t.match('three!(one|two)')('threeone/')
+        t.match('three!(one|two)')('threetwo/')
+      }
+    )
+
+    t.testPerSeparator(
       '| is treated literally when not in a complete group with a valid modifier',
       function (t) {
         t.match('|')('|')

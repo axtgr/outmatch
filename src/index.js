@@ -17,28 +17,35 @@ function flatMap(array, predicate) {
 }
 
 function compile(patterns, options) {
+  patterns = Array.isArray(patterns) ? patterns : [patterns]
+
   if (options['{}'] !== false) {
-    patterns = Array.isArray(patterns) ? flatMap(patterns, expand) : expand(patterns)
+    patterns = flatMap(patterns, expand)
   }
 
-  if (Array.isArray(patterns) && patterns.length === 1) {
-    patterns = patterns[0]
-  }
+  var positivePatterns = []
+  var result = ''
+  var parsedPattern
 
-  if (Array.isArray(patterns)) {
-    var result = ''
-    for (var k = 0; k < patterns.length; k++) {
-      if (k > 0) {
-        result += '|'
-      }
-      result += parse(patterns[k], options).pattern
+  for (var i = 0; i < patterns.length; i++) {
+    parsedPattern = parse(patterns[i], options)
+
+    if (parsedPattern.negated) {
+      result += parsedPattern.pattern
+    } else {
+      positivePatterns.push(parsedPattern.pattern)
     }
-    return '^(' + result + ')$'
-  } else if (typeof patterns === 'string') {
-    return '^' + parse(patterns, options).pattern + '$'
   }
 
-  throw new TypeError('Patterns must be a string or an array of strings')
+  if (positivePatterns.length > 1) {
+    result += '(' + positivePatterns.join('|') + ')'
+  } else if (positivePatterns.length === 1) {
+    result += positivePatterns[0]
+  } else if (result.length > 0) {
+    result += '.*'
+  }
+
+  return '^' + result + '$'
 }
 
 function outmatch(patterns, options) {

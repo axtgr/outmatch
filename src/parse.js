@@ -236,7 +236,7 @@ function parse(pattern, options) {
   }
 
   if (negated) {
-    pattern = '(?!^' + convertFn(pattern, options) + '$).*'
+    pattern = '(?!^' + convertFn(pattern, options) + '$)'
   } else {
     pattern = convertFn(pattern, options)
   }

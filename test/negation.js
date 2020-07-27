@@ -3,7 +3,7 @@ var suite = require('./_utils').suite
 module.exports = suite(function (t) {
   t.test('! - negated pattern', function (t) {
     t.testPerSeparator(
-      'When put at the beggining of a pattern, matches everything except for the pattern',
+      'When put at the beggining of an only pattern, matches everything except for the pattern',
       function (t) {
         t.dontMatch('!one')('one')
         t.match('!one')('')
@@ -29,6 +29,65 @@ module.exports = suite(function (t) {
         t.dontMatch('!one/@(two|three)')('one/three')
         t.match('!one/@(two|three)')('one')
         t.match('!one/@(two|three)')('one/four')
+      }
+    )
+
+    t.testPerSeparator(
+      'When an array of negated patterns is given, matches everything except for what matches the given patterns',
+      function (t) {
+        t.match(['!one', '!two'])('')
+        t.match(['!one', '!two'])('three')
+        t.dontMatch(['!one', '!two'])('one')
+        t.dontMatch(['!one', '!two'])('two')
+
+        t.match(['!one*', '!?'])('')
+        t.match(['!one*', '!?'])('two')
+        t.matchWhenSeparated(['!one*', '!?'])('one/two')
+        t.dontMatch(['!one*', '!?'])('o')
+        t.dontMatch(['!one*', '!?'])('one')
+        t.dontMatch(['!one*', '!?'])('onetwo')
+      }
+    )
+
+    t.testPerSeparator(
+      'When a mixed array of negated and non-negated patterns is given, matches everything that matches non-negated patterns except for what matches the negated patterns',
+      function (t) {
+        t.match(['*', '!one', '!!!two'])('')
+        t.match(['*', '!one', '!!!two'])('three')
+        t.match(['*', '!one', '!!!two'])('four')
+        t.match(['*', '!one', '!!!two'])('onetwo')
+        t.dontMatch(['*', '!one', '!!!two'])('one')
+        t.dontMatch(['*', '!one', '!!!two'])('two')
+        t.dontMatchWhenSeparated(['*', '!one', '!!!two'])('three/four')
+      }
+    )
+
+    t.testPerSeparator(
+      'When a pattern with braces is negated, it behaves as multiple negated patterns',
+      function (t) {
+        t.match('!{one,two}', '')
+        t.match('!{one,two}', 'three')
+        t.match('!{one,two}', 'one/two')
+        t.dontMatch('!{one,two}', 'one')
+        t.dontMatch('!{one,two}', 'two')
+
+        t.match('!one/{two,three}/four')('')
+        t.match('!one/{two,three}/four')('foo')
+        t.match('!one/{two,three}/four')('one')
+        t.match('!one/{two,three}/four')('two')
+        t.match('!one/{two,three}/four')('one/four')
+        t.match('!one/{two,three}/four')('one/five/four')
+        t.dontMatch('!one/{two,three}/four')('one/two/four')
+        t.dontMatch('!one/{two,three}/four')('one/three/four')
+
+        t.match('!**/*.{sh,bash,bat,bin,exe,msi}')('foo.com')
+        t.match('!**/*.{sh,bash,bat,bin,exe,msi}')('bar/foo.txt')
+        t.dontMatchWhenSeparated('!**/*.{sh,bash,bat,bin,exe,msi}')('.sh')
+        t.dontMatchWhenSeparated('!**/*.{sh,bash,bat,bin,exe,msi}')('foo.bat')
+        t.dontMatch('!**/*.{sh,bash,bat,bin,exe,msi}')('bar/foo.bin')
+        t.dontMatch('!**/*.{sh,bash,bat,bin,exe,msi}')('baz/bar/foo.bash')
+        t.dontMatch('!**/*.{sh,bash,bat,bin,exe,msi}')('baz/bar/foo.exe')
+        t.dontMatch('!**/*.{sh,bash,bat,bin,exe,msi}')('qux/baz/bar/foo.msi')
       }
     )
 
@@ -78,12 +137,5 @@ module.exports = suite(function (t) {
         t.dontMatchWhenSeparated('!*')('!one/two')
       }
     )
-
-    // TODO: decide on the behavior of arrays with negated patterns and negated patterns
-    //       containing braces:
-    //       Should ['!one', '!two'] be treated as "!one OR !two" (i.e. any string)
-    //       or "NEITHER one NOR two"? What about '!{one,two}'?
-    t.skip('!{one,two}', 'one')
-    t.skip('!{one,two}', 'two')
   })
 })

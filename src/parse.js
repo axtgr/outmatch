@@ -31,7 +31,7 @@ function escapeRegExpString(str) {
   return result
 }
 
-function buildBasicPattern(pattern, options, wildcard) {
+function convertBasicPattern(pattern, options, wildcard) {
   var supportBrackets = options['[]'] !== false
   var supportParens = options['()'] !== false
   var supportQMark = options['?'] !== false
@@ -178,7 +178,7 @@ function buildBasicPattern(pattern, options, wildcard) {
   return result
 }
 
-function buildSeparatedPattern(pattern, options) {
+function convertSeparatedPattern(pattern, options) {
   var separator = options.separator
   var segments = pattern.split(separator)
   var escapedSeparator = escapeRegExpString(separator)
@@ -198,13 +198,13 @@ function buildSeparatedPattern(pattern, options) {
       if (supportGlobstar && segment === '**') {
         result += '(' + wildcard + '*' + escapedSeparator + ')*'
       } else {
-        result += buildBasicPattern(segment, options, wildcard) + escapedSeparator
+        result += convertBasicPattern(segment, options, wildcard) + escapedSeparator
       }
     } else {
       if (supportGlobstar && segment === '**') {
         result += '.*'
       } else {
-        result += buildBasicPattern(segment, options, wildcard)
+        result += convertBasicPattern(segment, options, wildcard)
       }
     }
   }
@@ -212,14 +212,14 @@ function buildSeparatedPattern(pattern, options) {
   return result
 }
 
-function build(pattern, options) {
+function parse(pattern, options) {
   if (options.separator === '\\') {
     throw new Error('\\ is not a valid separator')
   }
 
-  var buildFn = options.separator ? buildSeparatedPattern : buildBasicPattern
+  var convertFn = options.separator ? convertSeparatedPattern : convertBasicPattern
   var supportNegation = options['!'] !== false
-  var negate = false
+  var negated = false
 
   if (supportNegation) {
     for (
@@ -227,7 +227,7 @@ function build(pattern, options) {
       i < pattern.length && pattern[i] === '!' && pattern[i + 1] !== '(';
       i++
     ) {
-      negate = !negate
+      negated = !negated
     }
 
     if (i > 0) {
@@ -235,11 +235,16 @@ function build(pattern, options) {
     }
   }
 
-  if (negate) {
-    return '(?!^' + buildFn(pattern, options) + '$).*'
+  if (negated) {
+    pattern = '(?!^' + convertFn(pattern, options) + '$).*'
   } else {
-    return buildFn(pattern, options)
+    pattern = convertFn(pattern, options)
+  }
+
+  return {
+    pattern: pattern,
+    negated: negated,
   }
 }
 
-module.exports = build
+module.exports = parse

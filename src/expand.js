@@ -1,6 +1,6 @@
 'use strict'
 
-function processNoCommaBraces(span) {
+function handleNoCommaBraces(span) {
   if (span.length < 3) {
     return '{' + span + '}'
   }
@@ -29,7 +29,7 @@ function processNoCommaBraces(span) {
   return '{' + span + '}'
 }
 
-function expandBraces(pattern) {
+function expand(pattern) {
   var scanning = false
   var openingBraces = 0
   var closingBraces = 0
@@ -67,7 +67,7 @@ function expandBraces(pattern) {
         span = pattern.substring(handledUntil + 1, i)
 
         if (alternatives.length > 0) {
-          alternatives.push(expandBraces(span))
+          alternatives.push(expand(span))
           newResults = []
           for (j = 0; j < results.length; j++) {
             for (k = 0; k < alternatives.length; k++) {
@@ -78,7 +78,7 @@ function expandBraces(pattern) {
           }
           results = newResults
         } else {
-          span = processNoCommaBraces(span)
+          span = handleNoCommaBraces(span)
           for (j = 0; j < results.length; j++) {
             results[j] += span
           }
@@ -92,7 +92,7 @@ function expandBraces(pattern) {
     } else if (!scanning && char === ',' && closingBraces - openingBraces === 1) {
       // closingBraces - openingBraces === 1 means we are in top-level braces
       span = pattern.substring(handledUntil + 1, i)
-      alternatives.push(expandBraces(span))
+      alternatives.push(expand(span))
       handledUntil = i
     }
 
@@ -117,4 +117,4 @@ function expandBraces(pattern) {
   return results
 }
 
-module.exports = expandBraces
+module.exports = expand

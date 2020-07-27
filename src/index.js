@@ -2,29 +2,23 @@
 
 'use strict'
 
-var expandBraces = require('./expandBraces')
-var build = require('./build')
+var expand = require('./expand')
+var parse = require('./parse')
 
-function expand(patterns) {
-  if (Array.isArray(patterns)) {
-    var results = []
-    for (var i = 0; i < patterns.length; i++) {
-      var expandedPattern = expandBraces(patterns[i])
-      for (var j = 0; j < expandedPattern.length; j++) {
-        results.push(expandedPattern[j])
-      }
+function flatMap(array, predicate) {
+  var results = []
+  for (var i = 0; i < array.length; i++) {
+    var mappedValue = predicate(array[i])
+    for (var j = 0; j < mappedValue.length; j++) {
+      results.push(mappedValue[j])
     }
-    return results
-  } else if (typeof patterns === 'string') {
-    return expandBraces(patterns)
   }
-
-  throw new TypeError('Patterns must be a string or an array of strings')
+  return results
 }
 
-function parse(patterns, options) {
+function compile(patterns, options) {
   if (options['{}'] !== false) {
-    patterns = expand(patterns)
+    patterns = Array.isArray(patterns) ? flatMap(patterns, expand) : expand(patterns)
   }
 
   if (Array.isArray(patterns) && patterns.length === 1) {
@@ -37,11 +31,11 @@ function parse(patterns, options) {
       if (k > 0) {
         result += '|'
       }
-      result += build(patterns[k], options)
+      result += parse(patterns[k], options).pattern
     }
     return '^(' + result + ')$'
   } else if (typeof patterns === 'string') {
-    return '^' + build(patterns, options) + '$'
+    return '^' + parse(patterns, options).pattern + '$'
   }
 
   throw new TypeError('Patterns must be a string or an array of strings')
@@ -49,7 +43,7 @@ function parse(patterns, options) {
 
 function outmatch(patterns, options) {
   options = options && typeof options === 'object' ? options : { separator: options }
-  var regExpPattern = parse(patterns, options)
+  var regExpPattern = compile(patterns, options)
   return new RegExp(regExpPattern)
 }
 

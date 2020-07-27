@@ -6,6 +6,12 @@ module.exports = suite(function (t) {
     t.ok(outmatch('') instanceof RegExp)
   })
 
+  t.test('Using \\ as a separator is forbidden', function (t) {
+    t.throws(function () {
+      outmatch('', { separator: '\\' })
+    })
+  })
+
   t.test('Accepts an array of patterns', function (t) {
     t.match(['one'])('one')
     t.dontMatch(['one'])('two')

@@ -212,6 +212,10 @@ function buildSeparatedPattern(pattern, options) {
 }
 
 function build(pattern, options) {
+  if (options.separator === '\\') {
+    throw new Error('\\ is not a valid separator')
+  }
+
   var buildFn = options.separator ? buildSeparatedPattern : buildBasicPattern
   var supportNegation = options['!'] !== false
   var negate = false

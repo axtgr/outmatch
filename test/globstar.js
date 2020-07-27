@@ -72,7 +72,7 @@ module.exports = suite(function (t) {
       }
     )
 
-    t.testPerSeparator('When escaped, treated literally', function (t) {
+    t.testPerSeparator('When both stars are escaped, treated literally', function (t) {
       // TODO: add cases with separators
 
       t.match('one/\\*\\*')('one/**')
@@ -84,6 +84,29 @@ module.exports = suite(function (t) {
       t.dontMatch('one\\*\\*')('one!!')
       t.dontMatch('one/\\*\\*')('one/!!')
     })
+
+    t.testPerSeparator(
+      'When one of the stars is escaped, treated as a single-star wildcard and a literal star',
+      function (t) {
+        t.match('\\**')('*')
+        t.match('\\**')('**')
+        t.match('\\**')('*one')
+        t.dontMatch('\\**')('one*')
+        t.dontMatch('\\**')('one')
+        t.match('\\**one')('*one')
+        t.match('\\**one')('*twoone')
+        t.dontMatch('\\**one')('one')
+
+        t.match('*\\*')('*')
+        t.match('*\\*')('**')
+        t.match('*\\*')('one*')
+        t.dontMatch('*\\*')('*one')
+        t.dontMatch('*\\*')('one')
+        t.match('*\\*one')('*one')
+        t.match('*\\*one')('two*one')
+        t.dontMatch('*\\*one')('one')
+      }
+    )
 
     t.testPerSeparator('When turned off in options, behaves as a singular *', function (
       t

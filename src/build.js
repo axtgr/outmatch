@@ -164,7 +164,7 @@ function buildBasicPattern(pattern, options, wildcard) {
     }
 
     if (supportStar && char === '*') {
-      if (pattern[i - 1] !== '*') {
+      if (i === pattern.length - 1 || pattern[i + 1] !== '*') {
         result += wildcard + '*'
       }
     } else if (supportQMark && char === '?') {

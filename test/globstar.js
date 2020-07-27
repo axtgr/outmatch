@@ -73,16 +73,35 @@ module.exports = suite(function (t) {
     )
 
     t.testPerSeparator('When both stars are escaped, treated literally', function (t) {
-      // TODO: add cases with separators
+      t.match('\\*\\*')('**')
+      t.dontMatch('\\*\\*')('')
+      t.dontMatch('\\*\\*')('*')
+      t.dontMatch('\\*\\*')('one')
+      t.dontMatch('\\*\\*')('one/two')
 
       t.match('one/\\*\\*')('one/**')
+      t.dontMatch('one/\\*\\*')('')
+      t.dontMatch('one/\\*\\*')('*')
+      t.dontMatch('one/\\*\\*')('**')
+      t.dontMatch('one/\\*\\*')('one/*')
       t.dontMatch('one/\\*\\*')('one/two')
-      t.match('\\*\\*')('**')
-      t.match('one\\*\\*')('one**')
-      t.dontMatch('\\*\\*')('!!')
-      t.dontMatch('\\*\\*')('one/two')
-      t.dontMatch('one\\*\\*')('one!!')
-      t.dontMatch('one/\\*\\*')('one/!!')
+      t.dontMatch('one/\\*\\*')('one//two')
+      t.dontMatch('one/\\*\\*')('one/two/three')
+
+      t.match('\\*\\*/two')('**/two')
+      t.dontMatch('\\*\\*/two')('')
+      t.dontMatch('\\*\\*/two')('*')
+      t.dontMatch('\\*\\*/two')('**')
+      t.dontMatch('\\*\\*/two')('one/**/two')
+      t.dontMatch('\\*\\*/two')('one/three/two')
+
+      t.match('one/\\*\\*/two')('one/**/two')
+      t.dontMatch('one/\\*\\*/two')('')
+      t.dontMatch('one/\\*\\*/two')('*')
+      t.dontMatch('one/\\*\\*/two')('**')
+      t.dontMatch('one/\\*\\*/two')('one/two')
+      t.dontMatch('one/\\*\\*/two')('one//two')
+      t.dontMatch('one/\\*\\*/two')('one/three/two')
     })
 
     t.testPerSeparator(

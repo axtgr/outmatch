@@ -44,11 +44,12 @@ function buildBasicPattern(pattern, options, wildcard) {
   var parensHandledUntil = -1
   var scanningForParens = false
   var result = ''
+  var maxI = pattern.length - 1
   var buffer
 
   wildcard = wildcard || '.'
 
-  for (var i = 0; i < pattern.length; i++) {
+  for (var i = 0; i <= maxI; i++) {
     var char = pattern[i]
 
     if (char === '\\') {
@@ -86,7 +87,7 @@ function buildBasicPattern(pattern, options, wildcard) {
           result += '['
           closingBracket = i
           i = openingBracket
-        } else if (i === pattern.length - 1) {
+        } else if (i === maxI) {
           // Closing bracket is not found; return to the opening bracket
           // and treat all the in-between chars as usual
           result += '\\['
@@ -97,7 +98,7 @@ function buildBasicPattern(pattern, options, wildcard) {
         continue
       }
 
-      if (char === '[' && i > closingBracket && i < pattern.length - 1) {
+      if (char === '[' && i > closingBracket && i < maxI) {
         openingBracket = i
         continue
       }
@@ -155,7 +156,7 @@ function buildBasicPattern(pattern, options, wildcard) {
       }
 
       if (scanningForParens) {
-        if (closingParens === openingParens || i === pattern.length - 1) {
+        if (closingParens === openingParens || i === maxI) {
           scanningForParens = false
           i = parensHandledUntil - 1
         }
@@ -164,7 +165,7 @@ function buildBasicPattern(pattern, options, wildcard) {
     }
 
     if (supportStar && char === '*') {
-      if (i === pattern.length - 1 || pattern[i + 1] !== '*') {
+      if (i === maxI || pattern[i + 1] !== '*') {
         result += wildcard + '*'
       }
     } else if (supportQMark && char === '?') {

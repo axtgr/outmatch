@@ -86,4 +86,8 @@ module.exports = suite(function (t) {
     t.dontMatch('one/two/three')('one/three')
     t.dontMatch('one/two/three')('one/three/two')
   })
+
+  t.test('Treats unused RegExp characters literally', function (t) {
+    t.match('^$.+-|)')('^$.+-|)')
+  })
 })

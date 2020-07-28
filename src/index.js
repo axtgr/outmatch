@@ -5,6 +5,8 @@
 var expand = require('./expand')
 var parse = require('./parse')
 
+var DEFAULT_OPTIONS = { separator: '/' }
+
 function flatMap(array, predicate) {
   var results = []
   for (var i = 0; i < array.length; i++) {
@@ -48,10 +50,60 @@ function compile(patterns, options) {
   return '^' + result + '$'
 }
 
-function outmatch(patterns, options) {
-  options = options && typeof options === 'object' ? options : { separator: options }
-  var regExpPattern = compile(patterns, options)
-  return new RegExp(regExpPattern)
+function match(regExp, options, sample) {
+  if (typeof sample === 'string') {
+    return regExp.test(sample)
+  } else if (Array.isArray(sample)) {
+    return sample.filter(function (s) {
+      return regExp.test(s)
+    })
+  } else {
+    throw new TypeError('Sample must be a string or an array of strings')
+  }
 }
 
+function outmatch() {
+  var pattern, sample, options, fn
+
+  if (arguments.length === 0) {
+    return outmatch
+  }
+
+  for (var i = 0; i < arguments.length; i++) {
+    var arg = arguments[i]
+
+    if (typeof arg === 'string' || Array.isArray(arg)) {
+      if (typeof pattern !== 'undefined') {
+        sample = arg
+      } else {
+        pattern = arg
+      }
+    } else {
+      options = arg
+    }
+  }
+
+  options = options || DEFAULT_OPTIONS
+
+  if (typeof pattern !== 'undefined') {
+    var regExpPattern = compile(pattern, options)
+    var regExp = new RegExp(regExpPattern)
+
+    if (typeof sample !== 'undefined') {
+      return match(regExp, options, sample)
+    } else {
+      fn = match.bind(null, regExp, options)
+      fn.options = options
+      fn.pattern = pattern
+      fn.regExp = regExp
+      return fn
+    }
+  } else {
+    fn = outmatch.bind(null, options)
+    fn.options = options
+    return fn
+  }
+}
+
+outmatch.options = DEFAULT_OPTIONS
 module.exports = outmatch

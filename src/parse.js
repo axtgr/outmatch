@@ -213,6 +213,10 @@ function convertSeparatedPattern(pattern, options) {
 }
 
 function parse(pattern, options) {
+  if (typeof pattern !== 'string') {
+    throw new TypeError('A pattern must be a string, but ' + typeof pattern + ' given')
+  }
+
   if (options.separator === '\\') {
     throw new Error('\\ is not a valid separator')
   }

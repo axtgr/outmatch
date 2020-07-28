@@ -30,6 +30,10 @@ function handleNoCommaBraces(span) {
 }
 
 function expand(pattern) {
+  if (typeof pattern !== 'string') {
+    throw new TypeError('A pattern must be a string, but ' + typeof pattern + ' given')
+  }
+
   var scanning = false
   var openingBraces = 0
   var closingBraces = 0

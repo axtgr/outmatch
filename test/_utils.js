@@ -31,7 +31,7 @@ function match(options) {
 
       testSet[argsStr] = true
       sample = replaceSeparators ? sample.replace(/\//g, separator) : sample
-      return outmatch(pattern, options).test(sample)
+      return outmatch(pattern, sample, options)
     }
   }
 }

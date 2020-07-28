@@ -35,8 +35,8 @@ function handleCycle(event) {
 }
 
 var OPTIONS = {
-  outmatch: { separator: false, '{}': false, '**': false },
-  outmatchSep: { separator: '/', '{}': false },
+  outmatch: { separator: false, '**': false },
+  outmatchSep: { separator: '/' },
   globrex: { globstar: false, filepath: false, extended: true, strict: true },
   globrexSep: { globstar: true, filepath: true, extended: true, strict: true },
   picomatchSep: {
@@ -108,17 +108,17 @@ new Suite('Matching')
   .run()
 
 // Compilation
-//   outmatch                  1,543,119 ops/sec
-//   outmatch separated          875,633 ops/sec
-//   globrex                   1,074,284 ops/sec
-//   globrex separated           380,777 ops/sec
-//   picomatch                   189,353 ops/sec
-//   picomatch separated         196,615 ops/sec
+//   outmatch                  1,114,034 ops/sec
+//   outmatch separated          706,745 ops/sec
+//   globrex                   1,046,724 ops/sec
+//   globrex separated           377,225 ops/sec
+//   picomatch                   194,858 ops/sec
+//   picomatch separated         193,676 ops/sec
 
 // Matching
-//   outmatch                 27,095,100 ops/sec
-//   outmatch separated       26,374,116 ops/sec
-//   globrex                  26,713,254 ops/sec
-//   globrex separated        23,997,659 ops/sec
-//   picomatch separated      10,496,949 ops/sec
-//   matcher                   1,648,404 ops/sec
+//   outmatch                 27,981,898 ops/sec
+//   outmatch separated       25,562,509 ops/sec
+//   globrex                  26,454,919 ops/sec
+//   globrex separated        22,943,884 ops/sec
+//   picomatch separated      10,504,571 ops/sec
+//   matcher                   1,607,867 ops/sec

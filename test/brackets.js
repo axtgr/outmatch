@@ -40,7 +40,22 @@ module.exports = suite(function (t) {
     })
 
     t.testPerSeparator(
-      '* in a character class is treated as a member of the class',
+      '? in a character class is treated as a literal member of the class',
+      function (t) {
+        t.match('[?]')('?')
+        t.dontMatch('[?]')('')
+        t.dontMatch('[?]')('[?]')
+        t.dontMatch('[?]')('one')
+        t.match('[o?e]')('o')
+        t.match('[o?e]')('?')
+        t.match('[o?e]')('e')
+        t.dontMatch('[o?e]')('n')
+        t.dontMatch('[o?e]')('[o?e]')
+      }
+    )
+
+    t.testPerSeparator(
+      '* in a character class is treated as a literal member of the class',
       function (t) {
         t.match('[*]')('*')
         t.dontMatch('[*]')('')
@@ -131,7 +146,7 @@ module.exports = suite(function (t) {
     })
 
     t.testPerSeparator(
-      'Separators in the middle of a character class interrupt it, so [] are treated literally',
+      'Separators in the middle of a character class interrupt it, so [/] are treated literally',
       function (t) {
         t.dontMatch('[/]')('[]')
         t.match('[/')('[/')
@@ -153,7 +168,55 @@ module.exports = suite(function (t) {
       t.dontMatch('one]')('one')
     })
 
-    // TODO: add tests for escaped brackets
+    t.testPerSeparator('When escaped, treated literally', function (t) {
+      t.match('\\[')('[')
+      t.dontMatch('\\[')('')
+      t.dontMatch('\\[')('\\[')
+
+      t.match('\\[]')('[]')
+      t.dontMatch('\\[]')('')
+      t.dontMatch('\\[]')('\\[]')
+
+      t.match('\\[abc]')('[abc]')
+      t.dontMatch('\\[abc]')('')
+      t.dontMatch('\\[abc]')('\\[abc]')
+
+      t.match('[\\]')('[]')
+      t.dontMatch('[\\]')('')
+      t.dontMatch('[\\]')('[\\]')
+
+      t.match('[abc\\]')('[abc]')
+      t.dontMatch('[abc\\]')('')
+      t.dontMatch('[abc\\]')('\\[abc]')
+    })
+
+    t.testPerSeparator(
+      'When an escaped [, ] or - is in a character class, it is treated literally',
+      function (t) {
+        t.match('[a\\[b]')('[')
+        t.match('[a\\[b]')('a')
+        t.match('[a\\[b]')('b')
+        t.dontMatch('[\\[]')('')
+        t.dontMatch('[\\[]')('c')
+        t.dontMatch('[\\[]')('[\\[]')
+
+        t.match('[a\\]b]')(']')
+        t.match('[a\\]b]')('a')
+        t.match('[a\\]b]')('b')
+        t.dontMatch('[a\\]b]')('')
+        t.dontMatch('[a\\]b]')('c')
+        t.dontMatch('[a\\]b]')('[a\\]b]')
+
+        t.match('[a\\-b]')('-')
+        t.match('[a\\-b]')('a')
+        t.match('[a\\-b]')('b')
+        t.dontMatch('[a\\-b]')('')
+        t.dontMatch('[a\\-b]')('c')
+        t.dontMatch('[a\\-b]')('[a\\-b]')
+      }
+    )
+
     // TODO: add tests for characters after brackets
+    // TODO: add tests for multiple brackets in a pattern
   })
 })

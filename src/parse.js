@@ -43,8 +43,9 @@ function convertBasicPattern(pattern, options, wildcard) {
   var closingParens = 0
   var parensHandledUntil = -1
   var scanningForParens = false
-  var result = ''
+  var escapeChar = false
   var maxI = pattern.length - 1
+  var result = ''
   var buffer
 
   wildcard = wildcard || '.'
@@ -52,18 +53,29 @@ function convertBasicPattern(pattern, options, wildcard) {
   for (var i = 0; i <= maxI; i++) {
     var char = pattern[i]
 
+    // The straightforward way to handle escaping would be to add the next character
+    // to the result as soon as a backslash is found and skip the rest of the current iteration.
+    // However, some processing has to be triggered for the last char in a pattern no matter
+    // if it is escaped or not, so we can't do this. Instead, we set the escapeChar flag
+    // for the next char and handle it in the next iteration (in which we have to be
+    // extra careful to reset the flag whenever it completes or continues).
     if (char === '\\') {
-      if (i < pattern.length - 1) {
-        result += escapeRegExpChar(pattern[++i])
+      if (i < maxI) {
+        escapeChar = true
+        continue
+      } else {
+        // If the last char in a pattern is a backslash, it is omitted
+        char = ''
       }
-      continue
     }
 
     if (supportBrackets) {
       if (i > openingBracket && i <= closingBracket) {
         // We are certainly in a complete character class
         // and should treat almost all characters literally
-        if (i === closingBracket) {
+        if (escapeChar) {
+          result += escapeRegExpChar(char)
+        } else if (i === closingBracket) {
           result += ']'
           openingBracket = pattern.length
         } else if (char === '-' && i === closingBracket - 1) {
@@ -75,13 +87,19 @@ function convertBasicPattern(pattern, options, wildcard) {
         } else {
           result += char
         }
+        escapeChar = false
         continue
       }
 
       if (i > openingBracket) {
         // We are in an open character class and are looking for a closing bracket
         // to make sure the class is terminated
-        if (char === ']' && i > openingBracket + 1 && i > closingBracket) {
+        if (
+          char === ']' &&
+          !escapeChar &&
+          i > openingBracket + 1 &&
+          i > closingBracket
+        ) {
           // Closing bracket is found; return to openingBracket
           // and treat all the in-between chars literally
           result += '['
@@ -95,11 +113,13 @@ function convertBasicPattern(pattern, options, wildcard) {
           openingBracket = pattern.length
           closingBracket = pattern.length
         }
+        escapeChar = false
         continue
       }
 
-      if (char === '[' && i > closingBracket && i < maxI) {
+      if (char === '[' && !escapeChar && i > closingBracket && i < maxI) {
         openingBracket = i
+        escapeChar = false
         continue
       }
     }
@@ -107,6 +127,7 @@ function convertBasicPattern(pattern, options, wildcard) {
     if (supportParens) {
       if (
         pattern[i + 1] === '(' &&
+        !escapeChar &&
         (char === '@' || char === '?' || char === '*' || char === '+' || char === '!')
       ) {
         if (scanningForParens) {
@@ -134,7 +155,7 @@ function convertBasicPattern(pattern, options, wildcard) {
         } else {
           openingParens--
         }
-      } else if (char === ')') {
+      } else if (char === ')' && !escapeChar) {
         if (scanningForParens) {
           closingParens++
         } else if (closingParens) {
@@ -150,7 +171,7 @@ function convertBasicPattern(pattern, options, wildcard) {
           closingParens--
           continue
         }
-      } else if (char === '|' && closingParens) {
+      } else if (char === '|' && closingParens && !escapeChar) {
         result += '|'
         continue
       }
@@ -160,19 +181,22 @@ function convertBasicPattern(pattern, options, wildcard) {
           scanningForParens = false
           i = parensHandledUntil - 1
         }
+        escapeChar = false
         continue
       }
     }
 
-    if (supportStar && char === '*') {
+    if (!escapeChar && supportStar && char === '*') {
       if (i === maxI || pattern[i + 1] !== '*') {
         result += wildcard + '*'
       }
-    } else if (supportQMark && char === '?') {
+    } else if (!escapeChar && supportQMark && char === '?') {
       result += wildcard
     } else {
       result += escapeRegExpChar(char)
     }
+
+    escapeChar = false
   }
 
   return result

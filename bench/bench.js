@@ -108,17 +108,17 @@ new Suite('Matching')
   .run()
 
 // Compilation
-//   outmatch                  1,114,034 ops/sec
-//   outmatch separated          706,745 ops/sec
-//   globrex                   1,046,724 ops/sec
-//   globrex separated           377,225 ops/sec
-//   picomatch                   194,858 ops/sec
-//   picomatch separated         193,676 ops/sec
+//   outmatch                  1,116,500 ops/sec
+//   outmatch separated          709,660 ops/sec
+//   globrex                   1,019,725 ops/sec
+//   globrex separated           378,107 ops/sec
+//   picomatch                   194,023 ops/sec
+//   picomatch separated         190,969 ops/sec
 
 // Matching
-//   outmatch                 27,981,898 ops/sec
-//   outmatch separated       25,562,509 ops/sec
-//   globrex                  26,454,919 ops/sec
-//   globrex separated        22,943,884 ops/sec
-//   picomatch separated      10,504,571 ops/sec
-//   matcher                   1,607,867 ops/sec
+//   outmatch                 26,307,202 ops/sec
+//   outmatch separated       25,472,305 ops/sec
+//   globrex                  26,181,638 ops/sec
+//   globrex separated        22,899,749 ops/sec
+//   picomatch separated      10,623,687 ops/sec
+//   matcher                   1,583,009 ops/sec

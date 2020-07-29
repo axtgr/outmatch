@@ -50,16 +50,12 @@ function compile(patterns, options) {
   return '^' + result + '$'
 }
 
-function match(regExp, options, sample) {
-  if (typeof sample === 'string') {
-    return regExp.test(sample)
-  } else if (Array.isArray(sample)) {
-    return sample.filter(function (s) {
-      return regExp.test(s)
-    })
-  } else {
-    throw new TypeError('Sample must be a string or an array of strings')
+function isMatch(regExp, options, sample) {
+  if (typeof sample !== 'string') {
+    throw new TypeError('Sample must be a string, but ' + typeof sample + ' given')
   }
+
+  return regExp.test(sample)
 }
 
 function outmatch() {
@@ -72,14 +68,24 @@ function outmatch() {
   for (var i = 0; i < arguments.length; i++) {
     var arg = arguments[i]
 
-    if (typeof arg === 'string' || Array.isArray(arg)) {
-      if (typeof pattern !== 'undefined') {
+    if (typeof arg === 'string') {
+      if (typeof pattern === 'undefined') {
+        pattern = arg
+      } else if (typeof sample === 'undefined') {
         sample = arg
       } else {
-        pattern = arg
+        throw new Error('Pattern and sample are already specified')
       }
-    } else {
+    } else if (Array.isArray(arg)) {
+      if (typeof pattern === 'undefined') {
+        pattern = arg
+      } else {
+        throw new Error('Pattern is already specified')
+      }
+    } else if (typeof arg === 'object' && arg !== null) {
       options = arg
+    } else {
+      throw new TypeError('Unknown argument ' + arg)
     }
   }
 
@@ -89,14 +95,14 @@ function outmatch() {
     var regExpPattern = compile(pattern, options)
     var regExp = new RegExp(regExpPattern)
 
-    if (typeof sample !== 'undefined') {
-      return match(regExp, options, sample)
-    } else {
-      fn = match.bind(null, regExp, options)
+    if (typeof sample === 'undefined') {
+      fn = isMatch.bind(null, regExp, options)
       fn.options = options
       fn.pattern = pattern
       fn.regExp = regExp
       return fn
+    } else {
+      return isMatch(regExp, options, sample)
     }
   } else {
     fn = outmatch.bind(null, options)

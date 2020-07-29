@@ -147,6 +147,8 @@ module.exports = suite(function (t) {
       }
     )
 
+    // TODO: add separate tests for negated extglobs, which,
+    // in case they are turned off, behave as pattern negation
     t.testPerSeparator('When turned off in options, treated literally', function (t) {
       t.options({ '()': false })
 
@@ -167,11 +169,6 @@ module.exports = suite(function (t) {
       t.dontMatch('+(one|two)')('')
       t.dontMatch('+(one|two)')('one')
       t.dontMatch('+(one|two)')('onetwo')
-      t.match('!(one)')('!(one)')
-      t.match('!(one|two)')('!(one|two)')
-      t.dontMatch('!(one|two)')('')
-      t.dontMatch('!(one|two)')('one')
-      t.dontMatch('!(one|two)')('onetwo')
 
       t.match('@(one/two|three)')('@(one/two|three)')
       t.dontMatch('@(one/two|three)')('')
@@ -185,9 +182,6 @@ module.exports = suite(function (t) {
       t.match('+(one/two|three)')('+(one/two|three)')
       t.dontMatch('+(one/two|three)')('')
       t.dontMatch('+(one/two|three)')('three')
-      t.match('!(one/two|three)')('!(one/two|three)')
-      t.dontMatch('!(one/two|three)')('')
-      t.dontMatch('!(one/two|three)')('three')
 
       t.match('one/@(two|three)/four')('one/@(two|three)/four')
       t.dontMatch('one/@(two|three)/four')('')
@@ -201,9 +195,6 @@ module.exports = suite(function (t) {
       t.match('one/+(two|three)/four')('one/+(two|three)/four')
       t.dontMatch('one/+(two|three)/four')('')
       t.dontMatch('one/+(two|three)/four')('one/two/four')
-      t.match('one/!(two|three)/four')('one/!(two|three)/four')
-      t.dontMatch('one/!(two|three)/four')('')
-      t.dontMatch('one/!(two|three)/four')('one/two/four')
     })
 
     t.testPerSeparator('When unmatched, treated literally', function (t) {

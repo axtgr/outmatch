@@ -247,14 +247,15 @@ function parse(pattern, options) {
 
   var convertFn = options.separator ? convertSeparatedPattern : convertBasicPattern
   var supportNegation = options['!'] !== false
+  var supportParens = options['()'] !== false
   var negated = false
 
   if (supportNegation) {
-    for (
-      var i = 0;
-      i < pattern.length && pattern[i] === '!' && pattern[i + 1] !== '(';
-      i++
-    ) {
+    for (var i = 0; i < pattern.length && pattern[i] === '!'; i++) {
+      if (supportParens && pattern[i + 1] === '(') {
+        i--
+        break
+      }
       negated = !negated
     }
 

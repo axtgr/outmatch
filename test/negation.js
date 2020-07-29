@@ -107,6 +107,10 @@ module.exports = suite(function (t) {
       }
     )
 
+    t.skip(
+      'When there is !( at the beginning of a pattern, it is treated as the beginning of a negated extglob rather than a whole negated pattern'
+    )
+
     t.testPerSeparator(
       'When not at the beginning of a pattern, treated literally',
       function (t) {

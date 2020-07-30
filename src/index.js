@@ -58,57 +58,33 @@ function isMatch(regExp, options, sample) {
   return regExp.test(sample)
 }
 
-function outmatch() {
-  var pattern, sample, options, fn
-
-  if (arguments.length === 0) {
-    return outmatch
+function outmatch(pattern, options) {
+  if (typeof pattern !== 'string' && !Array.isArray(pattern)) {
+    throw new TypeError(
+      'Pattern must be a string or an array of strings, but ' +
+        typeof pattern +
+        ' given'
+    )
   }
 
-  for (var i = 0; i < arguments.length; i++) {
-    var arg = arguments[i]
-
-    if (typeof arg === 'string') {
-      if (typeof pattern === 'undefined') {
-        pattern = arg
-      } else if (typeof sample === 'undefined') {
-        sample = arg
-      } else {
-        throw new Error('Pattern and sample are already specified')
-      }
-    } else if (Array.isArray(arg)) {
-      if (typeof pattern === 'undefined') {
-        pattern = arg
-      } else {
-        throw new Error('Pattern is already specified')
-      }
-    } else if (typeof arg === 'object' && arg !== null) {
-      options = arg
-    } else {
-      throw new TypeError('Unknown argument ' + arg)
-    }
+  if (
+    arguments.length === 2 &&
+    (Array.isArray(options) ||
+      (typeof options !== 'object' && typeof options !== 'undefined'))
+  ) {
+    throw new TypeError('Options must be an object, but ' + typeof options + ' given')
   }
 
   options = options || DEFAULT_OPTIONS
 
-  if (typeof pattern !== 'undefined') {
-    var regExpPattern = compile(pattern, options)
-    var regExp = new RegExp(regExpPattern)
+  var regExpPattern = compile(pattern, options)
+  var regExp = new RegExp(regExpPattern)
 
-    if (typeof sample === 'undefined') {
-      fn = isMatch.bind(null, regExp, options)
-      fn.options = options
-      fn.pattern = pattern
-      fn.regExp = regExp
-      return fn
-    } else {
-      return isMatch(regExp, options, sample)
-    }
-  } else {
-    fn = outmatch.bind(null, options)
-    fn.options = options
-    return fn
-  }
+  var fn = isMatch.bind(null, regExp, options)
+  fn.options = options
+  fn.pattern = pattern
+  fn.regExp = regExp
+  return fn
 }
 
 outmatch.options = DEFAULT_OPTIONS

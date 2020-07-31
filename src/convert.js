@@ -1,3 +1,5 @@
+// Disclaimer: the code is optimized for performance and compatibility, hence the ugliness
+
 'use strict'
 
 var FS_SEPARATOR = '/'
@@ -67,7 +69,7 @@ function convertBasicPattern(pattern, options, wildcard) {
     // However, some processing has to be triggered for the last char in a pattern no matter
     // if it is escaped or not, so we can't do this. Instead, we set the escapeChar flag
     // for the next char and handle it in the next iteration (in which we have to be
-    // extra careful to reset the flag whenever it completes or continues).
+    // extra careful to reset the flag whenever the iteration completes or continues).
     if (char === '\\') {
       if (i < maxI) {
         escapeChar = true
@@ -126,6 +128,7 @@ function convertBasicPattern(pattern, options, wildcard) {
         continue
       }
 
+      // An opening bracket is found; commence scanning for a closing bracket
       if (char === '[' && !escapeChar && i > closingBracket && i < maxI) {
         openingBracket = i
         escapeChar = false
@@ -134,6 +137,11 @@ function convertBasicPattern(pattern, options, wildcard) {
     }
 
     if (supportParens) {
+      // When we find an opening extglob paren, we start counting opening and closing
+      // parens and ignoring other chars until all the opened extglobes are closed
+      // or the pattern ends. After we have counted the parens, we return to the char
+      // we started from and proceed normally while transforming the extglobs that have
+      // a closing paren.
       if (
         pattern[i + 1] === '(' &&
         !escapeChar &&
@@ -212,28 +220,28 @@ function convertBasicPattern(pattern, options, wildcard) {
 }
 
 function convertSeparatedPattern(pattern, options) {
+  var supportGlobstar = options['**'] !== false
   var separator = options.separator
-  var segments = pattern.split(separator === true ? '/' : separator)
-  var escapedSeparator = escapeRegExpString(
+  var separatorMatcher = escapeRegExpString(
     separator === true ? FS_SEPARATOR : separator
   )
+  var segments = pattern.split(separator === true ? '/' : separator)
   var result = ''
-  var supportGlobstar = options['**'] !== false
   var wildcard
 
-  if (escapedSeparator.length > 1) {
-    wildcard = '((?!' + escapedSeparator + ').)'
+  if (separatorMatcher.length > 1) {
+    wildcard = '((?!' + separatorMatcher + ').)'
   } else {
-    wildcard = '[^' + escapedSeparator + ']'
+    wildcard = '[^' + separatorMatcher + ']'
   }
 
   for (var i = 0; i < segments.length; i++) {
     var segment = segments[i]
     if (i < segments.length - 1) {
       if (supportGlobstar && segment === '**') {
-        result += '(' + wildcard + '*' + escapedSeparator + ')*'
+        result += '(' + wildcard + '*' + separatorMatcher + ')*'
       } else {
-        result += convertBasicPattern(segment, options, wildcard) + escapedSeparator
+        result += convertBasicPattern(segment, options, wildcard) + separatorMatcher
       }
     } else {
       if (supportGlobstar && segment === '**') {
@@ -247,7 +255,7 @@ function convertSeparatedPattern(pattern, options) {
   return result
 }
 
-function parse(pattern, options) {
+function convert(pattern, options) {
   if (typeof pattern !== 'string') {
     throw new TypeError('A pattern must be a string, but ' + typeof pattern + ' given')
   }
@@ -287,4 +295,4 @@ function parse(pattern, options) {
   }
 }
 
-module.exports = parse
+module.exports = convert

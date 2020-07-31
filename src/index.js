@@ -1,9 +1,7 @@
-// Disclaimer: the code is optimized for performance and compatibility, hence the ugliness
-
 'use strict'
 
 var expand = require('./expand')
-var parse = require('./parse')
+var convert = require('./convert')
 
 var DEFAULT_OPTIONS = { separator: true }
 
@@ -27,15 +25,15 @@ function compile(patterns, options) {
 
   var positivePatterns = []
   var result = ''
-  var parsedPattern
+  var convertedPattern
 
   for (var i = 0; i < patterns.length; i++) {
-    parsedPattern = parse(patterns[i], options)
+    convertedPattern = convert(patterns[i], options)
 
-    if (parsedPattern.negated) {
-      result += parsedPattern.pattern
+    if (convertedPattern.negated) {
+      result += convertedPattern.pattern
     } else {
-      positivePatterns.push(parsedPattern.pattern)
+      positivePatterns.push(convertedPattern.pattern)
     }
   }
 

@@ -1,5 +1,13 @@
 'use strict'
 
+var FS_SEPARATOR = '/'
+
+try {
+  FS_SEPARATOR = require('path').sep
+} catch (err) {
+  // This separator will be used if options.separator === true.
+}
+
 function escapeRegExpChar(char) {
   if (
     char === '-' ||
@@ -15,7 +23,8 @@ function escapeRegExpChar(char) {
     char === '{' ||
     char === '}' ||
     char === '*' ||
-    char === '?'
+    char === '?' ||
+    char === '\\'
   ) {
     return '\\' + char
   } else {
@@ -204,13 +213,15 @@ function convertBasicPattern(pattern, options, wildcard) {
 
 function convertSeparatedPattern(pattern, options) {
   var separator = options.separator
-  var segments = pattern.split(separator)
-  var escapedSeparator = escapeRegExpString(separator)
+  var segments = pattern.split(separator === true ? '/' : separator)
+  var escapedSeparator = escapeRegExpString(
+    separator === true ? FS_SEPARATOR : separator
+  )
   var result = ''
   var supportGlobstar = options['**'] !== false
   var wildcard
 
-  if (separator.length > 1) {
+  if (escapedSeparator.length > 1) {
     wildcard = '((?!' + escapedSeparator + ').)'
   } else {
     wildcard = '[^' + escapedSeparator + ']'

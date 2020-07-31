@@ -1,3 +1,4 @@
+var Path = require('path')
 var suite = require('./_utils').suite
 var outmatch = require('../src')
 
@@ -129,4 +130,16 @@ module.exports = suite(function (t) {
       outmatch('', { separator: '\\' })
     })
   })
+
+  t.testOnPlatform(
+    'When separator === true, uses the platform-specific separator for samples',
+    'win32',
+    function (t) {
+      var options = { separator: true }
+
+      t.notOk(outmatch('foo/bar', options)('foo/bar'))
+      t.ok(outmatch('foo/bar', options)('foo\\bar'))
+      t.ok(outmatch('foo/**/qux', options)(Path.join('foo', 'bar', 'baz', 'qux')))
+    }
+  )
 })

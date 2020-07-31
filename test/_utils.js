@@ -62,8 +62,8 @@ function assign(to, from) {
 function decorateT(t, options) {
   options = options || {}
   var m = match(options)
-
   var _test = t.test
+
   t.test = function (description, fn) {
     // Naming the function "zora_spec_fn" is required to get the correct stack trace
     _test(description, function zora_spec_fn(t) {
@@ -90,6 +90,15 @@ function decorateT(t, options) {
           fn(t, separator)
         })
       })
+    })
+  }
+
+  t.testOnPlatform = function (description, platform, fn) {
+    // eslint-disable-next-line no-undef
+    var testFn = process.platform === platform ? _test : t.skip
+    testFn(description, function zora_spec_fn(t) {
+      decorateT(t)
+      fn(t)
     })
   }
 

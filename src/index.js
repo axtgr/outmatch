@@ -5,7 +5,7 @@
 var expand = require('./expand')
 var parse = require('./parse')
 
-var DEFAULT_OPTIONS = { separator: '/' }
+var DEFAULT_OPTIONS = { separator: true }
 
 function flatMap(array, predicate) {
   var results = []

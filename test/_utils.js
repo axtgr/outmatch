@@ -3,35 +3,46 @@ var outmatch = require('../src')
 // TODO: add true (platform-dependant), '\\', '//' and separators with wildcards
 var SEPARATORS = [false, '/', '.', ' ', 'sep']
 
-var testSet = {}
+var testSet = Object.create(null)
+
+function replaceSeparators(stringOrArray, separator) {
+  if (Array.isArray(stringOrArray)) {
+    return stringOrArray.map(function (p) {
+      return p.replace(/\//g, separator)
+    })
+  } else {
+    return stringOrArray.replace(/\//g, separator)
+  }
+}
 
 function match(options) {
   var separator = options.separator || false
-  var replaceSeparators = separator && separator !== '/'
+  var separatorReplacementNeeded = separator && separator !== '/'
 
   return function (pattern) {
     // Slashes in patterns and samples are replaced with the actual separator being used
-    if (replaceSeparators) {
-      if (Array.isArray(pattern)) {
-        pattern = pattern.map(function (p) {
-          return p.replace(/\//g, separator)
+    var preparedPattern = separatorReplacementNeeded
+      ? replaceSeparators(pattern, separator)
+      : pattern
+    var isMatch = outmatch(preparedPattern, options)
+
+    return function () {
+      return Array.prototype.slice
+        .call(arguments)
+        .map(function (sample) {
+          var args = { options: options, pattern: pattern, sample: sample }
+          var argsStr = JSON.stringify(args)
+
+          if (testSet[argsStr]) {
+            throw new Error('Duplicate test found: ' + argsStr)
+          }
+
+          testSet[argsStr] = true
+          return separatorReplacementNeeded
+            ? replaceSeparators(sample, separator)
+            : sample
         })
-      } else {
-        pattern = pattern.replace(/\//g, separator)
-      }
-    }
-
-    return function (sample) {
-      var args = { options: options, pattern: pattern, sample: sample }
-      var argsStr = JSON.stringify(args)
-
-      if (testSet[argsStr]) {
-        throw new Error('Duplicate test found: ' + argsStr)
-      }
-
-      testSet[argsStr] = true
-      sample = replaceSeparators ? sample.replace(/\//g, separator) : sample
-      return outmatch(pattern, sample, options)
+        .every(isMatch)
     }
   }
 }

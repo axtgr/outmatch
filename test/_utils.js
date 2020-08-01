@@ -26,23 +26,19 @@ function match(options) {
       : pattern
     var isMatch = outmatch(preparedPattern, options)
 
-    return function () {
-      return Array.prototype.slice
-        .call(arguments)
-        .map(function (sample) {
-          var args = { options: options, pattern: pattern, sample: sample }
-          var argsStr = JSON.stringify(args)
+    return function (sample) {
+      var args = { options: options, pattern: pattern, sample: sample }
+      var argsStr = JSON.stringify(args)
 
-          if (testSet[argsStr]) {
-            throw new Error('Duplicate test found: ' + argsStr)
-          }
+      if (testSet[argsStr]) {
+        throw new Error('Duplicate test found: ' + argsStr)
+      }
 
-          testSet[argsStr] = true
-          return separatorReplacementNeeded
-            ? replaceSeparators(sample, separator)
-            : sample
-        })
-        .every(isMatch)
+      testSet[argsStr] = true
+      sample = separatorReplacementNeeded
+        ? replaceSeparators(sample, separator)
+        : sample
+      return isMatch(sample)
     }
   }
 }
@@ -111,28 +107,32 @@ function decorateT(t, options) {
   // https://github.com/lorenzofox3/zora/issues/25
 
   t.match = function (pattern) {
-    return function (sample) {
-      var result = m(pattern)(sample)
-      return t.collect({
-        pass: result,
-        actual: result,
-        expected: true,
-        description: '"' + sample + '" matches "' + pattern + '"',
-        operator: 'ok',
-      })
+    return function () {
+      for (var i = 0; i < arguments.length; i++) {
+        var result = m(pattern)(arguments[i])
+        t.collect({
+          pass: result,
+          actual: result,
+          expected: true,
+          description: '"' + arguments[i] + '" matches "' + pattern + '"',
+          operator: 'ok',
+        })
+      }
     }
   }
 
   t.dontMatch = function (pattern) {
-    return function (sample) {
-      var result = m(pattern)(sample)
-      return t.collect({
-        pass: !result,
-        actual: result,
-        expected: false,
-        description: '"' + sample + '" doesn\'t match "' + pattern + '"',
-        operator: 'notOk',
-      })
+    return function () {
+      for (var i = 0; i < arguments.length; i++) {
+        var result = m(pattern)(arguments[i])
+        t.collect({
+          pass: !result,
+          actual: result,
+          expected: true,
+          description: '"' + arguments[i] + '" doesn\'t match "' + pattern + '"',
+          operator: 'notOk',
+        })
+      }
     }
   }
 

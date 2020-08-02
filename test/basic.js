@@ -2,92 +2,70 @@ var suite = require('./_utils').suite
 
 module.exports = suite(function (t) {
   t.testPerSeparator('No wildcards and no separators in arguments', function (t) {
-    t.match('')('')
-    t.match('o')('o')
-    t.match('one')('one')
-    t.match('One')('One')
-    t.match('onetwo')('onetwo')
-    t.match('oneTwoThree')('oneTwoThree')
-    t.dontMatch('')('o')
-    t.dontMatch('o')('')
-    t.dontMatch('o')('n')
-    t.dontMatch('O')('o')
-    t.dontMatch('o')('O')
-    t.dontMatch('one')('')
-    t.dontMatch('one')('o')
-    t.dontMatch('one')('on')
-    t.dontMatch('one')('two')
-    t.dontMatch('onetwo')('oneTwo')
-    t.dontMatch('oneTwo')('onetwo')
+    t.pattern('').matches('').doesntMatch('o')
+    t.pattern('o').matches('o').doesntMatch('', 'n', 'O')
+    t.pattern('one').matches('one').doesntMatch('', 'o', 'on', 'two')
+    t.pattern('One').matches('One')
+    t.pattern('onetwo').matches('onetwo').doesntMatch('oneTwo')
+    t.pattern('oneTwoThree').matches('oneTwoThree')
+    t.pattern('O').doesntMatch('o')
+    t.pattern('oneTwo').doesntMatch('onetwo')
   })
 
   t.testPerSeparator('Wildcard symbols in samples are treated literally', function (t) {
-    t.dontMatch('')('?')
-    t.dontMatch('o')('?')
-    t.dontMatch('one')('?')
-    t.dontMatch('one')('???')
-    t.dontMatch('one')('***')
-    t.dontMatch('onetwo')('one?wo')
-    t.dontMatch('onetwo')('one?two')
-    t.dontMatch('onetwo')('*')
-    t.dontMatch('onetwo')('one*')
-    t.dontMatch('onetwo')('*two')
-    t.dontMatch('onetwo')('one*two')
-    t.dontMatch('onetwo')('**')
-    t.dontMatch('onetwo')('one**')
-    t.dontMatch('onetwo')('**two')
-    t.dontMatch('onetwo')('one**two')
-    t.dontMatch('onetwo')('***')
-    t.dontMatch('/')('?')
-    t.dontMatch('/')('??')
-    t.dontMatch('/')('???')
-    t.dontMatch('/')('*')
-    t.dontMatch('/')('**')
-    t.dontMatch('/')('/?')
-    t.dontMatch('/')('/??')
-    t.dontMatch('/')('/???')
-    t.dontMatch('/')('/*')
-    t.dontMatch('/')('/**')
-    t.dontMatch('/')('?/')
-    t.dontMatch('/')('??/')
-    t.dontMatch('/')('???/')
-    t.dontMatch('/')('*/')
-    t.dontMatch('/')('**/')
-    t.dontMatch('o/')('?/')
-    t.dontMatch('on/')('??/')
-    t.dontMatch('one/')('???/')
-    t.dontMatch('one/')('*/')
-    t.dontMatch('one/')('**/')
+    t.pattern('').doesntMatch('?')
+    t.pattern('o').doesntMatch('?')
+    t.pattern('one').doesntMatch('?', '???', '***')
+    t.pattern('onetwo').doesntMatch(
+      'one?wo',
+      'one?two',
+      '*',
+      'one*',
+      '*two',
+      'one*two',
+      '**',
+      'one**',
+      '**two',
+      'one**two',
+      '***'
+    )
+    t.pattern('/').doesntMatch(
+      '?',
+      '??',
+      '???',
+      '*',
+      '**',
+      '/?',
+      '/??',
+      '/???',
+      '/*',
+      '/**',
+      '?/',
+      '??/',
+      '???/',
+      '*/',
+      '**/'
+    )
+    t.pattern('o/').doesntMatch('?/')
+    t.pattern('on/').doesntMatch('??/')
+    t.pattern('one/').doesntMatch('???/', '*/', '**/')
   })
 
   t.testPerSeparator('No wildcards in patterns', function (t) {
-    t.dontMatch('')('/')
-    t.match('/')('/')
-    t.dontMatch('/')('')
-    t.dontMatch('/')('one/two')
-    t.match('//')('//')
-    t.match('///')('///')
-    t.match('one/')('one/')
-    t.dontMatch('one/')('one//')
-    t.dontMatch('one/')('/one')
-    t.dontMatch('one/')('/one/')
-    t.match('/one')('/one')
-    t.dontMatch('/one')('one//')
-    t.dontMatch('/one')('//' + 'one')
-    t.dontMatch('/one')('one/')
-    t.dontMatch('/one')('/one/')
-    t.match('one/two')('one/two')
-    t.match('/one/')('/one/')
-    t.dontMatch('one/two')('one_two')
-    t.dontMatch('one/two')('/')
-    t.dontMatch('one/')('one/two')
-    t.dontMatch('one/two')('one/')
-    t.dontMatch('one/two')('one/three')
-    t.dontMatch('one/two/three')('one/three')
-    t.dontMatch('one/two/three')('one/three/two')
+    t.pattern('').doesntMatch('/')
+    t.pattern('/').matches('/').doesntMatch('', 'one/two')
+    t.pattern('//').matches('//')
+    t.pattern('///').matches('///')
+    t.pattern('one/').matches('one/').doesntMatch('one//', '/one', '/one/', 'one/two')
+    t.pattern('/one').matches('/one').doesntMatch('one//', '//one', 'one/', '/one/')
+    t.pattern('one/two')
+      .matches('one/two')
+      .doesntMatch('one_two', '/', 'one/', 'one/three')
+    t.pattern('/one/').matches('/one/')
+    t.pattern('one/two/three').doesntMatch('one/three', 'one/three/two')
   })
 
   t.test('Treats unused RegExp characters literally', function (t) {
-    t.match('^$.+-|)')('^$.+-|)')
+    t.pattern('^$.+-|)').matches('^$.+-|)')
   })
 })

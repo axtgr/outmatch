@@ -3,148 +3,110 @@ var suite = require('./_utils').suite
 module.exports = suite(function (t) {
   t.test('* - wildcard', function (t) {
     t.testPerSeparator('Matches 0 or more non-separator characters', function (t) {
-      t.match('*')('')
-      t.match('*')('o')
-      t.match('*')('one')
-      t.match('one*')('one')
-      t.match('one*')('onet')
-      t.match('one*')('onetwo')
-      t.match('one*')('one_two')
-      t.dontMatch('one*')('on')
-      t.dontMatch('one*')('ont')
-      t.dontMatch('one*')('onte')
-      t.match('*/*')('one/')
-      t.match('*/*')('one/t')
-      t.match('*/*')('one/two')
-      t.match('*/*/*')('one/two/three')
-      t.match('*/*/*')('//')
-      t.match('one/*')('one/two')
-      t.match('one/*')('one/*')
-      t.match('one/*')('one/**')
-      t.match('one/*')('one/***')
-      t.match('one/*')('one/')
-      t.match('one/*')('one/t')
-      t.match('one/*/three')('one/two/three')
-      t.match('one/*/three/')('one/two/three/')
-      t.match('one/*/three/*')('one/two/three/')
-      t.match('one/*/three/*')('one/two/three/four')
-      t.match('*two')('two')
-      t.match('*two')('onetwo')
-      t.match('one*three')('onetwothree')
-      t.match('one*three')('onethree')
-      t.match('one/*three')('one/twothree')
-      t.match('one/two*')('one/twothree')
-      t.match('*/')('/')
-      t.match('*/one')('/one')
-      t.match('*n*')('one')
-      t.match('*n*')('oonee')
-      t.match('*n*')('n')
-      t.match('o*n*e')('one')
-      t.match('o*n*e')('oone')
-      t.match('o*n*e')('onne')
-      t.match('o*n*e')('oonne')
-      t.match('*ne/*o')('ne/o')
-      t.match('*ne/*o')('one/o')
-      t.match('*ne/*o')('ne/two')
-      t.match('*ne/*o')('one/two')
-      t.match('*/*o')('/o')
-      t.match('*/*o')('/two')
-      t.match('*/*o')('one/two')
-      t.dontMatch('one/*')('')
-      t.dontMatch('one/*')('/')
-      t.dontMatch('one/*')('//')
-      t.dontMatch('one/*')('two/three')
-      t.dontMatch('*/one')('')
-      t.dontMatch('*/one')('/')
-      t.dontMatch('*/one')('//')
-      t.dontMatch('*/one')('one/two/three')
-      t.dontMatch('*/one')('one/two')
-      t.dontMatch('*n*')('')
-      t.dontMatch('*n*')('/')
-      t.dontMatch('o*n*e')(' one ')
-      t.dontMatch('*/*o')('/o/')
-      t.dontMatch('o*n*e')('/one')
-      t.dontMatch('one/*')('one')
-      t.dontMatch('one/*')('/one')
-      t.dontMatch('*/one')('one')
-      t.dontMatch('*/one')('one/')
-      t.dontMatch('o*n*e')('one/')
+      t.pattern('*')
+        .matches('', 'o', 'one')
+        .doesntMatchWhenSeparated('/', '//', 'one/two', 'one/', '/one')
 
-      t.dontMatchWhenSeparated('*')('/')
-      t.dontMatchWhenSeparated('*')('//')
-      t.dontMatchWhenSeparated('*')('one/two')
-      t.dontMatchWhenSeparated('*')('one/')
-      t.dontMatchWhenSeparated('*')('/one')
-      t.dontMatchWhenSeparated('one/*')('one/two/three')
-      t.dontMatchWhenSeparated('*two')('one/two')
-      t.dontMatchWhenSeparated('*n*')('n/')
-      t.dontMatchWhenSeparated('*n*')('one/')
-      t.dontMatchWhenSeparated('*n*')('/n')
-      t.dontMatchWhenSeparated('*n*')('/n/')
-      t.dontMatchWhenSeparated('o*n*e')('o/ne')
-      t.dontMatchWhenSeparated('o*n*e')('on/e')
-      t.dontMatchWhenSeparated('o*n*e')('o/n/e')
-      t.dontMatchWhenSeparated('*ne/*o')('/ne/o')
-      t.dontMatchWhenSeparated('*/*o')('//o')
+      t.pattern('one*')
+        .matches('one', 'onet', 'onetwo', 'one_two')
+        .doesntMatch('on', 'ont', 'onte')
+
+      t.pattern('*/').matches('/')
+      t.pattern('*/*').matches('one/', 'one/t', 'one/two')
+      t.pattern('*/*/*').matches('one/two/three', '//')
+      t.pattern('one/*').matches(
+        'one/two',
+        'one/*',
+        'one/**',
+        'one/***',
+        'one/',
+        'one/t'
+      )
+
+      t.pattern('one/*')
+        .doesntMatch('', '/', '//', 'two/three', 'one', '/one')
+        .doesntMatchWhenSeparated('one/two/three')
+
+      t.pattern('one/*/three').matches('one/two/three')
+      t.pattern('one/*/three/').matches('one/two/three/')
+      t.pattern('one/*/three/*').matches('one/two/three/', 'one/two/three/four')
+      t.pattern('*two').matches('two', 'onetwo').doesntMatchWhenSeparated('one/two')
+      t.pattern('one*three').matches('onetwothree', 'onethree')
+      t.pattern('one/*three').matches('one/twothree')
+      t.pattern('one/two*').matches('one/twothree')
+
+      t.pattern('*/one')
+        .matches('/one')
+        .doesntMatch('', '/', '//', 'one/two/three', 'one/two', 'one', 'one/')
+
+      t.pattern('*n*')
+        .matches('one', 'oonee', 'n')
+        .doesntMatch('', '/')
+        .doesntMatchWhenSeparated('n/', 'one/', '/n', '/n/')
+
+      t.pattern('o*n*e')
+        .matches('one', 'oone', 'onne', 'oonne')
+        .doesntMatch('_one_', '/one', 'one/')
+        .doesntMatchWhenSeparated('o/ne', 'on/e', 'o/n/e')
+
+      t.pattern('*ne/*o')
+        .matches('ne/o', 'one/o', 'ne/two', 'one/two')
+        .doesntMatchWhenSeparated('/ne/o')
+
+      t.pattern('*/*o')
+        .matches('/o', '/two', 'one/two')
+        .doesntMatch('/o/')
+        .doesntMatchWhenSeparated('//o')
     })
 
     t.testPerSeparator('When escaped, treated literally', function (t) {
       // TODO: add cases with separators
-      t.match('\\*')('*')
-      t.dontMatch('\\*')('')
-      t.dontMatch('\\*')('\\*')
-      t.dontMatch('\\*')('o\\*')
-      t.dontMatch('\\*')('\\*e')
-      t.dontMatch('\\*')('\\**')
-      t.dontMatch('\\*')('o')
-      t.dontMatch('\\*')('one')
-      t.dontMatch('\\*')('\\o')
-      t.dontMatch('\\*')('\\')
-      t.match('one\\*')('one*')
-      t.dontMatch('one\\*')('')
-      t.dontMatch('one\\*')('one')
-      t.dontMatch('one\\*')('one\\')
-      t.dontMatch('one\\*')('one\\*')
-      t.dontMatch('one\\*')('one*t')
-      t.dontMatch('one\\*')('one\\*two')
-      t.dontMatch('one\\*')('one\\**')
-      t.dontMatch('one\\*')('\\*')
-      t.dontMatch('one\\*')('*\\*')
-      t.dontMatch('one\\*')('\\')
-      t.match('\\*one')('*one')
-      t.dontMatch('\\*one')('')
-      t.dontMatch('\\*one')('one')
-      t.dontMatch('\\*one')('\\one')
-      t.dontMatch('\\*one')('\\*one')
-      t.dontMatch('\\*one')('t*one')
-      t.dontMatch('\\*one')('two\\*one')
-      t.dontMatch('\\*one')('\\*')
-      t.dontMatch('\\*one')('\\**')
-      t.dontMatch('\\*one')('\\')
-      t.match('o\\*e')('o*e')
-      t.dontMatch('o\\*e')('')
-      t.dontMatch('o\\*e')('one')
-      t.dontMatch('o\\*e')('o\\e')
-      t.dontMatch('o\\*e')('o\\*e')
-      t.dontMatch('o\\*e')('o*te')
-      t.dontMatch('o\\*e')('\\*')
-      t.dontMatch('o\\*e')('\\**')
-      t.dontMatch('o\\*e')('\\')
+      t.pattern('\\*')
+        .matches('*')
+        .doesntMatch('', '\\*', 'o\\*', '\\*e', '\\**', 'o', 'one', '\\o', '\\')
+
+      t.pattern('one\\*')
+        .matches('one*')
+        .doesntMatch(
+          '',
+          'one',
+          'one\\',
+          'one\\*',
+          'one*t',
+          'one\\*two',
+          'one\\**',
+          '\\*',
+          '*\\*',
+          '\\'
+        )
+
+      t.pattern('\\*one')
+        .matches('*one')
+        .doesntMatch(
+          '',
+          'one',
+          '\\one',
+          '\\*one',
+          't*one',
+          'two\\*one',
+          '\\*',
+          '\\**',
+          '\\'
+        )
+      t.pattern('o\\*e')
+        .matches('o*e')
+        .doesntMatch('', 'one', 'o\\e', 'o\\*e', 'o*te', '\\*', '\\**', '\\')
     })
 
-    t.testPerSeparator('When turned off in options, treated literally', function (t) {
-      t.options({ '*': false })
-
-      t.match('*')('*')
-      t.dontMatch('*')('')
-      t.dontMatch('*')('one')
-      t.dontMatch('*')('/')
-      t.match('one*two')('one*two')
-      t.dontMatch('one*two')('onetwo')
-      t.dontMatch('one*two')('onethreetwo')
-      t.dontMatch('one*two')('one/two')
-      t.match('o*e/t*o')('o*e/t*o')
-      t.dontMatch('o*e/t*o')('one/two')
-    })
+    t.options({ '*': false }).testPerSeparator(
+      'When turned off in options, treated literally',
+      function (t) {
+        t.pattern('*').matches('*').doesntMatch('', 'one', '/')
+        t.pattern('one*two')
+          .matches('one*two')
+          .doesntMatch('onetwo', 'onethreetwo', 'one/two')
+        t.pattern('o*e/t*o').matches('o*e/t*o').doesntMatch('one/two')
+      }
+    )
   })
 })

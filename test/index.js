@@ -131,15 +131,13 @@ module.exports = suite(function (t) {
     })
   })
 
-  t.testOnPlatform(
-    'When separator === true, uses the platform-specific separator for samples',
-    'win32',
-    function (t) {
-      var options = { separator: true }
-
-      t.notOk(outmatch('foo/bar', options)('foo/bar'))
-      t.ok(outmatch('foo/bar', options)('foo\\bar'))
-      t.ok(outmatch('foo/**/qux', options)(Path.join('foo', 'bar', 'baz', 'qux')))
-    }
-  )
+  t.platform('win32')
+    .options({ separator: true })
+    .test(
+      'When separator === true, uses the platform-specific separator for samples',
+      function (t) {
+        t.pattern('foo/bar').matches('foo\\bar').doesntMatch('foo/bar')
+        t.pattern('foo/**/qux').matches(Path.join('foo', 'bar', 'baz', 'qux'))
+      }
+    )
 })

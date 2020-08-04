@@ -54,9 +54,8 @@ module.exports = suite(function (t) {
         .doesntMatchWhenSeparated('/ne/o')
 
       t.pattern('*/*o')
-        .matches('/o', '/two', 'one/two')
+        .matches('/o', '/two', '//o', '/////two', 'one/two')
         .doesntMatch('/o/')
-        .doesntMatchWhenSeparated('//o')
     })
 
     t.testPerSeparator('When escaped, treated literally', function (t) {

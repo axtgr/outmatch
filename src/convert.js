@@ -225,23 +225,22 @@ function convertSeparatedPattern(pattern, options) {
   var separatorMatcher = escapeRegExpString(
     separator === true ? FS_SEPARATOR : separator
   )
+  var wildcard =
+    separatorMatcher.length > 1
+      ? '((?!' + separatorMatcher + ').)'
+      : '[^' + separatorMatcher + ']'
+  var requiredSeparator = '(' + separatorMatcher + ')+'
+  var globstarPattern = '(' + wildcard + '*' + requiredSeparator + ')*'
   var segments = pattern.split(separator === true ? '/' : separator)
   var result = ''
-  var wildcard
-
-  if (separatorMatcher.length > 1) {
-    wildcard = '((?!' + separatorMatcher + ').)'
-  } else {
-    wildcard = '[^' + separatorMatcher + ']'
-  }
 
   for (var i = 0; i < segments.length; i++) {
     var segment = segments[i]
     if (i < segments.length - 1) {
       if (supportGlobstar && segment === '**') {
-        result += '(' + wildcard + '*' + separatorMatcher + ')*'
+        result += globstarPattern
       } else {
-        result += convertBasicPattern(segment, options, wildcard) + separatorMatcher
+        result += convertBasicPattern(segment, options, wildcard) + requiredSeparator
       }
     } else {
       if (supportGlobstar && segment === '**') {

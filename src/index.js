@@ -42,7 +42,7 @@ function compile(patterns, options) {
   } else if (positivePatterns.length === 1) {
     result += positivePatterns[0]
   } else if (result.length > 0) {
-    result += '.*'
+    result += convert('**', options).pattern
   }
 
   return '^' + result + '$'

@@ -52,7 +52,7 @@ module.exports = suite(function (t) {
   })
 
   t.testPerSeparator('No wildcards in patterns', function (t) {
-    t.pattern('').doesntMatch('/')
+    t.pattern('').matchesWhenSeparated('/')
     t.pattern('/').matches('/').doesntMatch('', 'one/two')
     t.pattern('//').matches('//')
     t.pattern('///').matches('///')

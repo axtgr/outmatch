@@ -86,8 +86,6 @@ module.exports = suite(function (t) {
       t.pattern('}}').matches('}}')
       t.pattern('{}{').matches('{}{')
       t.pattern('}{one}{').matches('}{one}{')
-      t.pattern('{..1').matches('{..1')
-      t.pattern('..1}').matches('..1}')
       t.pattern('{1..2').matches('{1..2')
       t.pattern('1..2}').matches('1..2}')
     })

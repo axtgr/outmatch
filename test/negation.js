@@ -53,9 +53,10 @@ module.exports = suite(function (t) {
             'bar/foo.bin',
             'baz/bar/foo.bash',
             'baz/bar/foo.exe',
-            'qux/baz/bar/foo.msi'
+            'qux/baz/bar/foo.msi',
+            '.sh' // dotfile
           )
-          .doesntMatchWhenSeparated('.sh', 'foo.bat')
+          .doesntMatchWhenSeparated('foo.sh', 'bar.bat')
       }
     )
 

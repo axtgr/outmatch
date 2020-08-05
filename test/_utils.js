@@ -1,7 +1,7 @@
 var outmatch = require('../src')
 
 // TODO: add '\\', '//' and separators with wildcards
-var SEPARATORS = [false, '/', '.', ' ', 'sep']
+var SEPARATORS = [false, '/', ' ', 's', 'sep']
 
 // We assume that tests are run in an ES5 environment, which don't have Object.assign
 function assign(to, from) {

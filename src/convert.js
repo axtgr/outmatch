@@ -2,6 +2,7 @@
 
 'use strict'
 
+var IGNORE_DOTFILES_PATTERN = '(?!\\.)'
 var FS_SEPARATOR = '/'
 
 try {
@@ -47,6 +48,7 @@ function convertBasicPattern(pattern, options, wildcard) {
   var supportParens = options['()'] !== false
   var supportQMark = options['?'] !== false
   var supportStar = options['*'] !== false
+  var ignoreDotfiles = options['.'] !== false
   var openingBracket = pattern.length
   var closingBracket = -1
   var parenModifiers = []
@@ -216,39 +218,40 @@ function convertBasicPattern(pattern, options, wildcard) {
     escapeChar = false
   }
 
-  return result
+  if (ignoreDotfiles && pattern[0] !== '.') {
+    return IGNORE_DOTFILES_PATTERN + result
+  } else {
+    return result
+  }
 }
 
 function convertSeparatedPattern(pattern, options) {
   var supportGlobstar = options['**'] !== false
+  var ignoreDotfiles = options['.'] !== false
+  var ignoreDotfilesPattern = ignoreDotfiles ? IGNORE_DOTFILES_PATTERN : ''
   var separator = options.separator
+  var separatorSplitter = separator === true ? '/' : separator
   var separatorMatcher = escapeRegExpString(
     separator === true ? FS_SEPARATOR : separator
   )
+  var optionalSeparator = '(' + separatorMatcher + ')*'
+  var requiredSeparator = '(' + separatorMatcher + ')+'
   var wildcard =
     separatorMatcher.length > 1
       ? '((?!' + separatorMatcher + ').)'
       : '[^' + separatorMatcher + ']'
-  var optionalSeparator = '(' + separatorMatcher + ')*'
-  var requiredSeparator = '(' + separatorMatcher + ')+'
-  var globstarPattern = '(' + wildcard + '*' + requiredSeparator + ')*'
-  var segments = pattern.split(separator === true ? '/' : separator)
+  var segments = pattern.split(separatorSplitter)
   var result = ''
 
   for (var i = 0; i < segments.length; i++) {
     var segment = segments[i]
-    if (i < segments.length - 1) {
-      if (supportGlobstar && segment === '**') {
-        result += globstarPattern
-      } else {
-        result += convertBasicPattern(segment, options, wildcard) + requiredSeparator
-      }
-    } else if (segment.length > 0) {
-      if (supportGlobstar && segment === '**') {
-        result += '.*'
-      } else {
-        result += convertBasicPattern(segment, options, wildcard) + optionalSeparator
-      }
+    var currentSeparator =
+      i < segments.length - 1 ? requiredSeparator : optionalSeparator
+
+    if (supportGlobstar && segment === '**') {
+      result += '(' + ignoreDotfilesPattern + wildcard + '*' + currentSeparator + ')*'
+    } else {
+      result += convertBasicPattern(segment, options, wildcard) + currentSeparator
     }
   }
 

@@ -218,6 +218,7 @@ function convertBasicPattern(pattern, options, wildcard) {
     escapeChar = false
   }
 
+  // If the pattern (or segment) starts with a dot, dotfiles should be matched
   if (ignoreDotfiles && pattern[0] !== '.') {
     return IGNORE_DOTFILES_PATTERN + result
   } else {
@@ -229,17 +230,27 @@ function convertSeparatedPattern(pattern, options) {
   var supportGlobstar = options['**'] !== false
   var ignoreDotfiles = options['.'] !== false
   var ignoreDotfilesPattern = ignoreDotfiles ? IGNORE_DOTFILES_PATTERN : ''
+
+  // When separator === true, we may use different separators for splitting the pattern (/)
+  // and for matching samples (/ or \, depending on the OS)
   var separator = options.separator
   var separatorSplitter = separator === true ? '/' : separator
   var separatorMatcher = escapeRegExpString(
     separator === true ? FS_SEPARATOR : separator
   )
+
+  // Multiple separators in a row are treated as a single one;
+  // trailing separators are optional unless they are put in the pattern deliberately
   var optionalSeparator = '(' + separatorMatcher + ')*'
   var requiredSeparator = '(' + separatorMatcher + ')+'
+
+  // When the separator consists of only one char, we use a character class
+  // rather than a lookahead because it is faster
   var wildcard =
-    separatorMatcher.length > 1
-      ? '((?!' + separatorMatcher + ').)'
-      : '[^' + separatorMatcher + ']'
+    separatorMatcher.length === 1
+      ? '[^' + separatorMatcher + ']'
+      : '((?!' + separatorMatcher + ').)'
+
   var segments = pattern.split(separatorSplitter)
   var result = ''
 

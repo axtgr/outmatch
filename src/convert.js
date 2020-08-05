@@ -229,6 +229,7 @@ function convertSeparatedPattern(pattern, options) {
     separatorMatcher.length > 1
       ? '((?!' + separatorMatcher + ').)'
       : '[^' + separatorMatcher + ']'
+  var optionalSeparator = '(' + separatorMatcher + ')*'
   var requiredSeparator = '(' + separatorMatcher + ')+'
   var globstarPattern = '(' + wildcard + '*' + requiredSeparator + ')*'
   var segments = pattern.split(separator === true ? '/' : separator)
@@ -242,11 +243,11 @@ function convertSeparatedPattern(pattern, options) {
       } else {
         result += convertBasicPattern(segment, options, wildcard) + requiredSeparator
       }
-    } else {
+    } else if (segment.length > 0) {
       if (supportGlobstar && segment === '**') {
         result += '.*'
       } else {
-        result += convertBasicPattern(segment, options, wildcard)
+        result += convertBasicPattern(segment, options, wildcard) + optionalSeparator
       }
     }
   }

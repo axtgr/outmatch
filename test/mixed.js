@@ -4,9 +4,9 @@ module.exports = suite(function (t) {
   t.test('Mixed wildcards', function (t) {
     t.testPerSeparator('? and *', function (t) {
       t.pattern('?*')
-        .matches('onetwo', 'o')
+        .matches('onetwo', 'o', 'one/')
         .doesntMatch('')
-        .doesntMatchWhenSeparated('/', 'one/', '/one')
+        .doesntMatchWhenSeparated('/', '/one')
       t.pattern('*?').doesntMatch('').doesntMatchWhenSeparated('/')
       t.pattern('?ne*')
         .matches('onetwo')
@@ -15,9 +15,9 @@ module.exports = suite(function (t) {
       t.pattern('one?*').doesntMatch('one')
       t.pattern('?*/').matches('one/')
       t.pattern('?*/*')
-        .matches('one/', 'one/two')
+        .matches('one/', 'one/two', 'one/two/')
         .doesntMatch('one')
-        .doesntMatchWhenSeparated('one/two/', 'one/two/three')
+        .doesntMatchWhenSeparated('one/two/three')
       t.pattern('?*?')
         .matches('oe', 'one', 'onnne')
         .doesntMatch('o')

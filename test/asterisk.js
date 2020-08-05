@@ -4,8 +4,8 @@ module.exports = suite(function (t) {
   t.test('* - wildcard', function (t) {
     t.testPerSeparator('Matches 0 or more non-separator characters', function (t) {
       t.pattern('*')
-        .matches('', 'o', 'one')
-        .doesntMatchWhenSeparated('/', '//', 'one/two', 'one/', '/one')
+        .matches('', '/', '//', 'o', 'one', 'one/')
+        .doesntMatchWhenSeparated('one/two', '/one')
 
       t.pattern('one*')
         .matches('one', 'onet', 'onetwo', 'one_two')
@@ -40,13 +40,14 @@ module.exports = suite(function (t) {
         .doesntMatch('', '/', '//', 'one/two/three', 'one/two', 'one', 'one/')
 
       t.pattern('*n*')
-        .matches('one', 'oonee', 'n')
+        .matches('one', 'oonee', 'n', 'n/', 'one/')
         .doesntMatch('', '/')
-        .doesntMatchWhenSeparated('n/', 'one/', '/n', '/n/')
+        .doesntMatchWhenSeparated('/n', '/n/')
 
       t.pattern('o*n*e')
         .matches('one', 'oone', 'onne', 'oonne')
-        .doesntMatch('_one_', '/one', 'one/')
+        .matchesWhenSeparated('one/')
+        .doesntMatch('_one_', '/one')
         .doesntMatchWhenSeparated('o/ne', 'on/e', 'o/n/e')
 
       t.pattern('*ne/*o')
@@ -54,8 +55,8 @@ module.exports = suite(function (t) {
         .doesntMatchWhenSeparated('/ne/o')
 
       t.pattern('*/*o')
-        .matches('/o', '/two', '//o', '/////two', 'one/two')
-        .doesntMatch('/o/')
+        .matches('/o', '//o', '/two', '/////two', 'one/two')
+        .matchesWhenSeparated('/o/')
     })
 
     t.testPerSeparator('When escaped, treated literally', function (t) {

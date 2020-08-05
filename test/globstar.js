@@ -30,7 +30,10 @@ module.exports = suite(function (t) {
             'one/***'
           )
           .doesntMatch('', '/', '//', 'two', 'one', '/one')
-        t.pattern('**/one').matches('/one').doesntMatch('', '/', '//', 'two', 'one/')
+        t.pattern('**/one')
+          .matches('/one')
+          .matchesWhenSeparated('one/', '/one/')
+          .doesntMatch('', '/', '//', 'two')
         t.pattern('one/**/four')
           .matches('one/two/four', 'one/three/four', 'one/two/three/four')
           .matchesWhenSeparated('one/four')

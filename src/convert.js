@@ -231,13 +231,14 @@ function convertSeparatedPattern(pattern, options) {
   var ignoreDotfiles = options['.'] !== false
   var ignoreDotfilesPattern = ignoreDotfiles ? IGNORE_DOTFILES_PATTERN : ''
 
-  // When separator === true, we may use different separators for splitting the pattern (/)
-  // and for matching samples (/ or \, depending on the OS)
+  // When separator === true, we may use different separators for splitting the pattern
+  // and matching samples (depending on the OS), so we can't just use one separator variable
   var separator = options.separator
   var separatorSplitter = separator === true ? '/' : separator
-  var separatorMatcher = escapeRegExpString(
-    separator === true ? FS_SEPARATOR : separator
-  )
+  var separatorMatcher =
+    separator === true && FS_SEPARATOR !== '/'
+      ? '(/|' + escapeRegExpString(FS_SEPARATOR) + ')'
+      : escapeRegExpString(separator)
 
   // Multiple separators in a row are treated as a single one;
   // trailing separators are optional unless they are put in the pattern deliberately

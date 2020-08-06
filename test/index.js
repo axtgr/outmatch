@@ -136,7 +136,7 @@ module.exports = suite(function (t) {
     .test(
       'When separator === true, uses the platform-specific separator for samples',
       function (t) {
-        t.pattern('foo/bar').matches('foo\\bar').doesntMatch('foo/bar')
+        t.pattern('foo/bar').matches('foo/bar', 'foo\\bar')
         t.pattern('foo/**/qux').matches(Path.join('foo', 'bar', 'baz', 'qux'))
       }
     )

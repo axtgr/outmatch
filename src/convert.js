@@ -57,6 +57,7 @@ function convertBasicPattern(pattern, options, wildcard) {
   var parensHandledUntil = -1
   var scanningForParens = false
   var escapeChar = false
+  var isGlob = false
   var maxI = pattern.length - 1
   var result = ''
   var buffer
@@ -118,6 +119,7 @@ function convertBasicPattern(pattern, options, wildcard) {
           result += '['
           closingBracket = i
           i = openingBracket
+          isGlob = true
         } else if (i === maxI) {
           // Closing bracket is not found; return to the opening bracket
           // and treat all the in-between chars as usual
@@ -187,6 +189,7 @@ function convertBasicPattern(pattern, options, wildcard) {
           } else {
             result += ')' + modifier
           }
+          isGlob = true
           closingParens--
           continue
         }
@@ -209,7 +212,9 @@ function convertBasicPattern(pattern, options, wildcard) {
       if (i === maxI || pattern[i + 1] !== '*') {
         result += wildcard + '*'
       }
+      isGlob = true
     } else if (!escapeChar && supportQMark && char === '?') {
+      isGlob = true
       result += wildcard
     } else {
       result += escapeRegExpChar(char)
@@ -218,8 +223,9 @@ function convertBasicPattern(pattern, options, wildcard) {
     escapeChar = false
   }
 
-  // If the pattern (or segment) starts with a dot, dotfiles should be matched
-  if (ignoreDotfiles && pattern[0] !== '.') {
+  // Dotfiles should not be matched unless specified otherwise in options, or the pattern
+  // (or segment) explicitly starts with a dot
+  if (ignoreDotfiles && isGlob && pattern[0] !== '.') {
     return IGNORE_DOTFILES_PATTERN + result
   } else {
     return result

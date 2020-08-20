@@ -1,17 +1,18 @@
 // Disclaimer: the code is optimized for performance and compatibility, hence the ugliness
 
-'use strict'
+import type { OutmatchOptions } from './index'
 
-var IGNORE_DOTFILES_PATTERN = '(?!\\.)'
-var FS_SEPARATOR = '/'
+const IGNORE_DOTFILES_PATTERN = '(?!\\.)'
+let FS_SEPARATOR = '/'
 
 try {
-  FS_SEPARATOR = require('path').sep
+  // @ts-expect-error: the dynamic import will be replaced according to the output format
+  FS_SEPARATOR = import('path').sep
 } catch (err) {
-  // This separator will be used if options.separator === true.
+  // FS_SEPARATOR will be used when options.separator === true.
 }
 
-function escapeRegExpChar(char) {
+function escapeRegExpChar(char: string) {
   if (
     char === '-' ||
     char === '^' ||
@@ -35,37 +36,41 @@ function escapeRegExpChar(char) {
   }
 }
 
-function escapeRegExpString(str) {
-  var result = ''
-  for (var i = 0; i < str.length; i++) {
+function escapeRegExpString(str: string) {
+  let result = ''
+  for (let i = 0; i < str.length; i++) {
     result += escapeRegExpChar(str[i])
   }
   return result
 }
 
-function convertBasicPattern(pattern, options, wildcard) {
-  var supportBrackets = options['[]'] !== false
-  var supportParens = options['()'] !== false
-  var supportQMark = options['?'] !== false
-  var supportStar = options['*'] !== false
-  var ignoreDotfiles = options['.'] !== false
-  var openingBracket = pattern.length
-  var closingBracket = -1
-  var parenModifiers = []
-  var openingParens = 0
-  var closingParens = 0
-  var parensHandledUntil = -1
-  var scanningForParens = false
-  var escapeChar = false
-  var isGlob = false
-  var maxI = pattern.length - 1
-  var result = ''
-  var buffer
+function convertBasicPattern(
+  pattern: string,
+  options: OutmatchOptions,
+  wildcard?: string
+) {
+  let supportBrackets = options['[]'] !== false
+  let supportParens = options['()'] !== false
+  let supportQMark = options['?'] !== false
+  let supportStar = options['*'] !== false
+  let ignoreDotfiles = options['.'] !== false
+  let openingBracket = pattern.length
+  let closingBracket = -1
+  let parenModifiers = []
+  let openingParens = 0
+  let closingParens = 0
+  let parensHandledUntil = -1
+  let scanningForParens = false
+  let escapeChar = false
+  let isGlob = false
+  let maxI = pattern.length - 1
+  let result = ''
+  let buffer = ''
 
-  wildcard = wildcard || '.'
+  wildcard = wildcard ?? '.'
 
-  for (var i = 0; i <= maxI; i++) {
-    var char = pattern[i]
+  for (let i = 0; i <= maxI; i++) {
+    let char = pattern[i]
 
     // The straightforward way to handle escaping would be to add the next character
     // to the result as soon as a backslash is found and skip the rest of the current iteration.
@@ -180,7 +185,7 @@ function convertBasicPattern(pattern, options, wildcard) {
         if (scanningForParens) {
           closingParens++
         } else if (closingParens) {
-          var modifier = parenModifiers.pop()
+          let modifier = parenModifiers.pop()
           if (modifier === '!') {
             buffer += result + ').*|(' + result + ').+)'
             result = buffer
@@ -232,38 +237,38 @@ function convertBasicPattern(pattern, options, wildcard) {
   }
 }
 
-function convertSeparatedPattern(pattern, options) {
-  var supportGlobstar = options['**'] !== false
-  var ignoreDotfiles = options['.'] !== false
-  var ignoreDotfilesPattern = ignoreDotfiles ? IGNORE_DOTFILES_PATTERN : ''
+function convertSeparatedPattern(pattern: string, options: OutmatchOptions) {
+  let supportGlobstar = options['**'] !== false
+  let ignoreDotfiles = options['.'] !== false
+  let ignoreDotfilesPattern = ignoreDotfiles ? IGNORE_DOTFILES_PATTERN : ''
 
   // When separator === true, we may use different separators for splitting the pattern
   // and matching samples (depending on the OS), so we can't just use one separator variable
-  var separator = options.separator
-  var separatorSplitter = separator === true ? '/' : separator
-  var separatorMatcher =
+  let separator = options.separator
+  let separatorSplitter = (separator === true ? '/' : separator) as string
+  let separatorMatcher =
     separator === true && FS_SEPARATOR !== '/'
       ? '(/|' + escapeRegExpString(FS_SEPARATOR) + ')'
-      : escapeRegExpString(separator)
+      : escapeRegExpString(separator as string)
 
   // Multiple separators in a row are treated as a single one;
   // trailing separators are optional unless they are put in the pattern deliberately
-  var optionalSeparator = '(' + separatorMatcher + ')*'
-  var requiredSeparator = '(' + separatorMatcher + ')+'
+  let optionalSeparator = '(' + separatorMatcher + ')*'
+  let requiredSeparator = '(' + separatorMatcher + ')+'
 
   // When the separator consists of only one char, we use a character class
   // rather than a lookahead because it is faster
-  var wildcard =
+  let wildcard =
     separatorMatcher.length === 1
       ? '[^' + separatorMatcher + ']'
       : '((?!' + separatorMatcher + ').)'
 
-  var segments = pattern.split(separatorSplitter)
-  var result = ''
+  let segments = pattern.split(separatorSplitter)
+  let result = ''
 
-  for (var i = 0; i < segments.length; i++) {
-    var segment = segments[i]
-    var currentSeparator =
+  for (let i = 0; i < segments.length; i++) {
+    let segment = segments[i]
+    let currentSeparator =
       i < segments.length - 1 ? requiredSeparator : optionalSeparator
 
     if (supportGlobstar && segment === '**') {
@@ -276,7 +281,7 @@ function convertSeparatedPattern(pattern, options) {
   return result
 }
 
-function convert(pattern, options) {
+function convert(pattern: string, options: OutmatchOptions) {
   if (typeof pattern !== 'string') {
     throw new TypeError('A pattern must be a string, but ' + typeof pattern + ' given')
   }
@@ -285,13 +290,14 @@ function convert(pattern, options) {
     throw new Error('\\ is not a valid separator')
   }
 
-  var convertFn = options.separator ? convertSeparatedPattern : convertBasicPattern
-  var supportNegation = options['!'] !== false
-  var supportParens = options['()'] !== false
-  var negated = false
+  let convertFn = options.separator ? convertSeparatedPattern : convertBasicPattern
+  let supportNegation = options['!'] !== false
+  let supportParens = options['()'] !== false
+  let negated = false
+  let i: number
 
   if (supportNegation) {
-    for (var i = 0; i < pattern.length && pattern[i] === '!'; i++) {
+    for (i = 0; i < pattern.length && pattern[i] === '!'; i++) {
       if (supportParens && pattern[i + 1] === '(') {
         i--
         break
@@ -316,4 +322,4 @@ function convert(pattern, options) {
   }
 }
 
-module.exports = convert
+export default convert

@@ -2,7 +2,7 @@ var Suite = require('benchmark').Suite
 var globrex = require('globrex')
 var picomatch = require('picomatch')
 var matcher = require('matcher')
-var outmatch = require('../src')
+var outmatch = require('../dist')
 
 function formatNumber(number) {
   return String(number.toFixed(0))
@@ -37,8 +37,8 @@ function handleCycle(event) {
 var OPTIONS = {
   outmatch: { separator: false, '**': false },
   outmatchSep: { separator: '/' },
-  globrex: { globstar: false, filepath: false, extended: true, strict: true },
-  globrexSep: { globstar: true, filepath: true, extended: true, strict: true },
+  globrex: { globstar: false, filepath: false, extended: true, strict: false },
+  globrexSep: { globstar: true, filepath: true, extended: true, strict: false },
   picomatchSep: {
     nobrace: true,
     nounique: true,

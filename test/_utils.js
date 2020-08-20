@@ -1,4 +1,4 @@
-var outmatch = require('../src')
+var outmatch = require('../dist')
 
 // TODO: add '\\', '//' and separators with wildcards
 var SEPARATORS = [false, '/', ' ', 's', 'sep']

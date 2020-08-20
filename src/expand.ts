@@ -1,13 +1,13 @@
 'use strict'
 
-function handleNoCommaBraces(span) {
+function handleNoCommaBraces(span: string) {
   if (span.length < 3) {
     return '{' + span + '}'
   }
 
-  var separatorI = -1
+  let separatorI = -1
 
-  for (var i = 2; i < span.length; i++) {
+  for (let i = 2; i < span.length; i++) {
     if (span[i] === '.' && span[i - 1] === '.' && (i < 2 || span[i - 2] !== '\\')) {
       if (separatorI > -1) {
         return '{' + span + '}'
@@ -18,8 +18,8 @@ function handleNoCommaBraces(span) {
   }
 
   if (separatorI > -1) {
-    var rangeStart = span.substr(0, separatorI)
-    var rangeEnd = span.substr(separatorI + 2)
+    let rangeStart = span.substr(0, separatorI)
+    let rangeEnd = span.substr(separatorI + 2)
 
     if (rangeStart.length > 0 && rangeEnd.length > 0) {
       return '[' + span.substr(0, separatorI) + '-' + span.substr(separatorI + 2) + ']'
@@ -29,20 +29,22 @@ function handleNoCommaBraces(span) {
   return '{' + span + '}'
 }
 
-function expand(pattern) {
+function expand(pattern: string): string[] {
   if (typeof pattern !== 'string') {
     throw new TypeError('A pattern must be a string, but ' + typeof pattern + ' given')
   }
 
-  var scanning = false
-  var openingBraces = 0
-  var closingBraces = 0
-  var handledUntil = -1
-  var results = ['']
-  var newResults, span, alternatives, i, j, k, l
+  let scanning = false
+  let openingBraces = 0
+  let closingBraces = 0
+  let handledUntil = -1
+  let results = ['']
+  let newResults,
+    span,
+    alternatives = []
 
-  for (i = 0; i < pattern.length; i++) {
-    var char = pattern[i]
+  for (let i = 0; i < pattern.length; i++) {
+    let char = pattern[i]
 
     if (char === '\\') {
       i++
@@ -54,7 +56,7 @@ function expand(pattern) {
         openingBraces++
       } else if (i > handledUntil && !openingBraces) {
         span = pattern.substring(handledUntil + 1, i)
-        for (j = 0; j < results.length; j++) {
+        for (let j = 0; j < results.length; j++) {
           results[j] += span
         }
         alternatives = []
@@ -73,9 +75,9 @@ function expand(pattern) {
         if (alternatives.length > 0) {
           alternatives.push(expand(span))
           newResults = []
-          for (j = 0; j < results.length; j++) {
-            for (k = 0; k < alternatives.length; k++) {
-              for (l = 0; l < alternatives[k].length; l++) {
+          for (let j = 0; j < results.length; j++) {
+            for (let k = 0; k < alternatives.length; k++) {
+              for (let l = 0; l < alternatives[k].length; l++) {
                 newResults.push(results[j] + alternatives[k][l])
               }
             }
@@ -83,7 +85,7 @@ function expand(pattern) {
           results = newResults
         } else {
           span = handleNoCommaBraces(span)
-          for (j = 0; j < results.length; j++) {
+          for (let j = 0; j < results.length; j++) {
             results[j] += span
           }
         }
@@ -110,10 +112,10 @@ function expand(pattern) {
     return [pattern]
   }
 
-  var unhandledFrom = pattern[handledUntil] === '{' ? handledUntil : handledUntil + 1
+  let unhandledFrom = pattern[handledUntil] === '{' ? handledUntil : handledUntil + 1
   if (unhandledFrom < pattern.length) {
     span = pattern.substr(unhandledFrom)
-    for (j = 0; j < results.length; j++) {
+    for (let j = 0; j < results.length; j++) {
       results[j] += span
     }
   }
@@ -121,4 +123,4 @@ function expand(pattern) {
   return results
 }
 
-module.exports = expand
+export default expand

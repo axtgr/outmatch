@@ -1,6 +1,6 @@
 var Path = require('path')
 var suite = require('./_utils').suite
-var outmatch = require('../src')
+var outmatch = require('../dist')
 
 module.exports = suite(function (t) {
   t.test(

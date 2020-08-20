@@ -5,15 +5,21 @@
   "author": "Alex Schneider <me@schneider.ax>",
   "repository": "https://github.com/axtgr/outmatch",
   "license": "ISC",
-  "main": "src/index.js",
+  "type": "commonjs",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "unpkg": "dist/index.umd.js",
+  "types": "dist/index.d.ts",
   "files": [
-    "src"
+    "dist"
   ],
   "scripts": {
+    "build": "rollup -c",
     "bench": "node bench/bench",
-    "lint": "eslint src test bench",
+    "lint": "eslint src bench test/*",
     "test": "pta --no-esm test/[!_]*.js",
-    "test-watch": "onchange test/*.js -- pta --no-esm test/[!_]*.js"
+    "test-watch": "onchange test/*.js -- pta --no-esm test/[!_]*.js",
+    "prepack": "npm run lint && npm run build && npm run test"
   },
   "husky": {
     "hooks": {
@@ -21,12 +27,15 @@
     }
   },
   "lint-staged": {
-    "{src,test}/**/*.js": [
+    "{src,test}/*.js": [
       "eslint --cache --fix"
     ],
     "*.md": "prettier --write"
   },
   "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^3.9.1",
+    "@typescript-eslint/parser": "^3.9.1",
+    "@wessberg/rollup-plugin-ts": "^1.3.2",
     "benchmark": "^2.1.4",
     "eslint": "^7.4.0",
     "eslint-config-prettier": "^6.11.0",
@@ -39,6 +48,12 @@
     "onchange": "^7.0.2",
     "picomatch": "^2.2.2",
     "prettier": "^2.0.5",
-    "pta": "^0.1.3"
+    "pta": "^0.1.3",
+    "rollup": "^2.26.3",
+    "rollup-plugin-cleanup": "^3.1.1",
+    "rollup-plugin-delete": "^2.0.0",
+    "rollup-plugin-terser": "^7.0.0",
+    "ts-transform-default-export": "^1.0.2",
+    "typescript": "^3.9.7"
   }
 }

@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - 'bench/**'
+  pull_request:
+    branches:
+      - master
+    paths-ignore:
+      - 'bench/**'
+
+jobs:
+  ci:
+    strategy:
+      matrix:
+        nodejs: [8, 10, 12, 14]
+        os: [ubuntu-latest, windows-latest, macOS-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v2
+      - name: Install Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.nodejs }}
+      - name: Install the dependencies using the package manager whose lock file is in the root dir
+        uses: jaid/action-npm-install@v1.2.1
+      - name: Lint, build and test
+        run: npm run prepack

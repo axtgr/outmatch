@@ -1,0 +1,34 @@
+name: Publish to NPM
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for the CI workflow to complete
+        uses: lewagon/wait-on-check-action@v0.1-beta.2
+        with:
+          check-name: ci
+          ref: master
+          wait-interval: 10
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Check out the repository
+        uses: actions/checkout@v2
+        with:
+          ref: master
+      - name: Install Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14
+          registry-url: https://registry.npmjs.org
+      - name: Install the dependencies using the package manager whose lock file is in the root dir
+        uses: jaid/action-npm-install@v1.2.1
+      - name: Publish the package
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

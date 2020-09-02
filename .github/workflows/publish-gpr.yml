@@ -3,20 +3,24 @@ name: Publish to GPR
 on:
   workflow_dispatch:
   push:
-    tags:
-      - 'v*.*.*'
+    tags: 'v*.*.*'
 
 jobs:
   publish:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        node: [14]
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Wait for the CI workflow to complete
-        uses: lewagon/wait-on-check-action@v0.1-beta.2
+        id: wait-for-ci
+        uses: fountainhead/action-wait-for-check@v1.0.0
         with:
-          check-name: ci
-          ref: master
-          wait-interval: 10
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          checkName: ci (${{ matrix.os }}, ${{ matrix.node }})
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - if: steps.wait-for-ci.outputs.conclusion == 'failure'
+        run: exit 1
       - name: Check out the repository
         uses: actions/checkout@v2
         with:
@@ -24,10 +28,10 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v1
         with:
-          node-version: 14
+          node-version: ${{ matrix.node }}
           registry-url: https://npm.pkg.github.com
       - name: Add the repository owner as the scope to the package name
-        run: sed -i -r 's/("name":\s*")/\1@${{ github.repository_owner }}\//' package.json
+        run: 'node -e "var p = require(''./package.json''); p.name = p.name[0] === ''@'' ? p.name : ''@${{ github.repository_owner }}/'' + p.name; require(''fs'').writeFileSync(''./package.json'', JSON.stringify(p))"'
       - name: Install the dependencies using the package manager whose lock file is in the root dir
         uses: jaid/action-npm-install@v1.2.1
       - name: Publish the package

@@ -3,20 +3,24 @@ name: Create a GitHub Release
 on:
   workflow_dispatch:
   push:
-    tags:
-      - 'v*.*.*'
+    tags: 'v*.*.*'
 
 jobs:
   release:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        node: [14]
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Wait for the CI workflow to complete
-        uses: lewagon/wait-on-check-action@v0.1-beta.2
+        id: wait-for-ci
+        uses: fountainhead/action-wait-for-check@v1.0.0
         with:
-          check-name: ci
-          ref: master
-          wait-interval: 10
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          checkName: ci (${{ matrix.os }}, ${{ matrix.node }})
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - if: steps.wait-for-ci.outputs.conclusion == 'failure'
+        run: exit 1
       - name: Check out the repository
         uses: actions/checkout@v2
         with:

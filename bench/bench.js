@@ -2,7 +2,7 @@ var Suite = require('benchmark').Suite
 var globrex = require('globrex')
 var picomatch = require('picomatch')
 var matcher = require('matcher')
-var outmatch = require('../dist')
+var outmatch = require('../build')
 
 function formatNumber(number) {
   return String(number.toFixed(0))

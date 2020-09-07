@@ -8,7 +8,7 @@ import cleanup from 'rollup-plugin-cleanup'
 import transformDefaultExport from 'ts-transform-default-export'
 
 const INPUT_FILE = 'src/index.ts'
-const OUT_DIR = 'dist'
+const OUT_DIR = 'build'
 
 export default {
   input: INPUT_FILE,

@@ -23,6 +23,8 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node }}
+      - name: Install the dependencies using the package manager whose lock file is in the root dir
+        uses: jaid/action-npm-install@v1.2.1
       - name: Run static checks
         run: npm run --if-present lint
       - name: Build

@@ -1,4 +1,4 @@
-var outmatch = require('../dist')
+var outmatch = require('../build')
 
 // TODO: add '\\', '//' and separators with wildcards
 var SEPARATORS = [false, '/', ' ', 's', 'sep']
@@ -104,36 +104,44 @@ function decorateT(t, options, skip) {
         })
       }
 
-  t.platform = function (platform, description, fn) {
-    if (!fn) {
-      fn = description
-      description = platform
-    }
+  t.platform = skip
+    ? function () {
+        return t
+      }
+    : function (platform, description, fn) {
+        if (!fn) {
+          fn = description
+          description = platform
+        }
 
-    var newT
-    _test(description, function zora_spec_fn(t) {
-      // eslint-disable-next-line no-undef
-      decorateT(t, options, process.platform !== platform)
-      fn && fn(t)
-      newT = t
-    })
-    return newT
-  }
+        var newT
+        _test(description, function zora_spec_fn(t) {
+          // eslint-disable-next-line no-undef
+          decorateT(t, options, process.platform !== platform)
+          fn && fn(t)
+          newT = t
+        })
+        return newT
+      }
 
-  t.options = function (options, description, fn) {
-    if (!fn && typeof description === 'function') {
-      fn = description
-      description = undefined
-    }
+  t.options = skip
+    ? function () {
+        return t
+      }
+    : function (options, description, fn) {
+        if (!fn && typeof description === 'function') {
+          fn = description
+          description = undefined
+        }
 
-    var newT
-    _test(description, function zora_spec_fn(t) {
-      decorateT(t, options)
-      fn && fn(t)
-      newT = t
-    })
-    return newT
-  }
+        var newT
+        _test(description, function zora_spec_fn(t) {
+          decorateT(t, options)
+          fn && fn(t)
+          newT = t
+        })
+        return newT
+      }
 
   t.pattern = function (pattern) {
     var isMatch = match(pattern, options)

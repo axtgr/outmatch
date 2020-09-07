@@ -1,6 +1,6 @@
 var Path = require('path')
 var suite = require('./_utils').suite
-var outmatch = require('../dist')
+var outmatch = require('../build')
 
 module.exports = suite(function (t) {
   t.test(

@@ -4,6 +4,10 @@
     "module": "ESNext",
     "moduleResolution": "node",
     "declaration": true,
-    "strict": true
+    "strict": true,
+    // The below properties are needed to run the tests
+    "allowJs": true,
+    "allowSyntheticDefaultImports": true,
+    "downlevelIteration": true
   }
 }

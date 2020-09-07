@@ -23,8 +23,6 @@ jobs:
         run: exit 1
       - name: Check out the repository
         uses: actions/checkout@v2
-        with:
-          ref: master
       - name: Create a GitHub release
         uses: actions/create-release@v1
         env:

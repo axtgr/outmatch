@@ -3,8 +3,9 @@
   "version": "0.0.0",
   "description": "",
   "author": "Alex Schneider <me@schneider.ax>",
-  "repository": "https://github.com/axtgr/outmatch",
   "license": "ISC",
+  "repository": "https://github.com/axtgr/outmatch",
+  "private": true,
   "engines": {
     "node": ">=8.0"
   },

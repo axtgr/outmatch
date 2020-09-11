@@ -20,18 +20,13 @@
     "build": "rollup -c",
     "bench": "node bench/bench",
     "lint": "eslint {src,test,bench}/*",
+    "format": "eslint --cache --fix {src,test,bench}/* && prettier --write **/*.md",
     "test": "ts-node -T -r \"core-js/modules/es.symbol.async-iterator\" -I \" \" node_modules/pta/src/cli.js --no-esm test/[!_]*.js"
   },
   "husky": {
     "hooks": {
-      "pre-commit": "lint-staged && npm run test"
+      "pre-commit": "npm run format"
     }
-  },
-  "lint-staged": {
-    "{src,test,bench}/*": [
-      "eslint --cache --fix"
-    ],
-    "*.md": "prettier --write"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^4.0.1",
@@ -45,7 +40,6 @@
     "eslint-plugin-prettier": "^3.1.4",
     "globrex": "^0.1.2",
     "husky": "^4.3.0",
-    "lint-staged": "^10.3.0",
     "matcher": "^3.0.0",
     "picomatch": "^2.2.2",
     "prettier": "^2.1.1",

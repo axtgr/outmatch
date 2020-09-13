@@ -1,7 +1,7 @@
 {
   "name": "outmatch",
   "version": "0.0.0",
-  "description": "",
+  "description": "An extremely fast and lightweight glob-matching library with advanced features",
   "author": "Alex Schneider <me@schneider.ax>",
   "license": "ISC",
   "repository": "https://github.com/axtgr/outmatch",

@@ -106,7 +106,7 @@ When included from a CDN, outmatch is available as the global function `outmatch
 
 ## Usage
 
-### Syntax
+## Syntax
 
 <table>
   <tr>
@@ -230,8 +230,6 @@ The options object that was used to compile the regular expression and create th
 | `.`         | boolean           | true          | Toggles whether to ignore segments starting with a dot (dotfiles)                                                                                                             |
 
 ## Comparison
-
-Coming soon.
 
 ## License
 

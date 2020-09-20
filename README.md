@@ -143,7 +143,7 @@ outmatch('project/*')('project/.git') //=> false
 outmatch('project/*', { '.': false })('project/.git') //=> true
 ```
 
-It's important to remember to _always use forward slashes `/` and not backslashes `\` as separators in patterns_ because outmatch uses backslashes for character escaping. However, by default, forward slashes in patterns will match backslashes in tested strings when run on Windows:
+It's important to remember to always use forward slashes `/` and not backslashes `\` as separators _in patterns_ because outmatch uses backslashes for character escaping. However, by default, forward slashes in patterns will match backslashes in tested strings when run on Windows:
 
 ```js
 const isMatch = outmatch('foo/bar')
@@ -172,7 +172,7 @@ const isMatch = outmatch('*.example.com', { separator: '.' })
 isMatch('subdomain.example.com') //=> true
 ```
 
-The default value of this option is `true`, which will match `\` when run on Windows and `/` otherwise. Any string can be specified except for `\` as it is used for character escaping. Segmentation can be turned off completely by passing `false`, which will make outmatch treat whole patterns as a single segment:
+The default value of this option is `true`, which will match `\` when run on Windows and `/` otherwise. Any string can be specified as the separator except for `\` as it is used for character escaping. Segmentation can be turned off completely by passing `false`, which will make outmatch treat whole patterns as a single segment:
 
 ```js
 const isMatch = outmatch('foo*baz', { separator: false })
@@ -197,7 +197,7 @@ paths.findIndex(isMatch) //=> 1
 
 ### Multiple Patterns
 
-An array of glob patterns can be given instead of a single pattern. In that case a string will be considered a match if it matches _any_ of the given patterns:
+An array of glob patterns can be given instead of a single pattern as the first argument of outmatch. In that case a string will be considered a match if it matches _any_ of the given patterns:
 
 ```js
 const isMatch = outmatch(['src/*', 'tests/*'])

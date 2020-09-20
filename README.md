@@ -134,7 +134,15 @@ outmatch('src/**/*.js')('src/components/body/index.js') //=> true
 
 Compiling a pattern is much slower than comparing a string to it, so it is recommended to always reuse the returned function when possible.
 
-## Matching Arrays of Strings
+### Separators
+
+Globs are most often used to search file paths, which are, essentially, strings separated into segments by slashes. By default outmatch ignores any segment starting with a dot (dotfiles), which can be disabled by passing `'.': false` in options.
+
+It's important to remember that outmatch (and other libraries) splits a pattern into segments _before_ processing special symbols. Most matching features work with a _segment_ rather than a whole pattern. For example, `foo/b*` will match `foo/bar` but not `foo/b/ar`. The two exceptions to this are brace expansion and pattern negation, both of which work with whole patterns. 
+
+The order of operations performed by outmatch is the following: `Brace expansion` → `Segmentation` → `Escaping` → `Processing special chars` → `Pattern negation`.
+
+### Matching Arrays of Strings
 
 The returned function can work with arrays of strings when used as the predicate of the native array methods:
 
@@ -149,8 +157,6 @@ paths.every(isMatch) //=> false
 paths.find(isMatch) //=> 'src/index.js'
 paths.findIndex(isMatch) //=> 1
 ```
-
-### Separators
 
 ### Multiple Patterns
 

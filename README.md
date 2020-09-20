@@ -295,7 +295,7 @@ paths.findIndex(isMatch) //=> 1
     <td>Matches any character in the specified range
   </tr>
   <tr>
-    <td colspan="2"><h5>Negation</h5></td>
+    <td colspan="2"><h4>Negation</h4></td>
   </tr>
   <tr>
     <td><code>!</code></td>
@@ -336,7 +336,7 @@ The options object that was used to compile the regular expression and create th
 
 | Option      | Type              | Default Value | Description                                                                                                                                                                   |
 | ----------- | ----------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `separator` | boolean \| string | true          | Defines the separator used to split patterns into segments<ul><li>`true` — `\` on Windows, `/` otherwise<li>`false` — don't split patterns<li>_any string_ — custom separator |
+| `separator` | boolean \| string | true          | Defines the separator used to split strings into segments<ul><li>`true` — `\` on Windows, `/` otherwise<li>`false` — don't split<li>_any string_ — custom separator |
 | `!`         | boolean           | true          | Toggles pattern negation                                                                                                                                                      |
 | `?`         | boolean           | true          | Toggles single-char wildcards                                                                                                                                                 |
 | `*`         | boolean           | true          | Toggles multi-char wildcards                                                                                                                                                  |

@@ -40,7 +40,7 @@ isMatch.options //=> { separator: true }
 isMatch.regexp //=> /^(src((?!\.) ... ((?!).)*\.ts)$/
 ```
 
-More details are available in the [Installation](#installation) and [Usage](#usage) sections.
+More details are available in the [Installation](#installation), [Usage](#usage), [Syntax](#syntax) and [API](#api) sections.
 
 ## Why outmatch?
 
@@ -134,13 +134,40 @@ outmatch('src/**/*.js')('src/components/body/index.js') //=> true
 
 Compiling a pattern is much slower than comparing a string to it, so it is recommended to always reuse the returned function when possible.
 
-### Separators
+### Working With File Paths
 
-Globs are most often used to search file paths, which are, essentially, strings separated into segments by slashes. By default outmatch ignores any segment starting with a dot (dotfiles), which can be disabled by passing `'.': false` in options.
+Globs are most often used to search file paths, which are, essentially, strings split into segments by separators (usually slashes). By default outmatch ignores any segment starting with a dot (dotfiles), which can be disabled by passing `'.': false` in options.
 
-It's important to remember that outmatch (and other libraries) splits a pattern into segments _before_ processing special symbols. Most matching features work with a _segment_ rather than a whole pattern. For example, `foo/b*` will match `foo/bar` but not `foo/b/ar`. The two exceptions to this are brace expansion and pattern negation, both of which work with whole patterns. 
+It's important to remember to _always use forward slashes `/` and not backslashes `\` as separators in patterns_ because outmatch uses backslashes for character escaping. However, by default forward slashes in patterns will match backslashes in tested strings when run on Windows:
+
+```js
+const isMatch = outmatch('foo/bar')
+
+isMatch('foo/bar') //=> true
+isMatch('foo\bar') //=> true on Windows, false otherwise
+```
+
+### Order of Operations
+
+Another thing to note is that outmatch (and other libraries) splits a pattern into segments _before_ processing special symbols. Most matching features work with a _segment_ rather than a whole pattern. For example, `foo/b*` will match `foo/bar` but not `foo/b/ar`. The two exceptions to this are brace expansion and pattern negation, both of which work with whole patterns. 
 
 The order of operations performed by outmatch is the following: `Brace expansion` → `Segmentation` → `Escaping` → `Processing special chars` → `Pattern negation`.
+
+### Custom Separators
+
+While other libraries are usually restricted to slash-separated file paths, outmatch can work with arbitrary strings by accepting a custom separator in the `separator` option:
+
+```js
+const isMatch = outmatch('*.example.com', { separator: '.' })
+isMatch('subdomain.example.com') //=> true
+```
+
+The default value of this option is `true`, which makes it use `\` when run on Windows and `/` otherwise. Any string can be specified except for `\` as it is used for character escaping. Segmentation can be turned off completely by passing `false`, which will make outmatch treat whole patterns as a single segment:
+
+```js
+const isMatch = outmatch('foo*baz', { separator: false })
+isMatch('foo/bar/baz') //=> true
+```
 
 ### Matching Arrays of Strings
 

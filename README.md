@@ -106,7 +106,9 @@ When included from a CDN, outmatch is available as the global function `outmatch
 
 ## Usage
 
-The default export is a function that compiles glob patterns into a regular expression and returns a function that tests other strings against the pattern:
+The default export is a function that compiles glob patterns into a regular expression and returns a function that tests other strings against the pattern. 
+
+The returned function can be reused to test different strings against the pattern:
 
 ```js
 import outmatch from 'outmatch'
@@ -118,10 +120,19 @@ isMatch('src/car') //=> true
 isMatch('src/tar') //=> false
 ```
 
-The returned function can be reused to test different strings against the pattern. If there is no need to match a pattern more than once, the returned function can be invoked immediately:
+Or it can be invoked immediately if there is no need to match a pattern more than once:
 
 ```js
 outmatch('src/**/*.js')('src/components/body/index.js') //=> true
+```
+
+[Options](#options) can be passed as the second argument:
+
+```js
+const isMatch = outmatch('src/*', { '*': false })
+
+isMatch('src/foo') //=> false
+isMatch('src/*') //=> true
 ```
 
 ### Multiple Patterns

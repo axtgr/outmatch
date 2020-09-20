@@ -134,6 +134,24 @@ outmatch('src/**/*.js')('src/components/body/index.js') //=> true
 
 Compiling a pattern is much slower than comparing a string to it, so it is recommended to always reuse the returned function when possible.
 
+## Matching Arrays of Strings
+
+The returned function can work with arrays of strings when used as the predicate of the native array methods:
+
+```js
+const isMatch = outmatch(['src/**/*.js', '!**/body.js'])
+const paths = ['readme.md', 'src/index.js', 'src/components/body.js']
+
+paths.map(isMatch) //=> [ false, true, false ]
+paths.filter(isMatch) //=> [ 'src/index.js' ]
+paths.some(isMatch) //=> true
+paths.every(isMatch) //=> false
+paths.find(isMatch) //=> 'src/index.js'
+paths.findIndex(isMatch) //=> 1
+```
+
+### Separators
+
 ### Multiple Patterns
 
 An array of glob patterns can be given instead of a single string. In that case a string will be considered a match if it matches _any_ of the given patterns:
@@ -145,7 +163,7 @@ isMatch('src/utils.js') //=> true
 isMatch('tests/utils.js') //=> true
 ```
 
-If a [negated](#negation) pattern is given among positive patterns, it will filter out strings that match the positive patterns:
+If a [negated](#negation) pattern is given among positive patterns, it will work as an ignore filter for strings that match the positive patterns:
 
 ```js
 const isMatch = outmatch(['src/*', '!src/foo', '!src/bar'])

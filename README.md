@@ -35,9 +35,9 @@ const isMatch = outmatch('src/**/*.{js,ts}')
 isMatch('src/components/header/index.js') //=> true
 isMatch('src/README.md') //=> false
 
-isMatch.regexp //=> /^(src((?!\.) ... ((?!).)*\.ts)$/
 isMatch.pattern //=> 'src/**/*.{js,ts}'
 isMatch.options //=> { separator: true }
+isMatch.regexp //=> /^(src((?!\.) ... ((?!).)*\.ts)$/
 ```
 
 More details are available in the [Installation](#installation) and [Usage](#usage) sections.
@@ -104,9 +104,13 @@ When included from a CDN, outmatch is available as the global function `outmatch
 
 ## Usage
 
-Outmatch comes built in ESM, CommonJS and UMD formats and includes TypeScript typings, so it is compatible with any module system. The examples use ESM imports, which can be replaced with `const outmatch = require('outmatch')` for CommonJS.
+Outmatch comes built in ESM, CommonJS and UMD formats and includes TypeScript typings, so it is compatible with any module system. The examples use ESM imports, which can be replaced with the following line for CommonJS:
 
-The default export is a function that takes two arguments: a glob pattern(s) and a non-required [options](#options) object. It compiles them into a regular expression and returns a function that tests other strings against the pattern. The pattern, options and regular expression are available as properties on the returned function:
+```js
+const outmatch = require('outmatch')
+```
+
+The default export is a function that takes two arguments: a glob pattern and, if needed, an [options](#options) object. It compiles them into a regular expression and returns a function (called `isMatch` in the examples) that tests strings against the pattern. The pattern, options and regular expression are available as properties on the returned function:
 
 ```js
 import outmatch from 'outmatch'
@@ -117,9 +121,9 @@ isMatch('src/bar') //=> true
 isMatch('src/car') //=> true
 isMatch('src/tar') //=> false
 
-isMatch.regexp //=> /^src((\/|\\))+(?!\.)[bc]ar((\/|\\))*$/
 isMatch.pattern //=> 'src/[bc]ar'
 isMatch.options //=> { '{}': false }
+isMatch.regexp //=> /^src((\/|\\))+(?!\.)[bc]ar((\/|\\))*$/
 ```
 
 The returned function can be invoked immediately if there is no need to match a pattern more than once:
@@ -141,7 +145,7 @@ isMatch('src/utils.js') //=> true
 isMatch('tests/utils.js') //=> true
 ```
 
-If a [negated](#negation) pattern is given among positive patterns, it works as an ignore filter:
+If a [negated](#negation) pattern is given among positive patterns, it will filter out strings that match the positive patterns:
 
 ```js
 const isMatch = outmatch(['src/*', '!src/foo', '!src/bar'])

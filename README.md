@@ -114,6 +114,9 @@ When included from a CDN, outmatch is available as the global function `outmatch
     <th>Description</th>
   </tr>
   <tr>
+    <td colspan="2"><strong>Basic Wildcards</strong></td>
+  </tr>
+  <tr>
     <td><code>?</code></td>
     <td>Matches exactly one arbitrary character excluding separators</td>
   </tr>
@@ -129,7 +132,7 @@ When included from a CDN, outmatch is available as the global function `outmatch
     <td>Matches any number of segments when used as a whole segment in a separated pattern (e.g. <code>/**/</code> if <code>/</code> is the separator)</td>
   </tr>
   <tr>
-    <td colspan="2"><strong>Character classes</strong></td>
+    <td colspan="2"><strong>Character Classes</strong></td>
   </tr>
   <tr>
     <td><code>[abc1_]</code></td>

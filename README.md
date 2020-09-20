@@ -75,8 +75,6 @@ For detailed comparison with the alternatives, see the [corresponding section](#
 
 ## Installation
 
-Outmatch comes built in ESM, CommonJS and UMD formats and includes TypeScript typings, so it is compatible with any module system.
-
 The package is distributed via the npm package registry. It can be installed using one of the compatible package managers or included directly from a CDN.
 
 #### [npm](https://www.npmjs.com)
@@ -106,34 +104,31 @@ When included from a CDN, outmatch is available as the global function `outmatch
 
 ## Usage
 
-The default export is a function that compiles glob patterns into a regular expression and returns a function that tests other strings against the pattern. 
+Outmatch comes built in ESM, CommonJS and UMD formats and includes TypeScript typings, so it is compatible with any module system. The examples use ESM imports, which can be replaced with `const outmatch = require('outmatch')` for CommonJS.
 
-The returned function can be reused to test different strings against the pattern:
+The default export is a function that takes two arguments: a glob pattern(s) and a non-required [options](#options) object. It compiles them into a regular expression and returns a function that tests other strings against the pattern. The pattern, options and regular expression are available as properties on the returned function:
 
 ```js
 import outmatch from 'outmatch'
 
-const isMatch = outmatch('src/[bc]ar')
+const isMatch = outmatch('src/[bc]ar', { '{}': false })
 
 isMatch('src/bar') //=> true
 isMatch('src/car') //=> true
 isMatch('src/tar') //=> false
+
+isMatch.regexp //=> /^src((\/|\\))+(?!\.)[bc]ar((\/|\\))*$/
+isMatch.pattern //=> 'src/[bc]ar'
+isMatch.options //=> { '{}': false }
 ```
 
-Or it can be invoked immediately if there is no need to match a pattern more than once:
+The returned function can be invoked immediately if there is no need to match a pattern more than once:
 
 ```js
 outmatch('src/**/*.js')('src/components/body/index.js') //=> true
 ```
 
-[Options](#options) can be passed as the second argument:
-
-```js
-const isMatch = outmatch('src/*', { '*': false })
-
-isMatch('src/foo') //=> false
-isMatch('src/*') //=> true
-```
+Compiling a pattern is much slower than comparing a string to it, so it is recommended to always reuse the returned function when possible.
 
 ### Multiple Patterns
 

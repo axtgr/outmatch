@@ -35,7 +35,7 @@ const isMatch = outmatch('src/**/*.{js,ts}')
 isMatch('src/components/header/index.js') //=> true
 isMatch('src/README.md') //=> false
 
-isMatch.regExp //=> /^(src((?!\.) ... ((?!).)*\.ts)$/
+isMatch.regexp //=> /^(src((?!\.) ... ((?!).)*\.ts)$/
 isMatch.pattern //=> 'src/**/*.{js,ts}'
 isMatch.options //=> { separator: true }
 ```
@@ -106,6 +106,45 @@ When included from a CDN, outmatch is available as the global function `outmatch
 
 ## Usage
 
+The default export is a function that compiles glob patterns into a regular expression and returns a function that tests other strings against the pattern:
+
+```js
+import outmatch from 'outmatch'
+
+const isMatch = outmatch('src/[bc]ar')
+
+isMatch('src/bar') //=> true
+isMatch('src/car') //=> true
+isMatch('src/tar') //=> false
+```
+
+The returned function can be reused to test different strings against the pattern. If there is no need to match a pattern more than once, the returned function can be invoked immediately:
+
+```js
+outmatch('src/**/*.js')('src/components/body/index.js') //=> true
+```
+
+### Multiple Patterns
+
+An array of glob patterns can be given instead of a single string. In that case a string will be considered a match if it matches _any_ of the given patterns:
+
+```js
+const isMatch = outmatch(['src/*', 'tests/*'])
+
+isMatch('src/utils.js') //=> true
+isMatch('tests/utils.js') //=> true
+```
+
+If a [negated](#negation) pattern is given among positive patterns, it works as an ignore filter:
+
+```js
+const isMatch = outmatch(['src/*', '!src/foo', '!src/bar'])
+
+isMatch('src/foo') //=> false
+isMatch('src/bar') //=> false
+isMatch('src/baz') //=> true
+```
+
 ## Syntax
 
 <table>
@@ -114,7 +153,7 @@ When included from a CDN, outmatch is available as the global function `outmatch
     <th>Description</th>
   </tr>
   <tr>
-    <td colspan="2"><strong>Basic Wildcards</strong></td>
+    <td colspan="2"><h4>Basic Wildcards</h4></td>
   </tr>
   <tr>
     <td><code>?</code></td>
@@ -125,14 +164,14 @@ When included from a CDN, outmatch is available as the global function `outmatch
     <td>Matches zero or more arbitrary characters excluding separators</td>
   </tr>
   <tr>
-    <td colspan="2"><strong>Globstar</strong></td>
+    <td colspan="2"><h4>Globstar</h4></td>
   </tr>
   <tr>
     <td><code>**</code></td>
     <td>Matches any number of segments when used as a whole segment in a separated pattern (e.g. <code>/**/</code> if <code>/</code> is the separator)</td>
   </tr>
   <tr>
-    <td colspan="2"><strong>Character Classes</strong></td>
+    <td colspan="2"><h4>Character Classes</h4></td>
   </tr>
   <tr>
     <td><code>[abc1_]</code></td>
@@ -147,7 +186,7 @@ When included from a CDN, outmatch is available as the global function `outmatch
     <td>Matches a single character <em>not</em> in the specified list or range</td>
   </tr>
   <tr>
-    <td colspan="3"><strong>Extglobs</strong></td>
+    <td colspan="3"><h4>Extglobs</h4></td>
   </tr>
   <tr>
     <td><code>@(bar|baz)</code></td>
@@ -170,7 +209,7 @@ When included from a CDN, outmatch is available as the global function `outmatch
     <td>Matches anything except for the given subpatterns</td>
   </tr>
   <tr>
-    <td colspan="2"><strong>Braces</strong></td>
+    <td colspan="2"><h4>Braces</h4></td>
   </tr>
   <tr>
     <td><code>{bar,baz}</code></td>
@@ -181,14 +220,14 @@ When included from a CDN, outmatch is available as the global function `outmatch
     <td>Matches any character in the specified range
   </tr>
   <tr>
-    <td colspan="2"><strong>Negation</strong></td>
+    <td colspan="2"><h5>Negation</h5></td>
   </tr>
   <tr>
     <td><code>!</code></td>
     <td>Negates a pattern when put at the start of it. If repeated multiple times, each <code>!</code> will invert the effect, so <code>!!foo/bar</code> is the same as <code>foo/bar</code> and <code>!!!baz/qux</code> is the same as <code>!baz/qux</code>.<br><br>A negated pattern matches any string that doesn't match the part after the <code>!</code>. When put in an array among positive patterns, negated patterns effectively work as ignores</td>
   </tr>
   <tr>
-    <td colspan="2"><strong>Escaping</strong></td>
+    <td colspan="2"><h4>Escaping</h4></td>
   </tr>
   <tr>
     <td><code>\</code></td>
@@ -206,7 +245,7 @@ Takes a single pattern string or an array of patterns and compiles them into a r
 
 Tests if a sample string matches the patterns that were used to compile the regular expression and create this function.
 
-### isMatch.regExp
+### isMatch.regexp
 
 The compiled regular expression.
 

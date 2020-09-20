@@ -348,6 +348,21 @@ The options object that was used to compile the regular expression and create th
 
 ## Comparison
 
+A better comparison is in the works.
+
+```
+Pattern: src/zxc/**/*.?s
+Sample: src/test/foo.js
+
+Compilation
+  outmatch     758,089 ops/sec
+  picomatch    251,009 ops/sec
+
+Matching
+  outmatch     19,593,677 ops/sec
+  picomatch    10,920,001 ops/sec
+```
+
 ## License
 
 [ISC](LICENSE)

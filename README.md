@@ -110,7 +110,7 @@ Outmatch comes built in ESM, CommonJS and UMD formats and includes TypeScript ty
 const outmatch = require('outmatch')
 ```
 
-The default export is a function that takes two arguments: a glob pattern and, if needed, an [options](#options) object. It compiles them into a regular expression and returns a function (called `isMatch` in the examples) that tests strings against the pattern. The pattern, options and regular expression are available as properties on the returned function:
+The default export is a function that takes two arguments: a glob pattern and, if needed, an [options](#options) object. It compiles them into a regular expression and returns a function (called `isMatch` in the examples) that tests strings against the pattern. The pattern, options and the compiled RegExp object are available as properties on the returned function:
 
 ```js
 import outmatch from 'outmatch'
@@ -154,7 +154,7 @@ paths.findIndex(isMatch) //=> 1
 
 ### Multiple Patterns
 
-An array of glob patterns can be given instead of a single string. In that case a string will be considered a match if it matches _any_ of the given patterns:
+An array of glob patterns can be given instead of a single pattern. In that case a string will be considered a match if it matches _any_ of the given patterns:
 
 ```js
 const isMatch = outmatch(['src/*', 'tests/*'])

@@ -25,14 +25,14 @@ module.exports = suite(function (t) {
   )
 
   t.test(
-    'The returned function has "options", "pattern" and "regExp" properties set',
+    'The returned function has "options", "pattern" and "regexp" properties set',
     function (t) {
       var pattern = 'one'
       var isMatch = outmatch(pattern)
 
       t.is(isMatch.options, outmatch.options)
       t.is(isMatch.pattern, pattern)
-      t.ok(isMatch.regExp instanceof RegExp)
+      t.ok(isMatch.regexp instanceof RegExp)
     }
   )
 

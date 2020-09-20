@@ -2,7 +2,7 @@ import expand from './expand'
 import convert from './convert'
 
 interface OutmatchOptions {
-  separator?: string | boolean
+  separator?: boolean | string
   '!'?: boolean
   '?'?: boolean
   '*'?: boolean
@@ -69,21 +69,21 @@ interface isMatch {
   (sample: string): boolean
 
   /** The compiled regular expression */
-  regExp: RegExp
+  regexp: RegExp
 
-  /** The original pattern or an array of patterns that was used to compile the RegExp */
+  /** The original pattern or array of patterns that was used to compile the RegExp */
   pattern: string | string[]
 
   /** The options that were used to compile the RegExp */
   options: OutmatchOptions
 }
 
-function isMatch(regExp: RegExp, sample: string) {
+function isMatch(regexp: RegExp, sample: string) {
   if (typeof sample !== 'string') {
     throw new TypeError('Sample must be a string, but ' + typeof sample + ' given')
   }
 
-  return regExp.test(sample)
+  return regexp.test(sample)
 }
 
 /**
@@ -120,13 +120,13 @@ function outmatch(pattern: string | string[], options?: OutmatchOptions): isMatc
 
   options = options || DEFAULT_OPTIONS
 
-  let regExpPattern = compile(pattern, options)
-  let regExp = new RegExp(regExpPattern)
+  let regexpPattern = compile(pattern, options)
+  let regexp = new RegExp(regexpPattern)
 
-  let fn = isMatch.bind(null, regExp) as isMatch
+  let fn = isMatch.bind(null, regexp) as isMatch
   fn.options = options
   fn.pattern = pattern
-  fn.regExp = regExp
+  fn.regexp = regexp
   return fn
 }
 

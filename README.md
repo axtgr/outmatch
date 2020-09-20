@@ -132,11 +132,19 @@ Compiling a pattern is much slower than comparing a string to it, so it is recom
 
 ### Working With File Paths
 
-Globs are most often used to search file paths, which are, essentially, strings split into segments by separators (usually slashes). By default outmatch ignores any segment starting with a dot (dotfiles), which can be disabled by passing `'.': false` in options:
+Globs are most often used to search file paths, which are, essentially, strings split into segments by separators (usually slashes). 
+
+By default outmatch ignores any segment starting with a dot (dotfiles), which can be disabled by passing `'.': false` in options:
 
 ```js
 outmatch('project/*')('project/.git') //=> false
 outmatch('project/*', { '.': false })('project/.git') //=> true
+```
+
+Multiple separators in a row in a sample string are treated as a single one:
+
+```js
+outmatch('foo/bar')('foo///bar') //=> true
 ```
 
 It's important to remember to always use forward slashes `/` and not backslashes `\` as separators _in patterns_ because outmatch uses backslashes for character escaping. However, by default, forward slashes in patterns will match backslashes in tested strings when run on Windows:
@@ -175,22 +183,6 @@ const isMatch = outmatch('foo*baz', { separator: false })
 isMatch('foo/bar/baz') //=> true
 ```
 
-### Matching Arrays of Strings
-
-The returned function can work with arrays of strings when used as the predicate of the native array methods:
-
-```js
-const isMatch = outmatch(['src/**/*.js', '!**/body.js'])
-const paths = ['readme.md', 'src/index.js', 'src/components/body.js']
-
-paths.map(isMatch) //=> [ false, true, false ]
-paths.filter(isMatch) //=> [ 'src/index.js' ]
-paths.some(isMatch) //=> true
-paths.every(isMatch) //=> false
-paths.find(isMatch) //=> 'src/index.js'
-paths.findIndex(isMatch) //=> 1
-```
-
 ### Multiple Patterns
 
 An array of glob patterns can be given instead of a single pattern as the first argument of outmatch. In that case a string will be considered a match if it matches _any_ of the given patterns:
@@ -210,6 +202,22 @@ const isMatch = outmatch(['src/*', '!src/foo', '!src/bar'])
 isMatch('src/foo') //=> false
 isMatch('src/bar') //=> false
 isMatch('src/baz') //=> true
+```
+
+### Matching Arrays of Strings
+
+The returned function can work with arrays of strings when used as the predicate of the native array methods:
+
+```js
+const isMatch = outmatch(['src/**/*.js', '!**/body.js'])
+const paths = ['readme.md', 'src/index.js', 'src/components/body.js']
+
+paths.map(isMatch) //=> [ false, true, false ]
+paths.filter(isMatch) //=> [ 'src/index.js' ]
+paths.some(isMatch) //=> true
+paths.every(isMatch) //=> false
+paths.find(isMatch) //=> 'src/index.js'
+paths.findIndex(isMatch) //=> 1
 ```
 
 ## Syntax

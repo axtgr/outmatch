@@ -66,16 +66,5 @@ export default {
       comments: /^\*/,
       extensions: ['ts'],
     }),
-    // Replace import('path') with either require('path') or (await import('path'))
-    // depending on the output format
-    {
-      renderDynamicImport: ({ format }) => {
-        if (format === 'es') {
-          return { left: '(await import(', right: '))' }
-        } else {
-          return { left: 'require(', right: ')' }
-        }
-      },
-    },
   ],
 }

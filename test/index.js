@@ -131,13 +131,11 @@ module.exports = suite(function (t) {
     })
   })
 
-  t.platform('win32')
-    .options({ separator: true })
-    .test(
-      'When separator === true, uses the platform-specific separator for samples',
-      function (t) {
-        t.pattern('foo/bar').matches('foo/bar', 'foo\\bar')
-        t.pattern('foo/**/qux').matches(Path.join('foo', 'bar', 'baz', 'qux'))
-      }
-    )
+  t.options({ separator: true }).test(
+    'When separator === true, / in patterns match \\ in samples',
+    function (t) {
+      t.pattern('foo/bar').matches('foo/bar', 'foo\\bar')
+      t.pattern('foo/**/qux').matches(Path.join('foo', 'bar', 'baz', 'qux'))
+    }
+  )
 })

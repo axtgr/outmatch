@@ -147,13 +147,13 @@ Multiple separators in a row in a sample string are treated as a single one:
 outmatch('foo/bar')('foo///bar') //=> true
 ```
 
-It's important to remember to always use forward slashes `/` and not backslashes `\` as separators _in patterns_ because outmatch uses backslashes for character escaping. However, by default, forward slashes in patterns will match backslashes in tested strings when run on Windows:
+It's important to remember to always use forward slashes `/` and not backslashes `\` as separators in _patterns_ because outmatch uses backslashes for character escaping. However, by default, forward slashes in patterns will match both forward and backslashes in sample strings:
 
 ```js
 const isMatch = outmatch('foo/bar')
 
 isMatch('foo/bar') //=> true
-isMatch('foo\bar') //=> true on Windows, false otherwise
+isMatch('foo\bar') //=> true
 ```
 
 ### Segmentation
@@ -176,7 +176,7 @@ const isMatch = outmatch('*.example.com', { separator: '.' })
 isMatch('subdomain.example.com') //=> true
 ```
 
-The default value of this option is `true`, which will match `\` when run on Windows and `/` otherwise. Any string can be specified as the separator except for `\` as it is used for character escaping. Segmentation can be turned off completely by passing `false`, which will make outmatch treat whole patterns as a single segment:
+The default value of this option is `true`, which matches `/` in patterns with both `/` and `\` in samples. Any string can be specified as the separator except for `\` as it is used for character escaping. Segmentation can be turned off completely by passing `false`, which will make outmatch treat whole patterns as a single segment:
 
 ```js
 const isMatch = outmatch('foo*baz', { separator: false })
@@ -334,17 +334,17 @@ The options object that was used to compile the regular expression and create th
 
 ### Options
 
-| Option      | Type              | Default Value | Description                                                                                                                                                         |
-| ----------- | ----------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `separator` | boolean \| string | true          | Defines the separator used to split strings into segments<ul><li>`true` — `\` on Windows, `/` otherwise<li>`false` — don't split<li>_any string_ — custom separator |
-| `!`         | boolean           | true          | Toggles pattern negation                                                                                                                                            |
-| `?`         | boolean           | true          | Toggles single-char wildcards                                                                                                                                       |
-| `*`         | boolean           | true          | Toggles multi-char wildcards                                                                                                                                        |
-| `**`        | boolean           | true          | Toggles globstars                                                                                                                                                   |
-| `[]`        | boolean           | true          | Toggles character classes                                                                                                                                           |
-| `()`        | boolean           | true          | Toggles extglobs                                                                                                                                                    |
-| `{}`        | boolean           | true          | Toggles brace expansion                                                                                                                                             |
-| `.`         | boolean           | true          | Toggles whether to ignore segments starting with a dot (dotfiles)                                                                                                   |
+| Option      | Type              | Default Value | Description                                                                                                                                                                                          |
+| ----------- | ----------------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `separator` | boolean \| string | true          | Defines the separator used to split patterns and samples into segments<ul><li>`true` — `/` in patterns match both `/` and `\` in samples<li>`false` — don't split<li>_any string_ — custom separator |
+| `!`         | boolean           | true          | Toggles pattern negation                                                                                                                                                                             |
+| `?`         | boolean           | true          | Toggles single-char wildcards                                                                                                                                                                        |
+| `*`         | boolean           | true          | Toggles multi-char wildcards                                                                                                                                                                         |
+| `**`        | boolean           | true          | Toggles globstars                                                                                                                                                                                    |
+| `[]`        | boolean           | true          | Toggles character classes                                                                                                                                                                            |
+| `()`        | boolean           | true          | Toggles extglobs                                                                                                                                                                                     |
+| `{}`        | boolean           | true          | Toggles brace expansion                                                                                                                                                                              |
+| `.`         | boolean           | true          | Toggles whether to ignore segments starting with a dot (dotfiles)                                                                                                                                    |
 
 ## Comparison
 

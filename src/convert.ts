@@ -3,14 +3,6 @@
 import type { OutmatchOptions } from './index'
 
 const IGNORE_DOTFILES_PATTERN = '(?!\\.)'
-let FS_SEPARATOR = '/'
-
-try {
-  // @ts-expect-error: the dynamic import will be replaced according to the output format
-  FS_SEPARATOR = import('path').sep
-} catch (err) {
-  // FS_SEPARATOR will be used when options.separator === true.
-}
 
 function escapeRegExpChar(char: string) {
   if (
@@ -243,14 +235,12 @@ function convertSeparatedPattern(pattern: string, options: OutmatchOptions) {
   let ignoreDotfilesPattern = ignoreDotfiles ? IGNORE_DOTFILES_PATTERN : ''
 
   // When separator === true, we may use different separators for splitting the pattern
-  // and matching samples (depending on the OS), so we can't just use one separator variable
+  // and matching samples, so we need two separator variables
   let separatorSplitter = (options.separator === true
     ? '/'
     : options.separator) as string
   let separatorMatcher =
-    options.separator === true && FS_SEPARATOR !== '/'
-      ? '(/|' + escapeRegExpString(FS_SEPARATOR) + ')'
-      : escapeRegExpString(separatorSplitter)
+    options.separator === true ? '(/|\\\\)' : escapeRegExpString(separatorSplitter)
 
   // Multiple separators in a row are treated as a single one;
   // trailing separators are optional unless they are put in the pattern deliberately

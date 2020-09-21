@@ -35,12 +35,12 @@ const isMatch = outmatch('src/**/*.{js,ts}')
 isMatch('src/components/header/index.js') //=> true
 isMatch('src/README.md') //=> false
 
-isMatch.regExp //=> /^(src((?!\.) ... ((?!).)*\.ts)$/
 isMatch.pattern //=> 'src/**/*.{js,ts}'
 isMatch.options //=> { separator: true }
+isMatch.regexp //=> /^(src((?!\.) ... ((?!).)*\.ts)$/
 ```
 
-More details are available in the [Installation](#installation) and [Usage](#usage) sections.
+More details are available in the [Installation](#installation), [Usage](#usage), [Syntax](#syntax) and [API](#api) sections.
 
 ## Why outmatch?
 
@@ -75,8 +75,6 @@ For detailed comparison with the alternatives, see the [corresponding section](#
 
 ## Installation
 
-Outmatch comes built in ESM, CommonJS and UMD formats and includes TypeScript typings, so it is compatible with any module system.
-
 The package is distributed via the npm package registry. It can be installed using one of the compatible package managers or included directly from a CDN.
 
 #### [npm](https://www.npmjs.com)
@@ -106,12 +104,131 @@ When included from a CDN, outmatch is available as the global function `outmatch
 
 ## Usage
 
-### Syntax
+Outmatch comes built in ESM, CommonJS and UMD formats and includes TypeScript typings. The examples use ESM imports, which can be replaced with the following line for CommonJS: `const outmatch = require('outmatch')`.
+
+The default export is a function that takes two arguments: a glob pattern and, if needed, an [options](#options) object. It compiles them into a regular expression and returns a function (called `isMatch` in the examples) that tests strings against the pattern. The pattern, options and the compiled RegExp object are available as properties on the returned function:
+
+```js
+import outmatch from 'outmatch'
+
+const isMatch = outmatch('src/[bc]ar', { '{}': false })
+
+isMatch('src/bar') //=> true
+isMatch('src/car') //=> true
+isMatch('src/tar') //=> false
+
+isMatch.pattern //=> 'src/[bc]ar'
+isMatch.options //=> { '{}': false }
+isMatch.regexp //=> /^src((\/|\\))+(?!\.)[bc]ar((\/|\\))*$/
+```
+
+The returned function can be invoked immediately if there is no need to match a pattern more than once:
+
+```js
+outmatch('src/**/*.js')('src/components/body/index.js') //=> true
+```
+
+Compiling a pattern is much slower than comparing a string to it, so it is recommended to always reuse the returned function when possible.
+
+### Working With File Paths
+
+Globs are most often used to search file paths, which are, essentially, strings split into segments by separators (usually slashes). 
+
+By default outmatch ignores any segment starting with a dot (dotfiles), which can be disabled by passing `'.': false` in options:
+
+```js
+outmatch('project/*')('project/.git') //=> false
+outmatch('project/*', { '.': false })('project/.git') //=> true
+```
+
+Multiple separators in a row in a sample string are treated as a single one:
+
+```js
+outmatch('foo/bar')('foo///bar') //=> true
+```
+
+It's important to remember to always use forward slashes `/` and not backslashes `\` as separators _in patterns_ because outmatch uses backslashes for character escaping. However, by default, forward slashes in patterns will match backslashes in tested strings when run on Windows:
+
+```js
+const isMatch = outmatch('foo/bar')
+
+isMatch('foo/bar') //=> true
+isMatch('foo\bar') //=> true on Windows, false otherwise
+```
+
+### Segmentation
+
+Another thing to note is that outmatch (and other libraries) splits a pattern into segments before processing special symbols. Most matching features work with a _segment_ rather than a whole pattern. For example, `foo/b*` will match `foo/bar` but not `foo/b/ar`. The two exceptions to this are brace expansion and pattern negation, both of which work with whole patterns:
+
+```js
+outmatch('src/{foo/bar,baz}')('src/foo/bar') //=> true
+outmatch('src/@(foo/bar,baz)')('src/foo/bar') //=> false
+```
+
+The order of operations performed by outmatch is the following: `Brace expansion` → `Segmentation` → `Escaping` → `Processing special chars` → `Pattern negation`.
+
+### Custom Separators
+
+While other libraries are usually restricted to slash-separated file paths, outmatch is able to work with arbitrary strings by accepting a custom separator in the `separator` option:
+
+```js
+const isMatch = outmatch('*.example.com', { separator: '.' })
+isMatch('subdomain.example.com') //=> true
+```
+
+The default value of this option is `true`, which will match `\` when run on Windows and `/` otherwise. Any string can be specified as the separator except for `\` as it is used for character escaping. Segmentation can be turned off completely by passing `false`, which will make outmatch treat whole patterns as a single segment:
+
+```js
+const isMatch = outmatch('foo*baz', { separator: false })
+isMatch('foo/bar/baz') //=> true
+```
+
+### Multiple Patterns
+
+An array of glob patterns can be given instead of a single pattern as the first argument of outmatch. In that case a string will be considered a match if it matches _any_ of the given patterns:
+
+```js
+const isMatch = outmatch(['src/*', 'tests/*'])
+
+isMatch('src/utils.js') //=> true
+isMatch('tests/utils.js') //=> true
+```
+
+If a [negated](#negation) pattern is given among positive patterns, it will work as an ignore filter for strings that match the positive patterns:
+
+```js
+const isMatch = outmatch(['src/*', '!src/foo', '!src/bar'])
+
+isMatch('src/foo') //=> false
+isMatch('src/bar') //=> false
+isMatch('src/baz') //=> true
+```
+
+### Matching Arrays of Strings
+
+The returned function can work with arrays of strings when used as the predicate of the native array methods:
+
+```js
+const isMatch = outmatch(['src/**/*.js', '!**/body.js'])
+const paths = ['readme.md', 'src/index.js', 'src/components/body.js']
+
+paths.map(isMatch) //=> [ false, true, false ]
+paths.filter(isMatch) //=> [ 'src/index.js' ]
+paths.some(isMatch) //=> true
+paths.every(isMatch) //=> false
+paths.find(isMatch) //=> 'src/index.js'
+paths.findIndex(isMatch) //=> 1
+```
+
+## Syntax
 
 <table>
   <tr>
     <th>Pattern</th>
     <th>Description</th>
+  </tr>
+  <tr>
+    <td colspan="2"><h4>Basic Wildcards</h4></td>
   </tr>
   <tr>
     <td><code>?</code></td>
@@ -122,14 +239,14 @@ When included from a CDN, outmatch is available as the global function `outmatch
     <td>Matches zero or more arbitrary characters excluding separators</td>
   </tr>
   <tr>
-    <td colspan="2"><strong>Globstar</strong></td>
+    <td colspan="2"><h4>Globstar</h4></td>
   </tr>
   <tr>
     <td><code>**</code></td>
     <td>Matches any number of segments when used as a whole segment in a separated pattern (e.g. <code>/**/</code> if <code>/</code> is the separator)</td>
   </tr>
   <tr>
-    <td colspan="2"><strong>Character classes</strong></td>
+    <td colspan="2"><h4>Character Classes</h4></td>
   </tr>
   <tr>
     <td><code>[abc1_]</code></td>
@@ -144,7 +261,7 @@ When included from a CDN, outmatch is available as the global function `outmatch
     <td>Matches a single character <em>not</em> in the specified list or range</td>
   </tr>
   <tr>
-    <td colspan="3"><strong>Extglobs</strong></td>
+    <td colspan="3"><h4>Extglobs</h4></td>
   </tr>
   <tr>
     <td><code>@(bar|baz)</code></td>
@@ -167,7 +284,7 @@ When included from a CDN, outmatch is available as the global function `outmatch
     <td>Matches anything except for the given subpatterns</td>
   </tr>
   <tr>
-    <td colspan="2"><strong>Braces</strong></td>
+    <td colspan="2"><h4>Braces</h4></td>
   </tr>
   <tr>
     <td><code>{bar,baz}</code></td>
@@ -178,14 +295,14 @@ When included from a CDN, outmatch is available as the global function `outmatch
     <td>Matches any character in the specified range
   </tr>
   <tr>
-    <td colspan="2"><strong>Negation</strong></td>
+    <td colspan="2"><h4>Negation</h4></td>
   </tr>
   <tr>
     <td><code>!</code></td>
     <td>Negates a pattern when put at the start of it. If repeated multiple times, each <code>!</code> will invert the effect, so <code>!!foo/bar</code> is the same as <code>foo/bar</code> and <code>!!!baz/qux</code> is the same as <code>!baz/qux</code>.<br><br>A negated pattern matches any string that doesn't match the part after the <code>!</code>. When put in an array among positive patterns, negated patterns effectively work as ignores</td>
   </tr>
   <tr>
-    <td colspan="2"><strong>Escaping</strong></td>
+    <td colspan="2"><h4>Escaping</h4></td>
   </tr>
   <tr>
     <td><code>\</code></td>
@@ -203,7 +320,7 @@ Takes a single pattern string or an array of patterns and compiles them into a r
 
 Tests if a sample string matches the patterns that were used to compile the regular expression and create this function.
 
-### isMatch.regExp
+### isMatch.regexp
 
 The compiled regular expression.
 
@@ -219,7 +336,7 @@ The options object that was used to compile the regular expression and create th
 
 | Option      | Type              | Default Value | Description                                                                                                                                                                   |
 | ----------- | ----------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `separator` | boolean \| string | true          | Defines the separator used to split patterns into segments<ul><li>`true` — `\` on Windows, `/` otherwise<li>`false` — don't split patterns<li>_any string_ — custom separator |
+| `separator` | boolean \| string | true          | Defines the separator used to split strings into segments<ul><li>`true` — `\` on Windows, `/` otherwise<li>`false` — don't split<li>_any string_ — custom separator |
 | `!`         | boolean           | true          | Toggles pattern negation                                                                                                                                                      |
 | `?`         | boolean           | true          | Toggles single-char wildcards                                                                                                                                                 |
 | `*`         | boolean           | true          | Toggles multi-char wildcards                                                                                                                                                  |
@@ -231,7 +348,20 @@ The options object that was used to compile the regular expression and create th
 
 ## Comparison
 
-Coming soon.
+A better comparison is in the works.
+
+```
+Pattern: src/zxc/**/*.?s
+Sample: src/test/foo.js
+
+Compilation
+  outmatch     758,089 ops/sec
+  picomatch    251,009 ops/sec
+
+Matching
+  outmatch     19,593,677 ops/sec
+  picomatch    10,920,001 ops/sec
+```
 
 ## License
 

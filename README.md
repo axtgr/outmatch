@@ -147,7 +147,7 @@ Multiple separators in a row in a sample string are treated as a single one:
 outmatch('foo/bar')('foo///bar') //=> true
 ```
 
-It's important to remember to always use forward slashes `/` and not backslashes `\` as separators in _patterns_ because outmatch uses backslashes for character escaping. However, by default, forward slashes in patterns will match both forward and backslashes in sample strings:
+While most operating systems use forward slashes `/` as file path separators, Windows uses backslashes `\`. It's important to remember to always use forward slashes `/` and not backslashes `\` as separators in _patterns_ because outmatch uses the latter for character escaping. By default, both forward and backslashes in sample strings will be matched:
 
 ```js
 const isMatch = outmatch('foo/bar')

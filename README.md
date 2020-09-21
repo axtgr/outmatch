@@ -17,7 +17,7 @@
 
 Outmatch takes one or more glob patterns, compiles them into a RegExp and returns a function for matching strings with it.
 
-Glob patterns are strings that contain wildcards such as `*`, `?`, `[abc]` and others. When a pattern is compared with another string, these wildcards can replace one or more symbols. For example, `src/*` would match both `src/foo` and `src/bar`.
+Glob patterns are strings that contain wildcards such as `*`, `?`, `[abc]` and others. When such a pattern is compared with another string, these wildcards can replace one or more symbols. For example, `src/*` would match both `src/foo` and `src/bar`.
 
 While globs are usually used to search file paths separated by slashes, with outmatch it is possible to match _arbitrary_ strings, whether separated or not.
 
@@ -37,7 +37,7 @@ isMatch('src/README.md') //=> false
 
 isMatch.pattern //=> 'src/**/*.{js,ts}'
 isMatch.options //=> { separator: true }
-isMatch.regexp //=> /^(src((?!\.) ... ((?!).)*\.ts)$/
+isMatch.regexp //=> /^(src((\/|\\))+ ... \.ts((\/|\\))*)$/
 ```
 
 More details are available in the [Installation](#installation), [Usage](#usage), [Syntax](#syntax) and [API](#api) sections.
@@ -132,7 +132,7 @@ Compiling a pattern is much slower than comparing a string to it, so it is recom
 
 ### Working With File Paths
 
-Globs are most often used to search file paths, which are, essentially, strings split into segments by separators (usually slashes). 
+Globs are most often used to search file paths, which are, essentially, strings split into segments by separators (usually slashes).
 
 By default outmatch ignores any segment starting with a dot (dotfiles), which can be disabled by passing `'.': false` in options:
 
@@ -314,7 +314,7 @@ paths.findIndex(isMatch) //=> 1
 
 ### outmatch(patterns, options?): isMatch
 
-Takes a single pattern string or an array of patterns and compiles them into a regular expression. Returns an isMatch function that takes a sample string as its only argument and returns true if the string matches the patterns.
+Takes a single pattern string or an array of patterns and compiles them into a regular expression. Returns an isMatch function that takes a sample string as its only argument and returns true if the string matches the pattern(s).
 
 ### isMatch(sample): boolean
 
@@ -334,21 +334,19 @@ The options object that was used to compile the regular expression and create th
 
 ### Options
 
-| Option      | Type              | Default Value | Description                                                                                                                                                                   |
-| ----------- | ----------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Option      | Type              | Default Value | Description                                                                                                                                                         |
+| ----------- | ----------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `separator` | boolean \| string | true          | Defines the separator used to split strings into segments<ul><li>`true` — `\` on Windows, `/` otherwise<li>`false` — don't split<li>_any string_ — custom separator |
-| `!`         | boolean           | true          | Toggles pattern negation                                                                                                                                                      |
-| `?`         | boolean           | true          | Toggles single-char wildcards                                                                                                                                                 |
-| `*`         | boolean           | true          | Toggles multi-char wildcards                                                                                                                                                  |
-| `**`        | boolean           | true          | Toggles globstars                                                                                                                                                             |
-| `[]`        | boolean           | true          | Toggles character classes                                                                                                                                                     |
-| `()`        | boolean           | true          | Toggles extglobs                                                                                                                                                              |
-| `{}`        | boolean           | true          | Toggles brace expansion                                                                                                                                                       |
-| `.`         | boolean           | true          | Toggles whether to ignore segments starting with a dot (dotfiles)                                                                                                             |
+| `!`         | boolean           | true          | Toggles pattern negation                                                                                                                                            |
+| `?`         | boolean           | true          | Toggles single-char wildcards                                                                                                                                       |
+| `*`         | boolean           | true          | Toggles multi-char wildcards                                                                                                                                        |
+| `**`        | boolean           | true          | Toggles globstars                                                                                                                                                   |
+| `[]`        | boolean           | true          | Toggles character classes                                                                                                                                           |
+| `()`        | boolean           | true          | Toggles extglobs                                                                                                                                                    |
+| `{}`        | boolean           | true          | Toggles brace expansion                                                                                                                                             |
+| `.`         | boolean           | true          | Toggles whether to ignore segments starting with a dot (dotfiles)                                                                                                   |
 
 ## Comparison
-
-A better comparison is in the works.
 
 ```
 Pattern: src/zxc/**/*.?s
@@ -362,6 +360,8 @@ Matching
   outmatch     19,593,677 ops/sec
   picomatch    10,920,001 ops/sec
 ```
+
+A better comparison is in the works.
 
 ## License
 

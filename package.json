@@ -6,9 +6,6 @@
   "license": "ISC",
   "repository": "https://github.com/axtgr/outmatch",
   "private": true,
-  "engines": {
-    "node": ">=8.0"
-  },
   "type": "commonjs",
   "main": "build/index.js",
   "module": "build/index.mjs",

@@ -1,7 +1,7 @@
 var outmatch = require('../build')
 
 // TODO: add '\\', '//' and separators with wildcards
-var SEPARATORS = [false, '/', ' ', 's', 'sep']
+var SEPARATORS = [true, false, '/', ' ', 's', 'sep']
 
 // We assume that tests are run in an ES5 environment, which don't have Object.assign
 function assign(to, from) {
@@ -30,12 +30,9 @@ function replaceSeparators(stringOrArray, separator) {
 var testSet = Object.create(null)
 
 function match(pattern, options) {
-  var separator =
-    options.separator && typeof options.separator === 'string'
-      ? options.separator
-      : false
-  var preparedPattern = separator ? replaceSeparators(pattern, separator) : pattern
-  var isMatch = outmatch(preparedPattern, options)
+  var replaceSep = typeof options.separator === 'string'
+  var prepPattern = replaceSep ? replaceSeparators(pattern, options.separator) : pattern
+  var isMatch = outmatch(prepPattern, options)
 
   return function (sample) {
     var args = { options: options, pattern: pattern, sample: sample }
@@ -46,7 +43,7 @@ function match(pattern, options) {
     }
 
     testSet[argsStr] = true
-    sample = separator ? replaceSeparators(sample, separator) : sample
+    sample = replaceSep ? replaceSeparators(sample, options.separator) : sample
     return isMatch(sample)
   }
 }

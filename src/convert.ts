@@ -244,12 +244,13 @@ function convertSeparatedPattern(pattern: string, options: OutmatchOptions) {
 
   // When separator === true, we may use different separators for splitting the pattern
   // and matching samples (depending on the OS), so we can't just use one separator variable
-  let separator = options.separator
-  let separatorSplitter = (separator === true ? '/' : separator) as string
+  let separatorSplitter = (options.separator === true
+    ? '/'
+    : options.separator) as string
   let separatorMatcher =
-    separator === true && FS_SEPARATOR !== '/'
+    options.separator === true && FS_SEPARATOR !== '/'
       ? '(/|' + escapeRegExpString(FS_SEPARATOR) + ')'
-      : escapeRegExpString(separator as string)
+      : escapeRegExpString(separatorSplitter)
 
   // Multiple separators in a row are treated as a single one;
   // trailing separators are optional unless they are put in the pattern deliberately

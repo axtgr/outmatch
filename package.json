@@ -5,6 +5,12 @@
   "author": "Alex Schneider <me@schneider.ax>",
   "license": "ISC",
   "repository": "https://github.com/axtgr/outmatch",
+  "keywords": [
+    "glob",
+    "pattern",
+    "wildcard",
+    "match"
+  ],
   "private": true,
   "type": "commonjs",
   "main": "build/index.js",

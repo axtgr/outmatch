@@ -50,27 +50,27 @@ More details are available in the [Installation](#installation), [Usage](#usage)
 <table>
   <tr>
     <td align="center">💪</td>
-    <td><b>Powerful</b><br>Supports extended globbing, brace expansion, multi-pattern compilation and custom path separators — a feature unique to outmatch</td>
+    <td><strong>Powerful</strong><br>Supports extended globbing, brace expansion, multi-pattern compilation and custom path separators — a&nbsp;feature unique to&nbsp;outmatch</td>
   </tr>
   <tr>
     <td align="center">🏎</td>
-    <td><b>Fast</b><br>Compiles and matches patterns faster than minimatch, micromatch and picomatch</td>
+    <td><strong>Fast</strong><br>Compiles and matches patterns faster than minimatch, micromatch and picomatch</td>
   </tr>
   <tr>
     <td align="center">🍃</td>
-    <td><b>Lightweight</b><br>No dependencies. Just 1.8 KB when minified and gzipped — ¼ of picomatch and ⅙ of micromatch</td>
+    <td><strong>Lightweight</strong><br>No dependencies. Just 1.8&nbsp;KB when minified and gzipped — ¼&nbsp;of&nbsp;picomatch and ⅙&nbsp;of&nbsp;micromatch</td>
   </tr>
   <tr>
     <td align="center">⚒</td>
-    <td><b>Reliable</b><br>Written in TypeScript, covered by thousands of unit tests</td>
+    <td><strong>Reliable</strong><br>Written in TypeScript. Covered by thousands of unit tests</td>
   </tr>
   <tr>
     <td align="center">🌞</td>
-    <td><b>Simple</b><br>The API is a single function. Options can be specified in easy to understand language rather than Linux slang</td>
+    <td><strong>Simple</strong><br>The API is a single function. Options can be specified in easy to understand language rather than Linux slang</td>
   </tr>
   <tr>
     <td align="center">🔌</td>
-    <td><b>Compatible</b><br>Works in any ES5 environment without transpilation</td>
+    <td><strong>Compatible</strong><br>Works in any ES5 environment including older versions of Node.js, Deno, React Native and browsers</td>
   </tr>
 </table>
 
@@ -365,7 +365,3 @@ Matching
 ```
 
 A better comparison is in the works.
-
-## License
-
-[ISC](LICENSE)

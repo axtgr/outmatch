@@ -87,18 +87,18 @@ function isMatch(regexp: RegExp, sample: string) {
 }
 
 /**
- * Creates an isMatch function from one or more glob patterns. The isMatch function
- * takes a sample string as its only argument and returns true if the string matches
- * the pattern.
+ * Compiles one or more glob patterns into a RegExp and returns an isMatch function.
+ * The isMatch function takes a sample string as its only argument and returns true
+ * if the string matches the pattern(s).
  *
  * ```js
  * outmatch('src/*.js')('src/index.js') //=> true
  * ```
  *
  * ```js
- * const isMatch = outmatch('components/*.{?s,?sx}')
- * isMatch('components/head.jsx') //=> true
- * isMatch('components/body/readme.md') //=> false
+ * const isMatch = outmatch('*.example.com', { separator: '.' })
+ * isMatch('foo.example.com') //=> true
+ * isMatch('foo.bar.com') //=> false
  * ```
  */
 function outmatch(pattern: string | string[], options?: OutmatchOptions): isMatch {

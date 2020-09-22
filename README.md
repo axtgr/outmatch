@@ -1,9 +1,12 @@
+<br>
+
 <h1 align="center">
-  <br>
   <img src="assets/logo.png" width="300" height="69">
 </h1>
 
-<p align="center"><strong>An extremely fast and lightweight glob-matching library for JavaScript</strong></p>
+<p align="center">
+  <strong>An extremely fast and lightweight glob-matching library for JavaScript</strong>
+</p>
 
 <p align="center">
   <a href="https://www.npmjs.com/package/outmatch"><img src="https://img.shields.io/npm/v/outmatch" alt="npm package"></a>
@@ -47,7 +50,7 @@ More details are available in the [Installation](#installation), [Usage](#usage)
 <table>
   <tr>
     <td align="center">💪</td>
-    <td><b>Powerful</b><br>Supports extended globbing, brace expansion, multi-pattern compilation and custom path separators, which are a unique feature of this library</td>
+    <td><b>Powerful</b><br>Supports extended globbing, brace expansion, multi-pattern compilation and custom path separators — a feature unique to outmatch</td>
   </tr>
   <tr>
     <td align="center">🏎</td>
@@ -55,7 +58,7 @@ More details are available in the [Installation](#installation), [Usage](#usage)
   </tr>
   <tr>
     <td align="center">🍃</td>
-    <td><b>Lightweight</b><br>No dependencies. Just 1.8 KB when minified and gzipped</td>
+    <td><b>Lightweight</b><br>No dependencies. Just 1.8 KB when minified and gzipped — ¼ of picomatch and ⅙ of micromatch</td>
   </tr>
   <tr>
     <td align="center">⚒</td>

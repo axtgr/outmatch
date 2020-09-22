@@ -17,9 +17,10 @@ jobs:
         id: wait-for-ci
         uses: fountainhead/action-wait-for-check@v1.0.0
         with:
-          checkName: ci (${{ matrix.os }}, ${{ matrix.node }})
+          checkName: ci
           token: ${{ secrets.GITHUB_TOKEN }}
-      - if: steps.wait-for-ci.outputs.conclusion == 'failure'
+      - name: Fail if CI has failed
+        if: steps.wait-for-ci.outputs.conclusion != 'success'
         run: exit 1
       - name: Check out the repository
         uses: actions/checkout@v2

@@ -2,7 +2,7 @@
 
 import type { OutmatchOptions } from './index'
 
-const IGNORE_DOTFILES_PATTERN = '(?!\\.)'
+const IGNORE_DOT_PATTERN = '(?!\\.)'
 
 function escapeRegExpChar(char: string) {
   if (
@@ -45,7 +45,7 @@ function convertBasicPattern(
   let supportParens = options['()'] !== false
   let supportQMark = options['?'] !== false
   let supportStar = options['*'] !== false
-  let ignoreDotfiles = options['.'] !== false
+  let ignoreDot = options.ignoreDot !== false
   let openingBracket = pattern.length
   let closingBracket = -1
   let parenModifiers = []
@@ -220,10 +220,10 @@ function convertBasicPattern(
     escapeChar = false
   }
 
-  // Dotfiles should not be matched unless specified otherwise in options, or the pattern
-  // (or segment) explicitly starts with a dot
-  if (ignoreDotfiles && isGlob && pattern[0] !== '.') {
-    return IGNORE_DOTFILES_PATTERN + result
+  // Segments starting with a dot should not be matched unless specified otherwise in options,
+  // or the pattern (or segment) explicitly starts with a dot
+  if (ignoreDot && isGlob && pattern[0] !== '.') {
+    return IGNORE_DOT_PATTERN + result
   } else {
     return result
   }
@@ -231,8 +231,8 @@ function convertBasicPattern(
 
 function convertSeparatedPattern(pattern: string, options: OutmatchOptions) {
   let supportGlobstar = options['**'] !== false
-  let ignoreDotfiles = options['.'] !== false
-  let ignoreDotfilesPattern = ignoreDotfiles ? IGNORE_DOTFILES_PATTERN : ''
+  let ignoreDot = options.ignoreDot !== false
+  let ignoreDotPattern = ignoreDot ? IGNORE_DOT_PATTERN : ''
 
   // When separator === true, we may use different separators for splitting the pattern
   // and matching samples, so we need two separator variables
@@ -263,7 +263,7 @@ function convertSeparatedPattern(pattern: string, options: OutmatchOptions) {
       i < segments.length - 1 ? requiredSeparator : optionalSeparator
 
     if (supportGlobstar && segment === '**') {
-      result += '(' + ignoreDotfilesPattern + wildcard + '*' + currentSeparator + ')*'
+      result += '(' + ignoreDotPattern + wildcard + '*' + currentSeparator + ')*'
     } else {
       result += convertBasicPattern(segment, options, wildcard) + currentSeparator
     }

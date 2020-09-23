@@ -3,6 +3,7 @@ import convert from './convert'
 
 interface OutmatchOptions {
   separator?: boolean | string
+  ignoreDot?: boolean
   '!'?: boolean
   '?'?: boolean
   '*'?: boolean
@@ -10,7 +11,6 @@ interface OutmatchOptions {
   '[]'?: boolean
   '()'?: boolean
   '{}'?: boolean
-  '.'?: boolean
 }
 
 const DEFAULT_OPTIONS = { separator: true }

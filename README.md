@@ -137,11 +137,13 @@ Compiling a pattern is much slower than comparing a string to it, so it is recom
 
 Globs are most often used to search file paths, which are, essentially, strings split into segments by separators (usually slashes).
 
-By default outmatch ignores any segment starting with a dot (dotfiles), which can be disabled by passing `'.': false` in options:
+By default outmatch ignores any segment starting with a dot (dotfiles) unless the dot is specified explicitly in the pattern.
+This behavior can be disabled by passing `ignoreDot: false` in options, in which case starting dots are treated like any other symbol:
 
 ```js
 outmatch('project/*')('project/.git') //=> false
-outmatch('project/*', { '.': false })('project/.git') //=> true
+outmatch('project/.*')('project/.git') //=> true (specified explicitly)
+outmatch('project/*', { ignoreDot: false })('project/.git') //=> true
 ```
 
 Multiple separators in a row in a sample string are treated as a single one:
@@ -340,6 +342,7 @@ The options object that was used to compile the regular expression and create th
 | Option      | Type              | Default Value | Description                                                                                                                                                                                          |
 | ----------- | ----------------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `separator` | boolean \| string | true          | Defines the separator used to split patterns and samples into segments<ul><li>`true` — `/` in patterns match both `/` and `\` in samples<li>`false` — don't split<li>_any string_ — custom separator |
+| `ignoreDot` | boolean           | true          | Toggles whether to ignore segments starting with a dot                                                                                                                                               |
 | `!`         | boolean           | true          | Toggles pattern negation                                                                                                                                                                             |
 | `?`         | boolean           | true          | Toggles single-char wildcards                                                                                                                                                                        |
 | `*`         | boolean           | true          | Toggles multi-char wildcards                                                                                                                                                                         |
@@ -347,7 +350,6 @@ The options object that was used to compile the regular expression and create th
 | `[]`        | boolean           | true          | Toggles character classes                                                                                                                                                                            |
 | `()`        | boolean           | true          | Toggles extglobs                                                                                                                                                                                     |
 | `{}`        | boolean           | true          | Toggles brace expansion                                                                                                                                                                              |
-| `.`         | boolean           | true          | Toggles whether to ignore segments starting with a dot (dotfiles)                                                                                                                                    |
 
 ## Comparison
 

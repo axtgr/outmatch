@@ -39,13 +39,13 @@ function escapeRegExpString(str: string) {
 function convertBasicPattern(
   pattern: string,
   options: OutmatchOptions,
+  ignoreDot: boolean,
   wildcard?: string
 ) {
   let supportBrackets = options['[]'] !== false
   let supportParens = options['()'] !== false
   let supportQMark = options['?'] !== false
   let supportStar = options['*'] !== false
-  let ignoreDot = options.ignoreDot !== false
   let openingBracket = pattern.length
   let closingBracket = -1
   let parenModifiers = []
@@ -54,8 +54,8 @@ function convertBasicPattern(
   let parensHandledUntil = -1
   let scanningForParens = false
   let escapeChar = false
-  let isGlob = false
   let maxI = pattern.length - 1
+  let firstGlobChar = maxI
   let result = ''
   let buffer = ''
 
@@ -116,7 +116,7 @@ function convertBasicPattern(
           result += '['
           closingBracket = i
           i = openingBracket
-          isGlob = true
+          firstGlobChar = Math.min(i, firstGlobChar)
         } else if (i === maxI) {
           // Closing bracket is not found; return to the opening bracket
           // and treat all the in-between chars as usual
@@ -186,7 +186,7 @@ function convertBasicPattern(
           } else {
             result += ')' + modifier
           }
-          isGlob = true
+          firstGlobChar = Math.min(parensHandledUntil, firstGlobChar)
           closingParens--
           continue
         }
@@ -209,9 +209,9 @@ function convertBasicPattern(
       if (i === maxI || pattern[i + 1] !== '*') {
         result += wildcard + '*'
       }
-      isGlob = true
+      firstGlobChar = Math.min(i, firstGlobChar)
     } else if (!escapeChar && supportQMark && char === '?') {
-      isGlob = true
+      firstGlobChar = Math.min(i, firstGlobChar)
       result += wildcard
     } else {
       result += escapeRegExpChar(char)
@@ -220,18 +220,23 @@ function convertBasicPattern(
     escapeChar = false
   }
 
-  // Segments starting with a dot should not be matched unless specified otherwise in options,
-  // or the pattern (or segment) explicitly starts with a dot
-  if (ignoreDot && isGlob && pattern[0] !== '.') {
+  // Segments starting with a dot should not be matched unless specified otherwise in options
+  // or the segment explicitly starts with a dot.
+  // We don't add the ignore pattern when the first character is literal to optimize
+  // the resulting regexp, but this is possibly bug-prone.
+  if (ignoreDot && firstGlobChar == 0) {
     return IGNORE_DOT_PATTERN + result
   } else {
     return result
   }
 }
 
-function convertSeparatedPattern(pattern: string, options: OutmatchOptions) {
+function convertSeparatedPattern(
+  pattern: string,
+  options: OutmatchOptions,
+  ignoreDot: boolean
+) {
   let supportGlobstar = options['**'] !== false
-  let ignoreDot = options.ignoreDot !== false
   let ignoreDotPattern = ignoreDot ? IGNORE_DOT_PATTERN : ''
 
   // When separator === true, we may use different separators for splitting the pattern
@@ -265,7 +270,8 @@ function convertSeparatedPattern(pattern: string, options: OutmatchOptions) {
     if (supportGlobstar && segment === '**') {
       result += '(' + ignoreDotPattern + wildcard + '*' + currentSeparator + ')*'
     } else {
-      result += convertBasicPattern(segment, options, wildcard) + currentSeparator
+      result +=
+        convertBasicPattern(segment, options, ignoreDot, wildcard) + currentSeparator
     }
   }
 
@@ -302,9 +308,9 @@ function convert(pattern: string, options: OutmatchOptions) {
   }
 
   if (negated) {
-    pattern = '(?!^' + convertFn(pattern, options) + '$)'
+    pattern = '(?!^' + convertFn(pattern, options, false) + '$)'
   } else {
-    pattern = convertFn(pattern, options)
+    pattern = convertFn(pattern, options, options.ignoreDot !== false)
   }
 
   return {

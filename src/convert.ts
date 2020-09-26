@@ -80,7 +80,7 @@ function convertBasicPattern(
       }
     }
 
-    if (supportBrackets) {
+    if (supportBrackets && !scanningForParens) {
       if (i > openingBracket && i <= closingBracket) {
         // We are certainly in a complete character class
         // and should treat almost all characters literally

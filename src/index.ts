@@ -3,7 +3,7 @@ import convert from './convert'
 
 interface OutmatchOptions {
   separator?: boolean | string
-  ignoreDot?: boolean
+  excludeDot?: boolean
   '!'?: boolean
   '?'?: boolean
   '*'?: boolean

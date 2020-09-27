@@ -2,7 +2,7 @@
 
 import type { OutmatchOptions } from './index'
 
-const IGNORE_DOT_PATTERN = '(?!\\.)'
+const EXCLUDE_DOT_PATTERN = '(?!\\.)'
 
 function escapeRegExpChar(char: string) {
   if (
@@ -39,7 +39,7 @@ function escapeRegExpString(str: string) {
 function convertBasicPattern(
   pattern: string,
   options: OutmatchOptions,
-  ignoreDot: boolean,
+  excludeDot: boolean,
   wildcard?: string
 ) {
   let supportBrackets = options['[]'] !== false
@@ -222,10 +222,10 @@ function convertBasicPattern(
 
   // Segments starting with a dot should not be matched unless specified otherwise in options
   // or the segment explicitly starts with a dot.
-  // We don't add the ignore pattern when the first character is literal to optimize
+  // We don't add the exclude pattern when the first character is any literal to optimize
   // the resulting regexp, but this is possibly bug-prone.
-  if (ignoreDot && firstGlobChar == 0) {
-    return IGNORE_DOT_PATTERN + result
+  if (excludeDot && firstGlobChar == 0) {
+    return EXCLUDE_DOT_PATTERN + result
   } else {
     return result
   }
@@ -234,10 +234,10 @@ function convertBasicPattern(
 function convertSeparatedPattern(
   pattern: string,
   options: OutmatchOptions,
-  ignoreDot: boolean
+  excludeDot: boolean
 ) {
   let supportGlobstar = options['**'] !== false
-  let ignoreDotPattern = ignoreDot ? IGNORE_DOT_PATTERN : ''
+  let excludeDotPattern = excludeDot ? EXCLUDE_DOT_PATTERN : ''
 
   // When separator === true, we may use different separators for splitting the pattern
   // and matching samples, so we need two separator variables
@@ -268,10 +268,10 @@ function convertSeparatedPattern(
       i < segments.length - 1 ? requiredSeparator : optionalSeparator
 
     if (supportGlobstar && segment === '**') {
-      result += '(' + ignoreDotPattern + wildcard + '*' + currentSeparator + ')*'
+      result += '(' + excludeDotPattern + wildcard + '*' + currentSeparator + ')*'
     } else {
       result +=
-        convertBasicPattern(segment, options, ignoreDot, wildcard) + currentSeparator
+        convertBasicPattern(segment, options, excludeDot, wildcard) + currentSeparator
     }
   }
 
@@ -310,7 +310,7 @@ function convert(pattern: string, options: OutmatchOptions) {
   if (negated) {
     pattern = '(?!^' + convertFn(pattern, options, false) + '$)'
   } else {
-    pattern = convertFn(pattern, options, options.ignoreDot !== false)
+    pattern = convertFn(pattern, options, options.excludeDot !== false)
   }
 
   return {

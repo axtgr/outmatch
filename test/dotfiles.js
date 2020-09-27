@@ -1,7 +1,7 @@
 var suite = require('./_utils').suite
 
 module.exports = suite(function (t) {
-  t.options({ ignoreDot: true }).test('When ignoreDot === true', function (t) {
+  t.options({ excludeDot: true }).test('When excludeDot === true', function (t) {
     // When separator === false, the pattern is not split into segments,
     // so dots matter only when they are the very first char
 
@@ -56,7 +56,7 @@ module.exports = suite(function (t) {
     )
   })
 
-  t.options({ ignoreDot: false }).test('When ignoreDot === false', function (t) {
+  t.options({ excludeDot: false }).test('When excludeDot === false', function (t) {
     t.testPerSeparator(
       "Positive patterns don't ignore segments starting with a dot",
       function (t) {

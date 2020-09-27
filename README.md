@@ -109,7 +109,7 @@ When included from a CDN, outmatch is available as the global function `outmatch
 
 Outmatch comes built in ESM, CommonJS and UMD formats and includes TypeScript typings. The examples use ESM imports, which can be replaced with the following line for CommonJS: `const outmatch = require('outmatch')`.
 
-The default export is a function that takes two arguments: a glob pattern and, if needed, an [options](#options) object. It compiles them into a regular expression and returns a function (called `isMatch` in the examples) that tests strings against the pattern. The pattern, options and the compiled RegExp object are available as properties on the returned function:
+The default export is a function that takes two arguments: a glob pattern and, if needed, an [options](#options) object. It compiles them into a regular expression and returns a function (usually called `isMatch` in the examples) that tests strings against the pattern. The pattern, options and the compiled RegExp object are available as properties on the returned function:
 
 ```js
 import outmatch from 'outmatch'
@@ -133,26 +133,21 @@ outmatch('src/**/*.js')('src/components/body/index.js') //=> true
 
 Compiling a pattern is much slower than comparing a string to it, so it is recommended to always reuse the returned function when possible.
 
-### Working With File Paths
+### File Paths and Separators
 
-Globs are most often used to search file paths, which are, essentially, strings split into segments by separators (usually slashes).
-
-By default outmatch ignores any segment starting with a dot (dotfiles) unless the dot is specified explicitly in the pattern.
-This behavior can be disabled by passing `ignoreDot: false` in options, in which case starting dots are treated like any other symbol:
+Globs are most often used to search file paths, which are, essentially, strings split into segments by slashes. While other libraries
+are usually restricted to this use-case, outmatch is able to work with _arbitrary_ strings by accepting a custom separator in the `separator` option:
 
 ```js
-outmatch('project/*')('project/.git') //=> false
-outmatch('project/.*')('project/.git') //=> true (specified explicitly)
-outmatch('project/*', { ignoreDot: false })('project/.git') //=> true
+const matchDomain = outmatch('*.example.com', { separator: '.' })
+matchDomain('subdomain.example.com') //=> true
+
+const matchLike = outmatch('wh?t like**like mean', { separator: 'like' })
+matchLike('what like do like you like mean') //=> true
 ```
 
-Multiple separators in a row in a sample string are treated as a single one:
-
-```js
-outmatch('foo/bar')('foo///bar') //=> true
-```
-
-While most operating systems use forward slashes `/` as file path separators, Windows uses backslashes `\`. It's important to remember to always use forward slashes `/` and not backslashes `\` as separators in _patterns_ because outmatch uses the latter for character escaping. By default, both forward and backslashes in sample strings will be matched:
+Backslashes `\` cannot be used as separators in patterns because outmatch uses them for character escaping. To address this limitation,
+when a custom separator is not specified, `/` in patterns will match both `/` and `\` in samples:
 
 ```js
 const isMatch = outmatch('foo/bar')
@@ -161,36 +156,40 @@ isMatch('foo/bar') //=> true
 isMatch('foo\bar') //=> true
 ```
 
-### Segmentation
-
-Another thing to note is that outmatch (and other libraries) splits a pattern into segments before processing special symbols. Most matching features work with a _segment_ rather than a whole pattern. For example, `foo/b*` will match `foo/bar` but not `foo/b/ar`. The two exceptions to this are brace expansion and pattern negation, both of which work with whole patterns:
+A thing to note is that most matching features work with a _segment_ rather than a whole pattern. For example, `foo/b*` will match `foo/bar`
+but not `foo/b/ar`. The two exceptions to this are _brace expansion_ and _pattern negation_, both of which work with whole patterns:
 
 ```js
-outmatch('src/{foo/bar,baz}')('src/foo/bar') //=> true
-outmatch('src/@(foo/bar,baz)')('src/foo/bar') //=> false
+outmatch('src/{foo/bar,baz}')('src/foo/bar') //=> true (brace expansion)
+outmatch('src/@(foo/bar,baz)')('src/foo/bar') //=> false (extglob)
 ```
 
-The order of operations performed by outmatch is the following: `Brace expansion` → `Segmentation` → `Escaping` → `Processing special chars` → `Pattern negation`.
-
-### Custom Separators
-
-While other libraries are usually restricted to slash-separated file paths, outmatch is able to work with arbitrary strings by accepting a custom separator in the `separator` option:
+Any string that contains a segment starting with a dot (a dotfile) is excluded unless the dot is specified explicitly in the pattern.
+This behavior can be disabled by setting `excludeDot` to `false`, in which case leading dots are treated like any other symbol:
 
 ```js
-const isMatch = outmatch('*.example.com', { separator: '.' })
-isMatch('subdomain.example.com') //=> true
+outmatch('project/*')('project/.git') //=> false
+outmatch('project/.*')('project/.git') //=> true (dot is specified explicitly)
+outmatch('project/*', { excludeDot: false })('project/.git') //=> true
 ```
 
-The default value of this option is `true`, which matches `/` in patterns with both `/` and `\` in samples. Any string can be specified as the separator except for `\` as it is used for character escaping. Segmentation can be turned off completely by passing `false`, which will make outmatch treat whole patterns as a single segment:
+Segmentation can be turned off completely by passing `separator: false`, which makes outmatch treat whole patterns as a single segment.
+Slashes become regular symbols, `**` works identically to `*` and leading dots get excluded only when they are the very first character of a pattern:
 
 ```js
-const isMatch = outmatch('foo*baz', { separator: false })
-isMatch('foo/bar/baz') //=> true
+const isMatch = outmatch('foo?ba*', { separator: false })
+isMatch('foo/bar/.qux') //=> true
+```
+
+Multiple separators in a row in a sample string are always treated as a single one, and trailing separators are optional:
+
+```js
+outmatch('foo/bar')('foo///bar/') //=> true
 ```
 
 ### Multiple Patterns
 
-An array of glob patterns can be given instead of a single pattern as the first argument of outmatch. In that case a string will be considered a match if it matches _any_ of the given patterns:
+Outmatch can take an array of glob patterns as the first argument instead of a single pattern. In that case a string will be considered a match if it matches _any_ of the given patterns:
 
 ```js
 const isMatch = outmatch(['src/*', 'tests/*'])
@@ -251,7 +250,7 @@ paths.findIndex(isMatch) //=> 1
     <td>Matches any number of segments when used as a whole segment in a separated pattern (e.g. <code>/**/</code> if <code>/</code> is the separator)</td>
   </tr>
   <tr>
-    <td colspan="2"><h4>Character Classes</h4></td>
+    <td colspan="2"><h4>Character Classes (Brackets)</h4></td>
   </tr>
   <tr>
     <td><code>[abc1_]</code></td>
@@ -266,7 +265,7 @@ paths.findIndex(isMatch) //=> 1
     <td>Matches a single character <em>not</em> in the specified list or range</td>
   </tr>
   <tr>
-    <td colspan="3"><h4>Extglobs</h4></td>
+    <td colspan="3"><h4>Extglobs (Parens)</h4></td>
   </tr>
   <tr>
     <td><code>@(bar|baz)</code></td>
@@ -339,17 +338,17 @@ The options object that was used to compile the regular expression and create th
 
 ### Options
 
-| Option      | Type              | Default Value | Description                                                                                                                                                                                          |
-| ----------- | ----------------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `separator` | boolean \| string | true          | Defines the separator used to split patterns and samples into segments<ul><li>`true` — `/` in patterns match both `/` and `\` in samples<li>`false` — don't split<li>_any string_ — custom separator |
-| `ignoreDot` | boolean           | true          | Toggles whether to ignore segments starting with a dot                                                                                                                                               |
-| `!`         | boolean           | true          | Toggles pattern negation                                                                                                                                                                             |
-| `?`         | boolean           | true          | Toggles single-char wildcards                                                                                                                                                                        |
-| `*`         | boolean           | true          | Toggles multi-char wildcards                                                                                                                                                                         |
-| `**`        | boolean           | true          | Toggles globstars                                                                                                                                                                                    |
-| `[]`        | boolean           | true          | Toggles character classes                                                                                                                                                                            |
-| `()`        | boolean           | true          | Toggles extglobs                                                                                                                                                                                     |
-| `{}`        | boolean           | true          | Toggles brace expansion                                                                                                                                                                              |
+| Option       | Type              | Default Value | Description                                                                                                                                                                                          |
+| ------------ | ----------------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `separator`  | boolean \| string | true          | Defines the separator used to split patterns and samples into segments<ul><li>`true` — `/` in patterns match both `/` and `\` in samples<li>`false` — don't split<li>_any string_ — custom separator |
+| `excludeDot` | boolean           | true          | Toggles whether to exclude strings that contain segments starting with a dot                                                                                                                         |
+| `!`          | boolean           | true          | Toggles pattern negation                                                                                                                                                                             |
+| `?`          | boolean           | true          | Toggles single-char wildcards                                                                                                                                                                        |
+| `*`          | boolean           | true          | Toggles multi-char wildcards                                                                                                                                                                         |
+| `**`         | boolean           | true          | Toggles globstars                                                                                                                                                                                    |
+| `[]`         | boolean           | true          | Toggles character classes                                                                                                                                                                            |
+| `()`         | boolean           | true          | Toggles extglobs                                                                                                                                                                                     |
+| `{}`         | boolean           | true          | Toggles brace expansion                                                                                                                                                                              |
 
 ## Comparison
 

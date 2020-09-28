@@ -1,7 +1,8 @@
-var Path = require('path')
 var suite = require('./_utils').suite
 var outmatch = require('../build')
 
+// This suite tests the behavior and properties of the exported function
+// rather than matching/syntactic features
 module.exports = suite(function (t) {
   t.test(
     'Compiles the pattern into a RegExp and returns a function that takes a sample and checks if it matches the pattern',
@@ -92,6 +93,17 @@ module.exports = suite(function (t) {
   )
 
   t.test(
+    'The returned function can be used as a predicate to Array#map() to get an array of results',
+    function (t) {
+      var samples = ['one', 'two', 'three']
+
+      t.equal(samples.map(outmatch('one')), [true, false, false])
+      t.equal(samples.map(outmatch('{one,two}')), [true, true, false])
+      t.equal(samples.map(outmatch(['two', 'three'])), [false, true, true])
+    }
+  )
+
+  t.test(
     'The returned function can be used as a predicate to Array#filter() to get a subarray of matching samples from an array',
     function (t) {
       var samples = ['one', 'two', 'three']
@@ -99,17 +111,7 @@ module.exports = suite(function (t) {
       t.equal(samples.filter(outmatch('one')), ['one'])
       t.equal(samples.filter(outmatch('{one,two}')), ['one', 'two'])
       t.equal(samples.filter(outmatch(['two', 'three'])), ['two', 'three'])
-    }
-  )
-
-  t.test(
-    'The returned function can be used as a predicate to Array#every() to check if all samples in an array match the pattern',
-    function (t) {
-      var samples = ['one', 'two', 'three']
-
-      t.notOk(samples.every(outmatch('one')))
-      t.ok(samples.every(outmatch('{one,two,three}')))
-      t.ok(samples.every(outmatch(['one', 'two', 'three'])))
+      t.equal(samples.filter(outmatch('?')), [])
     }
   )
 
@@ -124,4 +126,45 @@ module.exports = suite(function (t) {
       t.ok(samples.some(outmatch(['one', 'two', 'three'])))
     }
   )
+
+  t.test(
+    'The returned function can be used as a predicate to Array#every() to check if all samples in an array match the pattern',
+    function (t) {
+      var samples = ['one', 'two', 'three']
+
+      t.notOk(samples.every(outmatch('one')))
+      t.ok(samples.every(outmatch('{one,two,three}')))
+      t.ok(samples.every(outmatch(['one', 'two', 'three'])))
+    }
+  )
+
+  /* eslint-disable es5/no-es6-methods */
+  if (typeof Array.prototype.find === 'function') {
+    t.test(
+      'The returned function can be used as a predicate to Array#find() to find the first matching sample in an array',
+      function (t) {
+        var samples = ['one', 'two', 'three']
+
+        t.equal(samples.find(outmatch('two')), 'two')
+        t.equal(samples.find(outmatch('{one,four}')), 'one')
+        t.equal(samples.find(outmatch(['t*', '!two'])), 'three')
+        t.equal(samples.find(outmatch('?')), undefined)
+      }
+    )
+  }
+
+  if (typeof Array.prototype.findIndex === 'function') {
+    t.test(
+      'The returned function can be used as a predicate to Array#findIndex() to find the index of the first matching sample in an array',
+      function (t) {
+        var samples = ['one', 'two', 'three']
+
+        t.equal(samples.findIndex(outmatch('two')), 1)
+        t.equal(samples.findIndex(outmatch('{one,four}')), 0)
+        t.equal(samples.findIndex(outmatch(['t*', '!two'])), 2)
+        t.equal(samples.findIndex(outmatch('?')), -1)
+      }
+    )
+  }
+  /* eslint-enable es5/no-es6-methods */
 })

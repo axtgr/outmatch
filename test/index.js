@@ -124,18 +124,4 @@ module.exports = suite(function (t) {
       t.ok(samples.some(outmatch(['one', 'two', 'three'])))
     }
   )
-
-  t.test('Using \\ as a separator is forbidden', function (t) {
-    t.throws(function () {
-      outmatch('', { separator: '\\' })
-    })
-  })
-
-  t.options({ separator: true }).test(
-    'When separator === true, / in patterns match \\ in samples',
-    function (t) {
-      t.pattern('foo/bar').matches('foo/bar', 'foo\\bar')
-      t.pattern('foo/**/qux').matches(Path.join('foo', 'bar', 'baz', 'qux'))
-    }
-  )
 })

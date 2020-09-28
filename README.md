@@ -181,10 +181,30 @@ const isMatch = outmatch('foo?ba*', { separator: false })
 isMatch('foo/bar/.qux') //=> true
 ```
 
-Multiple separators in a row in a sample string are always treated as a single one, and trailing separators are optional:
+A single separator in a pattern will match any number of separators in a sample string:
 
 ```js
-outmatch('foo/bar')('foo///bar/') //=> true
+outmatch('foo/bar/baz')('foo/bar///baz') //=> true
+```
+
+When a pattern has an explicit separator at its end, samples also require one or more trailing separators:
+
+```js
+const isMatch = outmatch('foo/bar/')
+
+isMatch('foo/bar') //=> false
+isMatch('foo/bar/') //=> true
+isMatch('foo/bar///') //=> true
+```
+
+However, if there is no trailing separator in a pattern, strings will match even if they have separators at the end:
+
+```js
+const isMatch = outmatch('foo/bar')
+
+isMatch('foo/bar') //=> true
+isMatch('foo/bar/') //=> true
+isMatch('foo/bar///') //=> true
 ```
 
 ### Multiple Patterns

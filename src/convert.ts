@@ -55,7 +55,7 @@ function convertBasicPattern(
   let scanningForParens = false
   let escapeChar = false
   let maxI = pattern.length - 1
-  let firstGlobChar = maxI
+  let firstGlobChar = maxI + 1
   let result = ''
   let buffer = ''
 

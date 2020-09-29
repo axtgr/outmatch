@@ -1,7 +1,7 @@
 var suite = require('./_utils').suite
 
 module.exports = suite(function (t) {
-  t.test('* - wildcard', function (t) {
+  t.test('* - multi-char wildcard', function (t) {
     t.testPerSeparator('Matches 0 or more non-separator characters', function (t) {
       t.pattern('*')
         .matches('', '/', '//', 'o', 'one', 'one/')

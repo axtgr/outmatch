@@ -36,12 +36,60 @@ function escapeRegExpString(str: string) {
   return result
 }
 
-function convertBasicPattern(
+function findSeparatorEnd(pattern: string, i: number, separator: string) {
+  let separatorEnd = -1
+
+  for (let j = 0; ; j++) {
+    let sepI = j % separator.length
+    let patI = i + j
+
+    // A complete separator is found, but there could be more right next to it, so we continue
+    if (j > 0 && sepI === 0) {
+      separatorEnd = patI - 1
+    }
+
+    if (separator[sepI] !== pattern[patI]) {
+      break
+    }
+  }
+
+  return separatorEnd
+}
+
+function convertPattern(
   pattern: string,
   options: OutmatchOptions,
-  excludeDot: boolean,
-  wildcard?: string
+  excludeDot: boolean
 ) {
+  let excludeDotPattern = excludeDot ? EXCLUDE_DOT_PATTERN : ''
+
+  // When separator === true, we may use different separators for splitting the pattern
+  // and matching samples, so we need more than one separator variables
+  let separator = options.separator
+  let separatorSplitter = separator === true ? '/' : separator || ''
+  let separatorMatcher =
+    separator === true
+      ? '(/|\\\\)'
+      : separatorSplitter && escapeRegExpString(separatorSplitter)
+
+  // Multiple separators in a row are treated as a single one;
+  // trailing separators are optional unless they are put in the pattern deliberately
+  let optionalSeparator = '(' + separatorMatcher + ')*'
+  let requiredSeparator = '(' + separatorMatcher + ')+'
+
+  if (pattern.length === 0) {
+    return optionalSeparator
+  }
+
+  // When the separator consists of only one char, we use a character class
+  // rather than a lookahead because it is faster
+  let wildcard = separatorMatcher
+    ? separatorMatcher.length === 1
+      ? '[^' + separatorMatcher + ']'
+      : '((?!' + separatorMatcher + ').)'
+    : '.'
+
+  let supportGlobstar = options['**'] !== false
   let supportBrackets = options['[]'] !== false
   let supportParens = options['()'] !== false
   let supportQMark = options['?'] !== false
@@ -53,16 +101,44 @@ function convertBasicPattern(
   let closingParens = 0
   let parensHandledUntil = -1
   let scanningForParens = false
+  let separatorStart = -1
+  let separatorEnd = -1
+  let patternEnd = pattern.length - 1
+  let segmentStart = 0
+  let segmentEnd = patternEnd
   let escapeChar = false
-  let maxI = pattern.length - 1
-  let firstGlobChar = maxI + 1
   let result = ''
   let buffer = ''
+  let prefix = ''
 
-  wildcard = wildcard ?? '.'
-
-  for (let i = 0; i <= maxI; i++) {
+  // Iterating from -1 to patternEnd + 1 could help us simplify the iteration logic,
+  // but apparently it makes the compiler add bounds checks, which degrade performance
+  // significantly
+  for (let i = 0; i <= patternEnd; i++) {
     let char = pattern[i]
+    let nextChar = pattern[i + 1]
+
+    if (
+      separator &&
+      separatorEnd === -1 &&
+      i + separatorSplitter.length <= patternEnd
+    ) {
+      if (i === 0) {
+        separatorStart = i
+        separatorEnd = findSeparatorEnd(pattern, separatorStart, separatorSplitter)
+      }
+
+      if (i > 0 || separatorEnd === -1) {
+        separatorStart = i + 1
+        separatorEnd = findSeparatorEnd(pattern, separatorStart, separatorSplitter)
+
+        if (separatorEnd !== -1) {
+          segmentEnd = i
+        } else {
+          separatorStart = -1
+        }
+      }
+    }
 
     // The straightforward way to handle escaping would be to add the next character
     // to the result as soon as a backslash is found and skip the rest of the current iteration.
@@ -71,7 +147,7 @@ function convertBasicPattern(
     // for the next char and handle it in the next iteration (in which we have to be
     // extra careful to reset the flag whenever the iteration completes or continues).
     if (char === '\\') {
-      if (i < maxI) {
+      if (i < segmentEnd) {
         escapeChar = true
         continue
       } else {
@@ -113,11 +189,11 @@ function convertBasicPattern(
         ) {
           // Closing bracket is found; return to openingBracket
           // and treat all the in-between chars literally
-          result += '['
+          prefix = openingBracket === segmentStart ? excludeDotPattern : ''
+          result += prefix + '['
           closingBracket = i
           i = openingBracket
-          firstGlobChar = Math.min(i, firstGlobChar)
-        } else if (i === maxI) {
+        } else if (i === segmentEnd) {
           // Closing bracket is not found; return to the opening bracket
           // and treat all the in-between chars as usual
           result += '\\['
@@ -130,7 +206,7 @@ function convertBasicPattern(
       }
 
       // An opening bracket is found; commence scanning for a closing bracket
-      if (char === '[' && !escapeChar && i > closingBracket && i < maxI) {
+      if (char === '[' && !escapeChar && i > closingBracket && i < segmentEnd) {
         openingBracket = i
         escapeChar = false
         continue
@@ -144,7 +220,7 @@ function convertBasicPattern(
       // we started from and proceed normally while transforming the extglobs that have
       // a closing paren.
       if (
-        pattern[i + 1] === '(' &&
+        nextChar === '(' &&
         !escapeChar &&
         (char === '@' || char === '?' || char === '*' || char === '+' || char === '!')
       ) {
@@ -157,15 +233,16 @@ function convertBasicPattern(
           openingParens++
           parenModifiers.push(char)
         } else if (closingParens >= openingParens) {
+          prefix = i === segmentStart ? excludeDotPattern : ''
           if (i > parensHandledUntil) {
             parensHandledUntil = i
           }
           if (char === '!') {
-            result += '((?!'
+            result += prefix + '((?!'
             buffer = result
             result = ''
           } else {
-            result += '('
+            result += prefix + '('
           }
           openingParens--
           i++
@@ -186,7 +263,6 @@ function convertBasicPattern(
           } else {
             result += ')' + modifier
           }
-          firstGlobChar = Math.min(parensHandledUntil, firstGlobChar)
           closingParens--
           continue
         }
@@ -196,7 +272,7 @@ function convertBasicPattern(
       }
 
       if (scanningForParens) {
-        if (closingParens === openingParens || i === maxI) {
+        if (closingParens === openingParens || i === segmentEnd) {
           scanningForParens = false
           i = parensHandledUntil - 1
         }
@@ -205,74 +281,50 @@ function convertBasicPattern(
       }
     }
 
-    if (!escapeChar && supportStar && char === '*') {
-      if (i === maxI || pattern[i + 1] !== '*') {
-        result += wildcard + '*'
+    let isGlobstar =
+      separator &&
+      supportGlobstar &&
+      i === segmentEnd &&
+      segmentEnd - segmentStart === 1 &&
+      pattern[segmentStart] === '*' &&
+      pattern[segmentEnd] === '*'
+
+    if (i < separatorStart || i > separatorEnd) {
+      if (!escapeChar && supportStar && char === '*') {
+        if (i === segmentStart) {
+          result += excludeDotPattern
+        }
+        if ((i === segmentEnd && !isGlobstar) || (i < segmentEnd && nextChar !== '*')) {
+          result += wildcard + '*'
+        }
+      } else if (!escapeChar && supportQMark && char === '?') {
+        prefix = i === segmentStart ? excludeDotPattern : ''
+        result += prefix + wildcard
+      } else {
+        result += escapeRegExpChar(char)
       }
-      firstGlobChar = Math.min(i, firstGlobChar)
-    } else if (!escapeChar && supportQMark && char === '?') {
-      firstGlobChar = Math.min(i, firstGlobChar)
-      result += wildcard
-    } else {
-      result += escapeRegExpChar(char)
+    }
+
+    // Add a separator matcher if the current char is the last one in a segment or it is
+    // a part of a separator (which can happen if the pattern starts with a separator)
+    if (separator && (i === segmentEnd || (i >= separatorStart && i <= separatorEnd))) {
+      let currentSeparator = i < patternEnd ? requiredSeparator : optionalSeparator
+
+      if (isGlobstar) {
+        result += '(' + excludeDotPattern + wildcard + '*' + currentSeparator + ')*'
+      } else {
+        result += currentSeparator
+      }
+
+      if (i < patternEnd) {
+        i = separatorEnd
+        segmentStart = separatorEnd + 1
+        segmentEnd = patternEnd
+        separatorEnd = -1
+      }
     }
 
     escapeChar = false
-  }
-
-  // Segments starting with a dot should not be matched unless specified otherwise in options
-  // or the segment explicitly starts with a dot.
-  // We don't add the exclude pattern when the first character is any literal to optimize
-  // the resulting regexp, but this is possibly bug-prone.
-  if (excludeDot && firstGlobChar == 0) {
-    return EXCLUDE_DOT_PATTERN + result
-  } else {
-    return result
-  }
-}
-
-function convertSeparatedPattern(
-  pattern: string,
-  options: OutmatchOptions,
-  excludeDot: boolean
-) {
-  let supportGlobstar = options['**'] !== false
-  let excludeDotPattern = excludeDot ? EXCLUDE_DOT_PATTERN : ''
-
-  // When separator === true, we may use different separators for splitting the pattern
-  // and matching samples, so we need two separator variables
-  let separatorSplitter = (options.separator === true
-    ? '/'
-    : options.separator) as string
-  let separatorMatcher =
-    options.separator === true ? '(/|\\\\)' : escapeRegExpString(separatorSplitter)
-
-  // Multiple separators in a row are treated as a single one;
-  // trailing separators are optional unless they are put in the pattern deliberately
-  let optionalSeparator = '(' + separatorMatcher + ')*'
-  let requiredSeparator = '(' + separatorMatcher + ')+'
-
-  // When the separator consists of only one char, we use a character class
-  // rather than a lookahead because it is faster
-  let wildcard =
-    separatorMatcher.length === 1
-      ? '[^' + separatorMatcher + ']'
-      : '((?!' + separatorMatcher + ').)'
-
-  let segments = pattern.split(separatorSplitter)
-  let result = ''
-
-  for (let i = 0; i < segments.length; i++) {
-    let segment = segments[i]
-    let currentSeparator =
-      i < segments.length - 1 ? requiredSeparator : optionalSeparator
-
-    if (supportGlobstar && segment === '**') {
-      result += '(' + excludeDotPattern + wildcard + '*' + currentSeparator + ')*'
-    } else {
-      result +=
-        convertBasicPattern(segment, options, excludeDot, wildcard) + currentSeparator
-    }
   }
 
   return result
@@ -287,7 +339,6 @@ function convert(pattern: string, options: OutmatchOptions) {
     throw new Error('\\ is not a valid separator')
   }
 
-  let convertFn = options.separator ? convertSeparatedPattern : convertBasicPattern
   let supportNegation = options['!'] !== false
   let supportParens = options['()'] !== false
   let negated = false
@@ -308,9 +359,9 @@ function convert(pattern: string, options: OutmatchOptions) {
   }
 
   if (negated) {
-    pattern = '(?!^' + convertFn(pattern, options, false) + '$)'
+    pattern = '(?!^' + convertPattern(pattern, options, false) + '$)'
   } else {
-    pattern = convertFn(pattern, options, options.excludeDot !== false)
+    pattern = convertPattern(pattern, options, options.excludeDot !== false)
   }
 
   return {

@@ -56,13 +56,7 @@ function findSeparatorEnd(pattern: string, i: number, separator: string) {
   return separatorEnd
 }
 
-function convertPattern(
-  pattern: string,
-  options: OutmatchOptions,
-  excludeDot: boolean
-) {
-  let excludeDotPattern = excludeDot ? EXCLUDE_DOT_PATTERN : ''
-
+function convert(pattern: string, options: OutmatchOptions) {
   // When separator === true, we may use different separators for splitting the pattern
   // and matching samples, so we need more than one separator variables
   let separator = options.separator
@@ -78,7 +72,7 @@ function convertPattern(
   let requiredSeparator = '(' + separatorMatcher + ')+'
 
   if (pattern.length === 0) {
-    return optionalSeparator
+    return { match: optionalSeparator, unmatch: '' }
   }
 
   // When the separator consists of only one char, we use a character class
@@ -89,11 +83,16 @@ function convertPattern(
       : '((?!' + separatorMatcher + ').)'
     : '.'
 
+  let excludeDot = options.excludeDot !== false
+  let excludeDotPattern = excludeDot ? EXCLUDE_DOT_PATTERN : ''
+
   let supportGlobstar = options['**'] !== false
   let supportBrackets = options['[]'] !== false
   let supportParens = options['()'] !== false
   let supportQMark = options['?'] !== false
   let supportStar = options['*'] !== false
+  let supportNegation = options['!'] !== false
+
   let openingBracket = pattern.length
   let closingBracket = -1
   let parenModifiers = []
@@ -101,22 +100,47 @@ function convertPattern(
   let closingParens = 0
   let parensHandledUntil = -1
   let scanningForParens = false
-  let separatorStart = -1
-  let separatorEnd = -1
   let patternEnd = pattern.length - 1
   let segmentStart = 0
   let segmentEnd = patternEnd
+  let separatorStart = -1
+  let separatorEnd = -1
   let escapeChar = false
-  let result = ''
-  let buffer = ''
-  let prefix = ''
+  let match = ''
+  let unmatch = ''
+  let isNegated = false
+  let negationHandled = false
+  let addToUnmatch = false
+  let i = 0
+
+  function add(addition: string, excludeDot?: boolean) {
+    if (excludeDot && i === segmentStart && !isNegated) {
+      addition = excludeDotPattern + addition
+    }
+    if (!isNegated) {
+      match += addition
+    }
+    if (addToUnmatch) {
+      unmatch += addition
+    }
+  }
 
   // Iterating from -1 to patternEnd + 1 could help us simplify the iteration logic,
   // but apparently it makes the compiler add bounds checks, which degrade performance
   // significantly
-  for (let i = 0; i <= patternEnd; i++) {
+  for (; i <= patternEnd; i++) {
     let char = pattern[i]
     let nextChar = pattern[i + 1]
+
+    if (supportNegation && !negationHandled) {
+      if (char === '!' && (!supportParens || nextChar !== '(')) {
+        isNegated = !isNegated
+        continue
+      } else {
+        negationHandled = true
+        addToUnmatch = isNegated
+      }
+    }
 
     if (
       separator &&
@@ -161,18 +185,18 @@ function convertPattern(
         // We are certainly in a complete character class
         // and should treat almost all characters literally
         if (escapeChar) {
-          result += escapeRegExpChar(char)
+          add(escapeRegExpChar(char))
         } else if (i === closingBracket) {
-          result += ']'
+          add(']')
           openingBracket = pattern.length
         } else if (char === '-' && i === closingBracket - 1) {
-          result += '\\-'
+          add('\\-')
         } else if (char === '!' && i === openingBracket + 1) {
-          result += '^'
+          add('^')
         } else if (char === ']') {
-          result += '\\]'
+          add('\\]')
         } else {
-          result += char
+          add(char)
         }
         escapeChar = false
         continue
@@ -189,14 +213,13 @@ function convertPattern(
         ) {
           // Closing bracket is found; return to openingBracket
           // and treat all the in-between chars literally
-          prefix = openingBracket === segmentStart ? excludeDotPattern : ''
-          result += prefix + '['
           closingBracket = i
           i = openingBracket
+          add('[', true)
         } else if (i === segmentEnd) {
           // Closing bracket is not found; return to the opening bracket
           // and treat all the in-between chars as usual
-          result += '\\['
+          add('\\[')
           i = openingBracket
           openingBracket = pattern.length
           closingBracket = pattern.length
@@ -233,17 +256,16 @@ function convertPattern(
           openingParens++
           parenModifiers.push(char)
         } else if (closingParens >= openingParens) {
-          prefix = i === segmentStart ? excludeDotPattern : ''
           if (i > parensHandledUntil) {
             parensHandledUntil = i
           }
           if (char === '!') {
-            result += prefix + '((?!'
-            buffer = result
-            result = ''
-          } else {
-            result += prefix + '('
+            unmatch = match
+            add(wildcard + '*', true)
+            isNegated = !isNegated
+            addToUnmatch = isNegated
           }
+          add('(', true)
           openingParens--
           i++
           continue
@@ -256,18 +278,18 @@ function convertPattern(
         } else if (closingParens) {
           let modifier = parenModifiers.pop()
           if (modifier === '!') {
-            buffer += result + ').*|(' + result + ').+)'
-            result = buffer
+            add(')')
+            isNegated = !isNegated
           } else if (modifier === '@') {
-            result += ')'
+            add(')')
           } else {
-            result += ')' + modifier
+            add(')' + modifier)
           }
           closingParens--
           continue
         }
       } else if (char === '|' && closingParens && !escapeChar) {
-        result += '|'
+        add('|')
         continue
       }
 
@@ -292,16 +314,15 @@ function convertPattern(
     if (i < separatorStart || i > separatorEnd) {
       if (!escapeChar && supportStar && char === '*') {
         if (i === segmentStart) {
-          result += excludeDotPattern
+          add(excludeDotPattern)
         }
         if ((i === segmentEnd && !isGlobstar) || (i < segmentEnd && nextChar !== '*')) {
-          result += wildcard + '*'
+          add(wildcard + '*')
         }
       } else if (!escapeChar && supportQMark && char === '?') {
-        prefix = i === segmentStart ? excludeDotPattern : ''
-        result += prefix + wildcard
+        add(wildcard, true)
       } else {
-        result += escapeRegExpChar(char)
+        add(escapeRegExpChar(char))
       }
     }
 
@@ -311,9 +332,9 @@ function convertPattern(
       let currentSeparator = i < patternEnd ? requiredSeparator : optionalSeparator
 
       if (isGlobstar) {
-        result += '(' + excludeDotPattern + wildcard + '*' + currentSeparator + ')*'
+        add('(' + excludeDotPattern + wildcard + '*' + currentSeparator + ')*')
       } else {
-        result += currentSeparator
+        add(currentSeparator)
       }
 
       if (i < patternEnd) {
@@ -327,47 +348,7 @@ function convertPattern(
     escapeChar = false
   }
 
-  return result
-}
-
-function convert(pattern: string, options: OutmatchOptions) {
-  if (typeof pattern !== 'string') {
-    throw new TypeError('A pattern must be a string, but ' + typeof pattern + ' given')
-  }
-
-  if (options.separator === '\\') {
-    throw new Error('\\ is not a valid separator')
-  }
-
-  let supportNegation = options['!'] !== false
-  let supportParens = options['()'] !== false
-  let negated = false
-  let i: number
-
-  if (supportNegation) {
-    for (i = 0; i < pattern.length && pattern[i] === '!'; i++) {
-      if (supportParens && pattern[i + 1] === '(') {
-        i--
-        break
-      }
-      negated = !negated
-    }
-
-    if (i > 0) {
-      pattern = pattern.substr(i)
-    }
-  }
-
-  if (negated) {
-    pattern = '(?!^' + convertPattern(pattern, options, false) + '$)'
-  } else {
-    pattern = convertPattern(pattern, options, options.excludeDot !== false)
-  }
-
-  return {
-    pattern: pattern,
-    negated: negated,
-  }
+  return { match: match, unmatch: unmatch }
 }
 
 export default convert

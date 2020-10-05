@@ -33,26 +33,33 @@ function compile(patterns: string | string[], options: OutmatchOptions) {
     patterns = flatMap(patterns, expand)
   }
 
-  let positivePatterns = []
+  let match = []
+  let unmatch = []
   let result = ''
   let convertedPattern
 
   for (let i = 0; i < patterns.length; i++) {
     convertedPattern = convert(patterns[i], options)
 
-    if (convertedPattern.negated) {
-      result += convertedPattern.pattern
-    } else {
-      positivePatterns.push(convertedPattern.pattern)
+    if (convertedPattern.match.length) {
+      match.push(convertedPattern.match)
+    }
+
+    if (convertedPattern.unmatch.length) {
+      unmatch.push(convertedPattern.unmatch)
     }
   }
 
-  if (positivePatterns.length > 1) {
-    result += '(' + positivePatterns.join('|') + ')'
-  } else if (positivePatterns.length === 1) {
-    result += positivePatterns[0]
-  } else if (result.length > 0) {
-    result += convert('**', options).pattern
+  if (unmatch.length) {
+    result = '(?!(' + unmatch.join('|') + ')$)'
+  }
+
+  if (match.length > 1) {
+    result += '(' + match.join('|') + ')'
+  } else if (match.length === 1) {
+    result += match
+  } else {
+    result += convert('**', options).match
   }
 
   return '^' + result + '$'

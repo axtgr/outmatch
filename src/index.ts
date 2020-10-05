@@ -58,7 +58,7 @@ function compile(patterns: string | string[], options: OutmatchOptions) {
     result += '(' + match.join('|') + ')'
   } else if (match.length === 1) {
     result += match
-  } else {
+  } else if (unmatch.length) {
     result += convert('**', options).match
   }
 

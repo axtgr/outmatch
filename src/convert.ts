@@ -36,12 +36,12 @@ function escapeRegExpString(str: string) {
   return result
 }
 
-function findSeparatorEnd(pattern: string, i: number, separator: string) {
+function findSeparatorEnd(pattern: string, startingIndex: number, separator: string) {
   let separatorEnd = -1
 
   for (let j = 0; ; j++) {
     let sepI = j % separator.length
-    let patI = i + j
+    let patI = startingIndex + j
 
     // A complete separator is found, but there could be more right next to it, so we continue
     if (j > 0 && sepI === 0) {
@@ -57,19 +57,23 @@ function findSeparatorEnd(pattern: string, i: number, separator: string) {
 }
 
 function convert(pattern: string, options: OutmatchOptions) {
-  // When separator === true, we may use different separators for splitting the pattern
+  // When separator === true, we use different separators for splitting the pattern
   // and matching samples, so we need more than one separator variables
   let separator = options.separator
   let separatorSplitter = separator === true ? '/' : separator || ''
   let separatorMatcher =
     separator === true
-      ? '(/|\\\\)'
+      ? '/|\\\\'
       : separatorSplitter && escapeRegExpString(separatorSplitter)
+
+  if (separatorMatcher.length > 1) {
+    separatorMatcher = '(' + separatorMatcher + ')'
+  }
 
   // Multiple separators in a row are treated as a single one;
   // trailing separators are optional unless they are put in the pattern deliberately
-  let optionalSeparator = '(' + separatorMatcher + ')*'
-  let requiredSeparator = '(' + separatorMatcher + ')+'
+  let optionalSeparator = separator ? separatorMatcher + '*' : ''
+  let requiredSeparator = separator ? separatorMatcher + '+' : ''
 
   if (pattern.length === 0) {
     return { match: optionalSeparator, unmatch: '' }
@@ -86,33 +90,41 @@ function convert(pattern: string, options: OutmatchOptions) {
   let excludeDot = options.excludeDot !== false
   let excludeDotPattern = excludeDot ? EXCLUDE_DOT_PATTERN : ''
 
-  let supportGlobstar = options['**'] !== false
-  let supportBrackets = options['[]'] !== false
-  let supportParens = options['()'] !== false
   let supportQMark = options['?'] !== false
   let supportStar = options['*'] !== false
-  let supportNegation = options['!'] !== false
+  let supportGlobstar = options['**'] !== false
 
+  let supportBrackets = options['[]'] !== false
   let openingBracket = pattern.length
   let closingBracket = -1
-  let parenModifiers = []
+
+  let supportExtglobs = options['()'] !== false
+  let extglobModifiers = []
   let openingParens = 0
   let closingParens = 0
   let parensHandledUntil = -1
   let scanningForParens = false
+
+  let supportNegation = options['!'] !== false
+  let isNegated = false
+  let negationHandled = false
+  let addToUnmatch = false
+
+  let patternEndHandled = false
   let patternEnd = pattern.length - 1
   let segmentStart = 0
   let segmentEnd = patternEnd
   let separatorStart = -1
   let separatorEnd = -1
+
   let escapeChar = false
+  let i = 0
+
+  // If the pattern is not negated and a negative extglob is not found,
+  // we maintain only one (positive) result. Once there is negation, we copy the positive
+  // result to the negative and start maintaining both with differences in negated parts.
   let match = ''
   let unmatch = ''
-  let isNegated = false
-  let negationHandled = false
-  let addToUnmatch = false
-  let patternEndHandled = false
-  let i = 0
 
   function add(addition: string, excludeDot?: boolean) {
     if (excludeDot && i === segmentStart && !isNegated) {
@@ -134,7 +146,7 @@ function convert(pattern: string, options: OutmatchOptions) {
     let nextChar = pattern[i + 1]
 
     if (supportNegation && !negationHandled) {
-      if (char === '!' && (!supportParens || nextChar !== '(')) {
+      if (char === '!' && (!supportExtglobs || nextChar !== '(')) {
         isNegated = !isNegated
         continue
       } else {
@@ -238,7 +250,7 @@ function convert(pattern: string, options: OutmatchOptions) {
       }
     }
 
-    if (supportParens) {
+    if (supportExtglobs) {
       // When we find an opening extglob paren, we start counting opening and closing
       // parens and ignoring other chars until all the opened extglobes are closed
       // or the pattern ends. After we have counted the parens, we return to the char
@@ -250,13 +262,13 @@ function convert(pattern: string, options: OutmatchOptions) {
         (char === '@' || char === '?' || char === '*' || char === '+' || char === '!')
       ) {
         if (scanningForParens) {
-          parenModifiers.push(char)
+          extglobModifiers.push(char)
           openingParens++
         } else if (i > parensHandledUntil) {
           parensHandledUntil = i
           scanningForParens = true
           openingParens++
-          parenModifiers.push(char)
+          extglobModifiers.push(char)
         } else if (closingParens >= openingParens) {
           if (i > parensHandledUntil) {
             parensHandledUntil = i
@@ -278,7 +290,7 @@ function convert(pattern: string, options: OutmatchOptions) {
         if (scanningForParens) {
           closingParens++
         } else if (closingParens) {
-          let modifier = parenModifiers.pop()
+          let modifier = extglobModifiers.pop()
           if (modifier === '!') {
             add(')')
             isNegated = !isNegated
@@ -353,7 +365,7 @@ function convert(pattern: string, options: OutmatchOptions) {
     add(optionalSeparator)
   }
 
-  return { match: match, unmatch: unmatch }
+  return { match, unmatch }
 }
 
 export default convert

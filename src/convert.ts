@@ -111,6 +111,7 @@ function convert(pattern: string, options: OutmatchOptions) {
   let isNegated = false
   let negationHandled = false
   let addToUnmatch = false
+  let patternEndHandled = false
   let i = 0
 
   function add(addition: string, excludeDot?: boolean) {
@@ -139,6 +140,7 @@ function convert(pattern: string, options: OutmatchOptions) {
       } else {
         negationHandled = true
         addToUnmatch = isNegated
+        segmentStart = i
       }
     }
 
@@ -311,13 +313,10 @@ function convert(pattern: string, options: OutmatchOptions) {
       pattern[segmentStart] === '*' &&
       pattern[segmentEnd] === '*'
 
-    if (i < separatorStart || i > separatorEnd) {
+    if (!isGlobstar && (i < separatorStart || i > separatorEnd)) {
       if (!escapeChar && supportStar && char === '*') {
-        if (i === segmentStart) {
-          add(excludeDotPattern)
-        }
-        if ((i === segmentEnd && !isGlobstar) || (i < segmentEnd && nextChar !== '*')) {
-          add(wildcard + '*')
+        if (i === segmentEnd || (i < segmentEnd && nextChar !== '*')) {
+          add(wildcard + '*', true)
         }
       } else if (!escapeChar && supportQMark && char === '?') {
         add(wildcard, true)
@@ -337,7 +336,9 @@ function convert(pattern: string, options: OutmatchOptions) {
         add(currentSeparator)
       }
 
-      if (i < patternEnd) {
+      if (i === patternEnd) {
+        patternEndHandled = true
+      } else {
         i = separatorEnd
         segmentStart = separatorEnd + 1
         segmentEnd = patternEnd
@@ -346,6 +347,10 @@ function convert(pattern: string, options: OutmatchOptions) {
     }
 
     escapeChar = false
+  }
+
+  if (!patternEndHandled) {
+    add(optionalSeparator)
   }
 
   return { match: match, unmatch: unmatch }

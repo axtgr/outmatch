@@ -89,6 +89,7 @@ function convert(pattern: string, options: OutmatchOptions) {
 
   let excludeDot = options.excludeDot !== false
   let excludeDotPattern = excludeDot ? EXCLUDE_DOT_PATTERN : ''
+  let segmentDotHandled = false
 
   let supportQMark = options['?'] !== false
   let supportStar = options['*'] !== false
@@ -127,8 +128,11 @@ function convert(pattern: string, options: OutmatchOptions) {
   let unmatch = ''
 
   function add(addition: string, excludeDot?: boolean) {
-    if (excludeDot && i === segmentStart && !isNegated) {
+    if (excludeDot && !segmentDotHandled && !isNegated) {
       addition = excludeDotPattern + addition
+      segmentDotHandled = true
+    } else if (!excludeDot) {
+      segmentDotHandled = true
     }
     if (!isNegated) {
       match += addition
@@ -355,6 +359,7 @@ function convert(pattern: string, options: OutmatchOptions) {
         segmentStart = separatorEnd + 1
         segmentEnd = patternEnd
         separatorEnd = -1
+        segmentDotHandled = false
       }
     }
 

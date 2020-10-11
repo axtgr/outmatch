@@ -67,7 +67,7 @@ function convert(pattern: string, options: OutmatchOptions) {
       : separatorSplitter && escapeRegExpString(separatorSplitter)
 
   if (separatorMatcher.length > 1) {
-    separatorMatcher = '(' + separatorMatcher + ')'
+    separatorMatcher = '(?:' + separatorMatcher + ')'
   }
 
   // Multiple separators in a row are treated as a single one;
@@ -84,7 +84,7 @@ function convert(pattern: string, options: OutmatchOptions) {
   let wildcard = separatorMatcher
     ? separatorMatcher.length === 1
       ? '[^' + separatorMatcher + ']'
-      : '((?!' + separatorMatcher + ').)'
+      : '(?:(?!' + separatorMatcher + ').)'
     : '.'
 
   let excludeDot = options.excludeDot !== false
@@ -282,7 +282,7 @@ function convert(pattern: string, options: OutmatchOptions) {
             isNegated = !isNegated
             addToUnmatch = isNegated
           }
-          add('(', true)
+          add('(?:', true)
           openingParens--
           i++
           continue
@@ -352,7 +352,7 @@ function convert(pattern: string, options: OutmatchOptions) {
       let currentSeparator = i < patternEnd ? requiredSeparator : optionalSeparator
 
       if (isGlobstar) {
-        add('(' + excludeDotPattern + wildcard + '*' + currentSeparator + ')*')
+        add('(?:' + excludeDotPattern + wildcard + '*' + currentSeparator + ')*')
       } else {
         add(currentSeparator)
       }

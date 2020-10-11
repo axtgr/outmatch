@@ -296,6 +296,9 @@ function convert(pattern: string, options: OutmatchOptions) {
         } else if (closingParens) {
           let modifier = extglobModifiers.pop()
           if (modifier === '!') {
+            if (extglobModifiers.indexOf('!') !== -1) {
+              throw new Error("Nested negated extglobs aren't supported")
+            }
             add(')')
             isNegated = !isNegated
           } else if (modifier === '@') {

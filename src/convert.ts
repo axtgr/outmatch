@@ -57,6 +57,9 @@ function findSeparatorEnd(pattern: string, startingIndex: number, separator: str
 }
 
 function convert(pattern: string, options: OutmatchOptions) {
+  // While using the native .split() method is simpler and possibly even faster,
+  // custom splitting logic is much more flexible and allows fine-tuning.
+
   // When separator === true, we use different separators for splitting the pattern
   // and matching samples, so we need more than one separator variables
   let separator = options.separator
@@ -117,13 +120,11 @@ function convert(pattern: string, options: OutmatchOptions) {
   let segmentEnd = patternEnd
   let separatorStart = -1
   let separatorEnd = -1
-
   let escapeChar = false
-  let i = 0
 
   // If the pattern is not negated and a negative extglob is not found,
   // we maintain only one (positive) result. Once there is negation, we copy the positive
-  // result to the negative and start maintaining both with differences in negated parts.
+  // result to the negative and start maintaining both with differences in negated parts
   let match = ''
   let unmatch = ''
 
@@ -145,10 +146,11 @@ function convert(pattern: string, options: OutmatchOptions) {
   // Iterating from -1 to patternEnd + 1 could help us simplify the iteration logic,
   // but apparently it makes the compiler add bounds checks, which degrade performance
   // significantly
-  for (; i <= patternEnd; i++) {
+  for (let i = 0; i <= patternEnd; i++) {
     let char = pattern[i]
     let nextChar = pattern[i + 1]
 
+    // Consume leading !'s and set the isNegated status accordingly
     if (supportNegation && !negationHandled) {
       if (char === '!' && (!supportExtglobs || nextChar !== '(')) {
         isNegated = !isNegated
@@ -160,6 +162,8 @@ function convert(pattern: string, options: OutmatchOptions) {
       }
     }
 
+    // Check if the next char is the start of a separator. If so, mark the current index
+    // as segment end and find the starting index of the next segment
     if (
       separator &&
       separatorEnd === -1 &&
@@ -187,7 +191,7 @@ function convert(pattern: string, options: OutmatchOptions) {
     // However, some processing has to be triggered for the last char in a pattern no matter
     // if it is escaped or not, so we can't do this. Instead, we set the escapeChar flag
     // for the next char and handle it in the next iteration (in which we have to be
-    // extra careful to reset the flag whenever the iteration completes or continues).
+    // extra careful to reset the flag whenever the iteration completes or continues)
     if (char === '\\') {
       if (i < segmentEnd) {
         escapeChar = true

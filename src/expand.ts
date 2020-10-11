@@ -39,9 +39,8 @@ function expand(pattern: string): string[] {
   let closingBraces = 0
   let handledUntil = -1
   let results = ['']
-  let newResults,
-    span,
-    alternatives = []
+  let alternatives = []
+  let span
 
   for (let i = 0; i < pattern.length; i++) {
     let char = pattern[i]
@@ -73,8 +72,8 @@ function expand(pattern: string): string[] {
         span = pattern.substring(handledUntil + 1, i)
 
         if (alternatives.length > 0) {
+          let newResults = []
           alternatives.push(expand(span))
-          newResults = []
           for (let j = 0; j < results.length; j++) {
             for (let k = 0; k < alternatives.length; k++) {
               for (let l = 0; l < alternatives[k].length; l++) {

@@ -56,28 +56,27 @@ module.exports = suite(function (t) {
       function (t) {
         t.pattern('!(one)')
           .doesntMatch('one')
-          .matches('', 'two', 'onetwo', 'twoone', 'one/two', 'one/')
+          .doesntMatchWhenSeparated('one/two', '/one/', 'one/')
+          .matches('', 'two', 'onetwo', 'twoone')
         t.pattern('!(one|two)three')
           .doesntMatch('', 'onethree', 'twothree')
+          .doesntMatchWhenSeparated('one/three', 'two/three')
           .matches(
             '!(one|two)three',
             'three',
             'onetwothree',
             'twoonethree',
-            'onefourthree',
-            'one/three',
-            'two/three'
+            'onefourthree'
           )
         t.pattern('three!(one|two)')
           .doesntMatch('', 'threeone', 'threetwo')
+          .doesntMatchWhenSeparated('threeone/', 'threetwo/')
           .matches(
             'three!(one|two)',
             'three',
             'threeonetwo',
             'threetwoone',
-            'threeonefour',
-            'threeone/',
-            'threetwo/'
+            'threeonefour'
           )
       }
     )
@@ -260,14 +259,14 @@ module.exports = suite(function (t) {
         .matches('!(one|two)')
         .doesntMatch('', 'one', 'three', '\\!(one|two)')
       t.pattern('!(one\\|two)')
-        .matches('', 'one', 'two', '!(one|two)', '!(one\\|two)')
+        .matches('', 'one', 'two', '!(one|two)')
         .doesntMatch('one|two')
       t.pattern('!(one|two\\)')
         .matches('!(one|two)')
         .doesntMatch('', 'one', '!(one|two\\)')
       t.pattern('!(\\)|\\()')
         .doesntMatch('(', ')')
-        .matches('', '((', '))', ')())', '!((|))', '!(\\(|\\))')
+        .matches('', '((', '))', ')())', '!((|))')
     })
   })
 })

@@ -233,7 +233,11 @@ function convert(pattern: string, options: OutmatchOptions, excludeDot: boolean)
           // and treat all the in-between chars literally
           closingBracket = i
           i = openingBracket
-          add('[', true)
+          if (separator) {
+            add('(?!' + separatorMatcher + ')[', true)
+          } else {
+            add('[', true)
+          }
         } else if (i === segmentEnd) {
           // Closing bracket is not found; return to the opening bracket
           // and treat all the in-between chars as usual

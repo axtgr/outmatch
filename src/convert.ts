@@ -56,7 +56,11 @@ function findSeparatorEnd(pattern: string, startingIndex: number, separator: str
   return separatorEnd
 }
 
-function convert(pattern: string, options: OutmatchOptions) {
+function convertPattern(
+  pattern: string,
+  options: OutmatchOptions,
+  excludeDot: boolean
+) {
   // While using the native .split() method is simpler and possibly even faster,
   // custom splitting logic is much more flexible and allows fine-tuning.
 
@@ -79,7 +83,7 @@ function convert(pattern: string, options: OutmatchOptions) {
   let requiredSeparator = separator ? separatorMatcher + '+' : ''
 
   if (pattern.length === 0) {
-    return { match: optionalSeparator, unmatch: '' }
+    return optionalSeparator
   }
 
   // When the separator consists of only one char, we use a character class
@@ -90,7 +94,7 @@ function convert(pattern: string, options: OutmatchOptions) {
       : '(?:(?!' + separatorMatcher + ').)'
     : '.'
 
-  let excludeDot = options.excludeDot !== false
+  excludeDot = excludeDot && options.excludeDot !== false
   let excludeDotPattern = excludeDot ? EXCLUDE_DOT_PATTERN : ''
   let segmentDotHandled = false
 
@@ -109,11 +113,6 @@ function convert(pattern: string, options: OutmatchOptions) {
   let parensHandledUntil = -1
   let scanningForParens = false
 
-  let supportNegation = options['!'] !== false
-  let isNegated = false
-  let negationHandled = false
-  let addToUnmatch = false
-
   let patternEndHandled = false
   let patternEnd = pattern.length - 1
   let segmentStart = 0
@@ -122,45 +121,46 @@ function convert(pattern: string, options: OutmatchOptions) {
   let separatorEnd = -1
   let escapeChar = false
 
-  // If the pattern is not negated and a negative extglob is not found,
-  // we maintain only one (positive) result. Once there is negation, we copy the positive
-  // result to the negative and start maintaining both with differences in negated parts
+  // To support negated extglobs, we maintain two resulting patterns called `match` and `unmatch`.
+  // They are built identically except for two things:
+  // 1. The contents of negated extglobs.
+  //    In `match` they become `wildcard + *`, i.e. "match everything but the separator".
+  //    In `unmatch` they become a regular positive regexp group.
+  // 2. Patterns for excluding leading dots.
+  //    They are added to `match` and skipped in `unmatch`.
+  // The `addTo*` variables are used to determine which pattern to add a character to.
+  // `useUnmatch` is set to true if we actually encounter a negated extglob. In that case
+  // the function returns the result as `'(?!^' + unmatch + '$)' + match`, otherwise
+  // just `match` is returned.
   let match = ''
   let unmatch = ''
+  let addToMatch = true
+  let addToUnmatch = true
+  let useUnmatch = false
 
   function add(addition: string, excludeDot?: boolean) {
-    if (excludeDot && !segmentDotHandled && !isNegated) {
-      addition = excludeDotPattern + addition
-      segmentDotHandled = true
-    } else if (!excludeDot) {
-      segmentDotHandled = true
-    }
-    if (!isNegated) {
-      match += addition
-    }
     if (addToUnmatch) {
       unmatch += addition
+    }
+
+    if (addToMatch) {
+      if (excludeDot && !segmentDotHandled) {
+        addition = excludeDotPattern + addition
+        segmentDotHandled = true
+      } else if (!excludeDot) {
+        segmentDotHandled = true
+      }
+
+      match += addition
     }
   }
 
   // Iterating from -1 to patternEnd + 1 could help us simplify the iteration logic,
-  // but apparently it makes the compiler add bounds checks, which degrade performance
+  // but apparently it makes the compiler add bounds checks, which can degrade performance
   // significantly
   for (let i = 0; i <= patternEnd; i++) {
     let char = pattern[i]
     let nextChar = pattern[i + 1]
-
-    // Consume leading !'s and set the isNegated status accordingly
-    if (supportNegation && !negationHandled) {
-      if (char === '!' && (!supportExtglobs || nextChar !== '(')) {
-        isNegated = !isNegated
-        continue
-      } else {
-        negationHandled = true
-        addToUnmatch = isNegated
-        segmentStart = i
-      }
-    }
 
     // Check if the next char is the start of a separator. If so, mark the current index
     // as segment end and find the starting index of the next segment
@@ -282,9 +282,12 @@ function convert(pattern: string, options: OutmatchOptions) {
           }
           if (char === '!') {
             unmatch = match
+            addToMatch = true
+            addToUnmatch = false
             add(wildcard + '*', true)
-            isNegated = !isNegated
-            addToUnmatch = isNegated
+            addToMatch = false
+            addToUnmatch = true
+            useUnmatch = true
           }
           add('(?:', true)
           openingParens--
@@ -303,7 +306,6 @@ function convert(pattern: string, options: OutmatchOptions) {
               throw new Error("Nested negated extglobs aren't supported")
             }
             add(')')
-            isNegated = !isNegated
           } else if (modifier === '@') {
             add(')')
           } else {
@@ -312,6 +314,8 @@ function convert(pattern: string, options: OutmatchOptions) {
           if (closingParens === 0) {
             extglobModifiers = []
           }
+          addToMatch = true
+          addToUnmatch = true
           closingParens--
           continue
         }
@@ -379,7 +383,40 @@ function convert(pattern: string, options: OutmatchOptions) {
     add(optionalSeparator)
   }
 
-  return { match, unmatch }
+  if (useUnmatch) {
+    return '(?!^' + unmatch + '$)' + match
+  } else {
+    return match
+  }
+}
+
+function convert(pattern: string, options: OutmatchOptions) {
+  let supportNegation = options['!'] !== false
+  let supportParens = options['()'] !== false
+  let isNegated = false
+  let i: number
+
+  if (supportNegation) {
+    for (i = 0; i < pattern.length && pattern[i] === '!'; i++) {
+      if (supportParens && pattern[i + 1] === '(') {
+        i--
+        break
+      }
+      isNegated = !isNegated
+    }
+
+    if (i > 0) {
+      pattern = pattern.substr(i)
+    }
+  }
+
+  if (isNegated) {
+    pattern = '(?!^' + convertPattern(pattern, options, false) + '$)'
+  } else {
+    pattern = convertPattern(pattern, options, options.excludeDot !== false)
+  }
+
+  return { pattern, isNegated }
 }
 
 export default convert

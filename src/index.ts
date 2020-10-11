@@ -127,6 +127,10 @@ function outmatch(pattern: string | string[], options?: OutmatchOptions): isMatc
 
   options = options || DEFAULT_OPTIONS
 
+  if (options.separator === '\\') {
+    throw new Error('\\ is not a valid separator')
+  }
+
   let regexpPattern = compile(pattern, options)
   let regexp = new RegExp(regexpPattern)
 

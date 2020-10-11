@@ -48,9 +48,13 @@ More details are available in the [Installation](#installation), [Usage](#usage)
 ## Why outmatch?
 
 <table>
-  <tr>
+<tr>
     <td align="center">💪</td>
-    <td><strong>Powerful</strong><br>Supports extended globbing, brace expansion, multi-pattern compilation and custom path separators — a&nbsp;feature unique to&nbsp;outmatch</td>
+    <td><strong>Powerful</strong><br>Supports basic and extended globbing, proper multi-pattern compilation and custom path separators — a&nbsp;feature unique to&nbsp;outmatch</td>
+  </tr>
+  <tr>
+    <td align="center">🎯</td>
+    <td><strong>Accurate</strong><br>The only library that can handle negated extglobs correctly. Actually expands braces instead of merely converting them to groups</td>
   </tr>
   <tr>
     <td align="center">🏎</td>
@@ -305,7 +309,7 @@ paths.findIndex(isMatch) //=> 1
   </tr>
   <tr>
     <td><code>!(foo)</code><br><code>!(bar|baz)</code></td>
-    <td>Matches anything except for the given subpatterns</td>
+    <td>Matches anything except the given subpatterns. Cannot be nested inside another negated glob.</td>
   </tr>
   <tr>
     <td colspan="2"><h4>Braces</h4></td>
@@ -377,12 +381,12 @@ Pattern: src/zxc/**/*.?s
 Sample: src/test/foo.js
 
 Compilation
-  outmatch     758,089 ops/sec
-  picomatch    251,009 ops/sec
+  outmatch     714,721 ops/sec
+  picomatch    259,460 ops/sec
 
 Matching
-  outmatch     19,593,677 ops/sec
-  picomatch    10,920,001 ops/sec
+  outmatch     25,447,795 ops/sec
+  picomatch    11,149,386 ops/sec
 ```
 
 A better comparison is in the works.

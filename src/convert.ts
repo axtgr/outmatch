@@ -280,7 +280,7 @@ function convert(pattern: string, options: OutmatchOptions, excludeDot: boolean)
             unmatch = match
             addToMatch = true
             addToUnmatch = false
-            add(wildcard + '*', true)
+            add(wildcard + '*?', true)
             addToMatch = false
             addToUnmatch = true
             useUnmatch = true
@@ -341,7 +341,7 @@ function convert(pattern: string, options: OutmatchOptions, excludeDot: boolean)
     if (!isGlobstar && (i < separatorStart || i > separatorEnd)) {
       if (!escapeChar && supportStar && char === '*') {
         if (i === segmentEnd || (i < segmentEnd && nextChar !== '*')) {
-          add(wildcard + '*', true)
+          add(wildcard + '*?', true)
         }
       } else if (!escapeChar && supportQMark && char === '?') {
         add(wildcard, true)
@@ -356,7 +356,7 @@ function convert(pattern: string, options: OutmatchOptions, excludeDot: boolean)
       let currentSeparator = i < patternEnd ? requiredSeparator : optionalSeparator
 
       if (isGlobstar) {
-        add('(?:' + excludeDotPattern + wildcard + '*' + currentSeparator + ')*')
+        add('(?:' + excludeDotPattern + wildcard + '*?' + currentSeparator + ')*?')
       } else {
         add(currentSeparator)
       }

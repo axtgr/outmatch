@@ -56,11 +56,7 @@ function findSeparatorEnd(pattern: string, startingIndex: number, separator: str
   return separatorEnd
 }
 
-function convertPattern(
-  pattern: string,
-  options: OutmatchOptions,
-  excludeDot: boolean
-) {
+function convert(pattern: string, options: OutmatchOptions, excludeDot: boolean) {
   // While using the native .split() method is simpler and possibly even faster,
   // custom splitting logic is much more flexible and allows fine-tuning.
 
@@ -138,16 +134,16 @@ function convertPattern(
   let addToUnmatch = true
   let useUnmatch = false
 
-  function add(addition: string, excludeDot?: boolean) {
+  function add(addition: string, addExcludeDotPrefix?: boolean) {
     if (addToUnmatch) {
       unmatch += addition
     }
 
     if (addToMatch) {
-      if (excludeDot && !segmentDotHandled) {
+      if (addExcludeDotPrefix && !segmentDotHandled) {
         addition = excludeDotPattern + addition
         segmentDotHandled = true
-      } else if (!excludeDot) {
+      } else if (!addExcludeDotPrefix) {
         segmentDotHandled = true
       }
 
@@ -388,35 +384,6 @@ function convertPattern(
   } else {
     return match
   }
-}
-
-function convert(pattern: string, options: OutmatchOptions) {
-  let supportNegation = options['!'] !== false
-  let supportParens = options['()'] !== false
-  let isNegated = false
-  let i: number
-
-  if (supportNegation) {
-    for (i = 0; i < pattern.length && pattern[i] === '!'; i++) {
-      if (supportParens && pattern[i + 1] === '(') {
-        i--
-        break
-      }
-      isNegated = !isNegated
-    }
-
-    if (i > 0) {
-      pattern = pattern.substr(i)
-    }
-  }
-
-  if (isNegated) {
-    pattern = '(?!^' + convertPattern(pattern, options, false) + '$)'
-  } else {
-    pattern = convertPattern(pattern, options, options.excludeDot !== false)
-  }
-
-  return { pattern, isNegated }
 }
 
 export default convert

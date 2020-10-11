@@ -1,4 +1,5 @@
 import expand from './expand'
+import negate from './negate'
 import convert from './convert'
 
 interface OutmatchOptions {
@@ -33,26 +34,35 @@ function compile(patterns: string | string[], options: OutmatchOptions) {
     patterns = flatMap(patterns, expand)
   }
 
-  let positivePatterns = []
+  let positiveResults = []
+  let negativeResults = []
   let result = ''
-  let convertedPattern
 
   for (let i = 0; i < patterns.length; i++) {
-    convertedPattern = convert(patterns[i], options)
+    let negatedPattern = negate(patterns[i], options)
+    let convertedPattern = convert(
+      negatedPattern.pattern,
+      options,
+      !negatedPattern.isNegated
+    )
 
-    if (convertedPattern.isNegated) {
-      result += convertedPattern.pattern
+    if (negatedPattern.isNegated) {
+      negativeResults.push(convertedPattern)
     } else {
-      positivePatterns.push(convertedPattern.pattern)
+      positiveResults.push(convertedPattern)
     }
   }
 
-  if (positivePatterns.length > 1) {
-    result += '(?:' + positivePatterns.join('|') + ')'
-  } else if (positivePatterns.length === 1) {
-    result += positivePatterns[0]
-  } else if (result.length > 0) {
-    result += convert('**', options).pattern
+  if (negativeResults.length) {
+    result = '(?!(?:' + negativeResults.join('|') + ')$)'
+  }
+
+  if (positiveResults.length > 1) {
+    result += '(?:' + positiveResults.join('|') + ')'
+  } else if (positiveResults.length === 1) {
+    result += positiveResults[0]
+  } else if (result.length) {
+    result += convert('**', options, true)
   }
 
   return '^' + result + '$'

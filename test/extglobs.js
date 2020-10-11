@@ -268,5 +268,7 @@ module.exports = suite(function (t) {
         .doesntMatch('(', ')')
         .matches('', '((', '))', ')())', '!((|))')
     })
+
+    // TODO: add tests for nested extglobs
   })
 })

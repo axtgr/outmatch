@@ -108,6 +108,21 @@ module.exports = suite(function (t) {
       t.pattern('?*?/**').doesntMatch('', '/', 'o', 'oe', 'one', 'o/two')
     })
 
+    t.testPerSeparator('Hodgepodge', function (t) {
+      t.pattern('@(foo*|bar???)')
+        .matches('foo', 'foobar', 'foob', 'barbaz', 'barfoo')
+        .doesntMatch('barbazqux', 'bar', 'bar/baz', '@(foo*|bar???)', '')
+        .doesntMatchWhenSeparated('foo/bar', 'bar/ba')
+      t.pattern('{!(???),fo?}/+(b??|[ac-z])/*([0-9]|[@%!])')
+        .matches(
+          'foo/barbaz/',
+          'qwer/auf/5051!',
+          'ff/bqeaztbrra/!!!2@3',
+          'qwerty/axdfg/0123456789'
+        )
+        .doesntMatch('bar/baz/', 'foo/ba/0', 'qwerty/asdfg/zxcvbn')
+    })
+
     // TODO: add tests for escaped wildcards
   })
 })

@@ -3,9 +3,14 @@ var suite = require('./_utils').suite
 module.exports = suite(function (t) {
   t.test('[] - character class', function (t) {
     t.testPerSeparator('Matches one character from the given list', function (t) {
-      // TODO: add cases with separators
-      t.pattern('[abc]').matches('a', 'b').doesntMatch('d', 'ab')
-      t.pattern('[ab][cd]').matches('ac', 'bd').doesntMatch('a', 'c', 'ca', 'abc')
+      t.pattern('[abc]').matches('a', 'b').doesntMatch('', 'd', 'ab', '[abc]')
+      t.pattern('[fd]oo').matches('foo', 'doo').doesntMatch('', 'oo', 'zoo', '[fd]oo')
+      t.pattern('fo[oz]/bar')
+        .matches('foo/bar', 'foz/bar')
+        .doesntMatch('', 'fo/bar', 'fo[oz]/bar')
+      t.pattern('foo/[bc]ar')
+        .matches('foo/bar', 'foo/car')
+        .doesntMatch('', 'foo/ar', 'foo/xar', 'foo/[bc]ar')
     })
 
     t.testPerSeparator('Matches one character from the given range', function (t) {
@@ -14,9 +19,37 @@ module.exports = suite(function (t) {
         .matches('0', '1', '2', '3', '4', '5')
         .doesntMatch('6', 'a', '01', '-1', '', '[0-5]')
       t.pattern('[0-z]')
-        .matches('6', 'E', 's')
+        .matches('6', 'E', 'f')
         .doesntMatch('', '!', ' ', '0z', '0-z', '[0-z]')
     })
+
+    // TODO: add tests for combined ranges and lists
+
+    t.testPerSeparator(
+      'Handles multiple classes in a single pattern correctly',
+      function (t) {
+        t.pattern('[a-c][de]')
+          .matches('ad', 'ae', 'bd', 'be', 'cd', 'ce')
+          .doesntMatch(
+            '',
+            'a',
+            'c',
+            'af',
+            'ca',
+            'zx',
+            'abc',
+            '[a-c][d-e]',
+            '[a-c]',
+            '[de]'
+          )
+        t.pattern('f[op]oba[a-z]')
+          .matches('foobar', 'fpobaa', 'foobaz')
+          .doesntMatch('', 'foba', 'fzobar', 'f[op]oba[a-z]')
+        t.pattern('f[oz]o/b[af]r')
+          .matches('foo/bar', 'fzo/bar', 'foo/bfr', 'fzo/bfr')
+          .doesntMatch('', 'f[oz]o/b[af]r')
+      }
+    )
 
     t.testPerSeparator(
       '? in a character class is treated as a literal member of the class',
@@ -84,6 +117,24 @@ module.exports = suite(function (t) {
           .doesntMatch('[]')
           .doesntMatchWhenSeparated('/')
         t.pattern('[/').matches('[/').doesntMatch('[', '/')
+        t.pattern('[#-/]')
+          .matchesWhenSeparated('[#-/]')
+          .doesntMatchWhenSeparated('#', '-', '%', '/')
+          .doesntMatch('')
+      }
+    )
+
+    t.test(
+      "Character ranges don't match separators when they are included implicitly",
+      function (t) {
+        t.options({ separator: '5' })
+          .pattern('[0-9]')
+          .matches('0', '4', '9')
+          .doesntMatch('', '5')
+        t.options({ separator: 's' })
+          .pattern('foo[a-z]bar')
+          .matches('fooxbar')
+          .doesntMatch('foosbar')
       }
     )
 
@@ -104,7 +155,7 @@ module.exports = suite(function (t) {
     })
 
     t.testPerSeparator(
-      'When an escaped [, ] or - is in a character class, it is treated literally',
+      'When an escaped [, ] or - is in a character class, it is treated as a member of the class',
       function (t) {
         t.pattern('[a\\[b]').matches('[', 'a', 'b')
         t.pattern('[\\[]').doesntMatch('', 'c', '[\\[]')
@@ -112,8 +163,5 @@ module.exports = suite(function (t) {
         t.pattern('[a\\-b]').matches('-', 'a', 'b').doesntMatch('', 'c', '[a\\-b]')
       }
     )
-
-    // TODO: add tests for characters after brackets
-    // TODO: add tests for multiple brackets in a pattern
   })
 })

@@ -266,7 +266,6 @@ function convert(pattern: string, options: OutmatchOptions) {
         (char === '@' || char === '?' || char === '*' || char === '+' || char === '!')
       ) {
         if (scanningForParens) {
-          extglobModifiers.push(char)
           openingParens++
         } else if (i > parensHandledUntil) {
           parensHandledUntil = i
@@ -305,6 +304,9 @@ function convert(pattern: string, options: OutmatchOptions) {
             add(')')
           } else {
             add(')' + modifier)
+          }
+          if (closingParens === 0) {
+            extglobModifiers = []
           }
           closingParens--
           continue

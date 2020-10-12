@@ -1,4 +1,4 @@
-// Disclaimer: the code is optimized for performance and compatibility, hence the ugliness
+// Disclaimer: the code is optimized for performance and compatibility, hence the mess
 
 import type { OutmatchOptions } from './index'
 
@@ -57,11 +57,12 @@ function findSeparatorEnd(pattern: string, startingIndex: number, separator: str
 }
 
 function convert(pattern: string, options: OutmatchOptions, excludeDot: boolean) {
-  // While using the native .split() method is simpler and possibly even faster,
-  // custom splitting logic is much more flexible and allows fine-tuning.
+  // Although using the native .split() method to split patterns into segments is simpler
+  // and possibly even slightly faster, we do the splitting manually because it is
+  // more flexible and allows fine-tuning.
 
   // When separator === true, we use different separators for splitting the pattern
-  // and matching samples, so we need more than one separator variables
+  // and matching samples, so we need more than one separator variable
   let separator = options.separator
   let separatorSplitter = separator === true ? '/' : separator || ''
   let separatorMatcher =
@@ -90,8 +91,13 @@ function convert(pattern: string, options: OutmatchOptions, excludeDot: boolean)
       : '(?:(?!' + separatorMatcher + ').)'
     : '.'
 
-  excludeDot = excludeDot && options.excludeDot !== false
-  let excludeDotPattern = excludeDot ? EXCLUDE_DOT_PATTERN : ''
+  // When the excludeDot option is true, segments starting with a dot are ignored.
+  // We need to add the exclusion pattern before a segment only if it starts with a wildcard
+  // and not a literal character.
+  // The excludeDot function argument is for cases when we don't want to exclude leading
+  // dots even if the option is true (negated patterns).
+  let excludeDotPattern =
+    excludeDot && options.excludeDot !== false ? EXCLUDE_DOT_PATTERN : ''
   let segmentDotHandled = false
 
   let supportQMark = options['?'] !== false
@@ -119,7 +125,7 @@ function convert(pattern: string, options: OutmatchOptions, excludeDot: boolean)
 
   // To support negated extglobs, we maintain two resulting patterns called `match` and `unmatch`.
   // They are built identically except for two things:
-  // 1. The contents of negated extglobs.
+  // 1. Negated extglobs.
   //    In `match` they become `wildcard + *`, i.e. "match everything but the separator".
   //    In `unmatch` they become a regular positive regexp group.
   // 2. Patterns for excluding leading dots.

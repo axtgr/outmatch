@@ -36,33 +36,7 @@ function escapeRegExpString(str: string) {
   return result
 }
 
-function findSeparatorEnd(pattern: string, startingIndex: number, separator: string) {
-  let separatorEnd = -1
-
-  for (let j = 0; ; j++) {
-    let sepI = j % separator.length
-    let patI = startingIndex + j
-
-    // A complete separator is found, but there could be more right next to it, so we continue
-    if (j > 0 && sepI === 0) {
-      separatorEnd = patI - 1
-    }
-
-    if (separator[sepI] !== pattern[patI]) {
-      break
-    }
-  }
-
-  return separatorEnd
-}
-
-function convert(pattern: string, options: OutmatchOptions, excludeDot: boolean) {
-  // Although using the native .split() method to split patterns into segments is simpler
-  // and possibly even slightly faster, we do the splitting manually because it is
-  // more flexible and allows fine-tuning.
-
-  // When separator === true, we use different separators for splitting the pattern
-  // and matching samples, so we need more than one separator variable
+function Pattern(source: string, options: OutmatchOptions, excludeDot: boolean) {
   let separator = options.separator
   let separatorSplitter = separator === true ? '/' : separator || ''
   let separatorMatcher =
@@ -79,50 +53,48 @@ function convert(pattern: string, options: OutmatchOptions, excludeDot: boolean)
   let optionalSeparator = separator ? separatorMatcher + '*' : ''
   let requiredSeparator = separator ? separatorMatcher + '+' : ''
 
-  if (pattern.length === 0) {
-    return optionalSeparator
-  }
-
-  // When the separator consists of only one char, we use a character class
-  // rather than a lookahead because it is faster
-  let wildcard = separatorMatcher
+  let wildcard = separator
     ? separatorMatcher.length === 1
       ? '[^' + separatorMatcher + ']'
-      : '(?:(?!' + separatorMatcher + ').)'
+      : '((?!' + separatorMatcher + ').)'
     : '.'
 
-  // When the excludeDot option is true, segments starting with a dot are ignored.
-  // We need to add the exclusion pattern before a segment only if it starts with a wildcard
-  // and not a literal character.
-  // The excludeDot function argument is for cases when we don't want to exclude leading
-  // dots even if the option is true (negated patterns).
-  let excludeDotPattern =
-    excludeDot && options.excludeDot !== false ? EXCLUDE_DOT_PATTERN : ''
-  let segmentDotHandled = false
+  let segments = separator ? source.split(separatorSplitter) : [source]
 
-  let supportQMark = options['?'] !== false
-  let supportStar = options['*'] !== false
-  let supportGlobstar = options['**'] !== false
+  let support = {
+    qMark: options['?'] !== false,
+    star: options['*'] !== false,
+    globstar: separator && options['**'] !== false,
+    brackets: options['[]'] !== false,
+    extglobs: options['()'] !== false,
+    // The excludeDot function argument is for cases when we don't want to exclude leading
+    // dots even if the option is true (negated patterns).
+    excludeDot: excludeDot && options.excludeDot !== false,
+  }
 
-  let supportBrackets = options['[]'] !== false
-  let openingBracket = pattern.length
-  let closingBracket = -1
+  return {
+    source,
+    segments,
+    options,
+    separator,
+    separatorSplitter,
+    separatorMatcher,
+    optionalSeparator,
+    requiredSeparator,
+    wildcard,
+    support,
+  }
+}
 
-  let supportExtglobs = options['()'] !== false
-  let extglobModifiers = []
-  let openingParens = 0
-  let closingParens = 0
-  let parensHandledUntil = -1
-  let scanningForParens = false
+function Segment(source: string, pattern: ReturnType<typeof Pattern>, isLast: boolean) {
+  return {
+    source,
+    end: source.length - 1,
+    separatorMatcher: isLast ? pattern.optionalSeparator : pattern.requiredSeparator,
+  }
+}
 
-  let patternEndHandled = false
-  let patternEnd = pattern.length - 1
-  let segmentStart = 0
-  let segmentEnd = patternEnd
-  let separatorStart = -1
-  let separatorEnd = -1
-  let escapeChar = false
-
+function Result() {
   // To support negated extglobs, we maintain two resulting patterns called `match` and `unmatch`.
   // They are built identically except for two things:
   // 1. Negated extglobs.
@@ -130,63 +102,86 @@ function convert(pattern: string, options: OutmatchOptions, excludeDot: boolean)
   //    In `unmatch` they become a regular positive regexp group.
   // 2. Patterns for excluding leading dots.
   //    They are added to `match` and skipped in `unmatch`.
-  // The `addTo*` variables are used to determine which pattern to add a character to.
   // `useUnmatch` is set to true if we actually encounter a negated extglob. In that case
-  // the function returns the result as `'(?!^' + unmatch + '$)' + match`, otherwise
-  // just `match` is returned.
-  let match = ''
-  let unmatch = ''
-  let addToMatch = true
-  let addToUnmatch = true
-  let useUnmatch = false
+  // the returned pattern is `'(?!^' + unmatch + '$)' + match`, otherwise it's just `match`.
+  return {
+    match: '',
+    unmatch: '',
+    useUnmatch: false,
+  }
+}
 
-  function add(addition: string, addExcludeDotPrefix?: boolean) {
-    if (addToUnmatch) {
-      unmatch += addition
-    }
+function State(
+  pattern: ReturnType<typeof Pattern>,
+  segment: ReturnType<typeof Segment>
+) {
+  return {
+    openingBracket: segment.end + 1,
+    closingBracket: -1,
+    openingParens: 0,
+    closingParens: 0,
+    parensHandledUntil: -1,
+    extglobModifiers: [] as string[],
+    scanningForParens: false,
+    escapeChar: false,
+    addToMatch: true,
+    addToUnmatch: pattern.support.extglobs,
+    // We need to add the dot exclusion pattern before a segment only if it starts
+    // with a wildcard and not a literal character.
+    dotHandled: false,
+  }
+}
 
-    if (addToMatch) {
-      if (addExcludeDotPrefix && !segmentDotHandled) {
-        addition = excludeDotPattern + addition
-        segmentDotHandled = true
-      } else if (!addExcludeDotPrefix) {
-        segmentDotHandled = true
-      }
-
-      match += addition
-    }
+function addToResult(
+  state: ReturnType<typeof State>,
+  result: ReturnType<typeof Result>,
+  addition: string,
+  addExcludeDotPrefix?: boolean
+) {
+  if (state.addToUnmatch) {
+    result.unmatch += addition
   }
 
-  // Iterating from -1 to patternEnd + 1 could help us simplify the iteration logic,
-  // but apparently it makes the compiler add bounds checks, which can degrade performance
-  // significantly
-  for (let i = 0; i <= patternEnd; i++) {
-    let char = pattern[i]
-    let nextChar = pattern[i + 1]
-
-    // Check if the next char is the start of a separator. If so, mark the current index
-    // as segment end and find the starting index of the next segment
-    if (
-      separator &&
-      separatorEnd === -1 &&
-      i + separatorSplitter.length <= patternEnd
-    ) {
-      if (i === 0) {
-        separatorStart = i
-        separatorEnd = findSeparatorEnd(pattern, separatorStart, separatorSplitter)
-      }
-
-      if (i > 0 || separatorEnd === -1) {
-        separatorStart = i + 1
-        separatorEnd = findSeparatorEnd(pattern, separatorStart, separatorSplitter)
-
-        if (separatorEnd !== -1) {
-          segmentEnd = i
-        } else {
-          separatorStart = -1
-        }
-      }
+  if (state.addToMatch) {
+    if (addExcludeDotPrefix && !state.dotHandled) {
+      addition = EXCLUDE_DOT_PATTERN + addition
+      state.dotHandled = true
+    } else if (!addExcludeDotPrefix) {
+      state.dotHandled = true
     }
+
+    result.match += addition
+  }
+}
+
+function convertSegment(
+  pattern: ReturnType<typeof Pattern>,
+  segment: ReturnType<typeof Segment>,
+  result: ReturnType<typeof Result>
+) {
+  let support = pattern.support
+  let state = State(pattern, segment)
+  let add = addToResult.bind(null, state, result)
+
+  if (!support.excludeDot) {
+    state.dotHandled = true
+  }
+
+  if (support.globstar && segment.source === '**') {
+    let addition =
+      '(?:' +
+      (!state.dotHandled ? EXCLUDE_DOT_PATTERN : '') +
+      pattern.wildcard +
+      '*?' +
+      segment.separatorMatcher +
+      ')*?'
+    add(addition)
+    return result
+  }
+
+  for (let i = 0; i <= segment.end; i++) {
+    let char = segment.source[i]
+    let nextChar = i < segment.end ? segment.source[i + 1] : ''
 
     // The straightforward way to handle escaping would be to add the next character
     // to the result as soon as a backslash is found and skip the rest of the current iteration.
@@ -195,8 +190,8 @@ function convert(pattern: string, options: OutmatchOptions, excludeDot: boolean)
     // for the next char and handle it in the next iteration (in which we have to be
     // extra careful to reset the flag whenever the iteration completes or continues)
     if (char === '\\') {
-      if (i < segmentEnd) {
-        escapeChar = true
+      if (i < segment.end) {
+        state.escapeChar = true
         continue
       } else {
         // If the last char in a pattern is a backslash, it is omitted
@@ -204,67 +199,72 @@ function convert(pattern: string, options: OutmatchOptions, excludeDot: boolean)
       }
     }
 
-    if (supportBrackets && !scanningForParens) {
-      if (i > openingBracket && i <= closingBracket) {
+    if (support.brackets && !state.scanningForParens) {
+      if (i > state.openingBracket && i <= state.closingBracket) {
         // We are certainly in a complete character class
         // and should treat almost all characters literally
-        if (escapeChar) {
+        if (state.escapeChar) {
           add(escapeRegExpChar(char))
-        } else if (i === closingBracket) {
+        } else if (i === state.closingBracket) {
           add(']')
-          openingBracket = pattern.length
-        } else if (char === '-' && i === closingBracket - 1) {
+          state.openingBracket = segment.source.length
+        } else if (char === '-' && i === state.closingBracket - 1) {
           add('\\-')
-        } else if (char === '!' && i === openingBracket + 1) {
+        } else if (char === '!' && i === state.openingBracket + 1) {
           add('^')
         } else if (char === ']') {
           add('\\]')
         } else {
           add(char)
         }
-        escapeChar = false
+        state.escapeChar = false
         continue
       }
 
-      if (i > openingBracket) {
+      if (i > state.openingBracket) {
         // We are in an open character class and are looking for a closing bracket
         // to make sure the class is terminated
         if (
           char === ']' &&
-          !escapeChar &&
-          i > openingBracket + 1 &&
-          i > closingBracket
+          !state.escapeChar &&
+          i > state.openingBracket + 1 &&
+          i > state.closingBracket
         ) {
           // Closing bracket is found; return to openingBracket
           // and treat all the in-between chars literally
-          closingBracket = i
-          i = openingBracket
-          if (separator) {
-            add('(?!' + separatorMatcher + ')[', true)
+          state.closingBracket = i
+          i = state.openingBracket
+          if (pattern.separator) {
+            add('(?!' + pattern.separatorMatcher + ')[', true)
           } else {
             add('[', true)
           }
-        } else if (i === segmentEnd) {
+        } else if (i === segment.end) {
           // Closing bracket is not found; return to the opening bracket
           // and treat all the in-between chars as usual
           add('\\[')
-          i = openingBracket
-          openingBracket = pattern.length
-          closingBracket = pattern.length
+          i = state.openingBracket
+          state.openingBracket = segment.source.length
+          state.closingBracket = segment.source.length
         }
-        escapeChar = false
+        state.escapeChar = false
         continue
       }
 
       // An opening bracket is found; commence scanning for a closing bracket
-      if (char === '[' && !escapeChar && i > closingBracket && i < segmentEnd) {
-        openingBracket = i
-        escapeChar = false
+      if (
+        char === '[' &&
+        !state.escapeChar &&
+        i > state.closingBracket &&
+        i < segment.end
+      ) {
+        state.openingBracket = i
+        state.escapeChar = false
         continue
       }
     }
 
-    if (supportExtglobs) {
+    if (support.extglobs) {
       // When we find an opening extglob paren, we start counting opening and closing
       // parens and ignoring other chars until all the opened extglobes are closed
       // or the pattern ends. After we have counted the parens, we return to the char
@@ -272,127 +272,98 @@ function convert(pattern: string, options: OutmatchOptions, excludeDot: boolean)
       // a closing paren.
       if (
         nextChar === '(' &&
-        !escapeChar &&
+        !state.escapeChar &&
         (char === '@' || char === '?' || char === '*' || char === '+' || char === '!')
       ) {
-        if (scanningForParens) {
-          openingParens++
-        } else if (i > parensHandledUntil) {
-          parensHandledUntil = i
-          scanningForParens = true
-          openingParens++
-          extglobModifiers.push(char)
-        } else if (closingParens >= openingParens) {
-          if (i > parensHandledUntil) {
-            parensHandledUntil = i
-          }
+        if (state.scanningForParens) {
+          state.openingParens++
+        } else if (i > state.parensHandledUntil && !state.closingParens) {
+          state.parensHandledUntil = i
+          state.scanningForParens = true
+          state.openingParens++
+        } else if (state.closingParens >= state.openingParens) {
           if (char === '!') {
-            unmatch = match
-            addToMatch = true
-            addToUnmatch = false
-            add(wildcard + '*?', true)
-            addToMatch = false
-            addToUnmatch = true
-            useUnmatch = true
+            state.addToMatch = true
+            state.addToUnmatch = false
+            add(pattern.wildcard + '*?', true)
+            state.addToMatch = false
+            state.addToUnmatch = true
+            result.useUnmatch = true
           }
+          state.extglobModifiers.push(char)
           add('(?:', true)
-          openingParens--
+          state.openingParens--
           i++
           continue
         } else {
-          openingParens--
+          state.openingParens--
         }
-      } else if (char === ')' && !escapeChar) {
-        if (scanningForParens) {
-          closingParens++
-        } else if (closingParens) {
-          let modifier = extglobModifiers.pop()
-          if (modifier === '!') {
-            if (extglobModifiers.indexOf('!') !== -1) {
-              throw new Error("Nested negated extglobs aren't supported")
-            }
-            add(')')
-          } else if (modifier === '@') {
-            add(')')
-          } else {
-            add(')' + modifier)
+      } else if (char === ')' && !state.escapeChar) {
+        if (state.scanningForParens) {
+          state.closingParens++
+        } else if (state.extglobModifiers.length) {
+          let modifier = state.extglobModifiers.pop()
+          if (modifier === '!' && state.extglobModifiers.indexOf('!') !== -1) {
+            throw new Error("Nested negated extglobs aren't supported")
           }
-          if (closingParens === 0) {
-            extglobModifiers = []
-          }
-          addToMatch = true
-          addToUnmatch = true
-          closingParens--
+          modifier = modifier === '!' || modifier === '@' ? '' : modifier
+          add(')' + modifier)
+          state.addToMatch = true
+          state.addToUnmatch = true
+          state.closingParens--
           continue
         }
-      } else if (char === '|' && closingParens && !escapeChar) {
+      } else if (
+        char === '|' &&
+        state.closingParens &&
+        !state.scanningForParens &&
+        !state.escapeChar
+      ) {
         add('|')
         continue
       }
 
-      if (scanningForParens) {
-        if (closingParens === openingParens || i === segmentEnd) {
-          scanningForParens = false
-          i = parensHandledUntil - 1
+      if (state.scanningForParens) {
+        if (state.closingParens === state.openingParens || i === segment.end) {
+          state.scanningForParens = false
+          i = state.parensHandledUntil - 1
         }
-        escapeChar = false
+        state.escapeChar = false
         continue
       }
     }
 
-    let isGlobstar =
-      separator &&
-      supportGlobstar &&
-      i === segmentEnd &&
-      segmentEnd - segmentStart === 1 &&
-      pattern[segmentStart] === '*' &&
-      pattern[segmentEnd] === '*'
-
-    if (!isGlobstar && (i < separatorStart || i > separatorEnd)) {
-      if (!escapeChar && supportStar && char === '*') {
-        if (i === segmentEnd || (i < segmentEnd && nextChar !== '*')) {
-          add(wildcard + '*?', true)
-        }
-      } else if (!escapeChar && supportQMark && char === '?') {
-        add(wildcard, true)
-      } else {
-        add(escapeRegExpChar(char))
+    if (!state.escapeChar && support.star && char === '*') {
+      if (i === segment.end || nextChar !== '*') {
+        add(pattern.wildcard + '*?', true)
       }
+    } else if (!state.escapeChar && support.qMark && char === '?') {
+      add(pattern.wildcard, true)
+    } else {
+      add(escapeRegExpChar(char))
     }
 
-    // Add a separator matcher if the current char is the last one in a segment or it is
-    // a part of a separator (which can happen if the pattern starts with a separator)
-    if (separator && (i === segmentEnd || (i >= separatorStart && i <= separatorEnd))) {
-      let currentSeparator = i < patternEnd ? requiredSeparator : optionalSeparator
-
-      if (isGlobstar) {
-        add('(?:' + excludeDotPattern + wildcard + '*?' + currentSeparator + ')*?')
-      } else {
-        add(currentSeparator)
-      }
-
-      if (i === patternEnd) {
-        patternEndHandled = true
-      } else {
-        i = separatorEnd
-        segmentStart = separatorEnd + 1
-        segmentEnd = patternEnd
-        separatorEnd = -1
-        segmentDotHandled = false
-      }
-    }
-
-    escapeChar = false
+    state.escapeChar = false
   }
 
-  if (!patternEndHandled) {
-    add(optionalSeparator)
+  add(segment.separatorMatcher)
+  return result
+}
+
+function convert(source: string, options: OutmatchOptions, excludeDot: boolean) {
+  let pattern = Pattern(source, options, excludeDot)
+  let result = Result()
+  let segments = pattern.segments
+
+  for (let i = 0; i < segments.length; i++) {
+    let segment = Segment(segments[i], pattern, i === segments.length - 1)
+    convertSegment(pattern, segment, result)
   }
 
-  if (useUnmatch) {
-    return '(?!^' + unmatch + '$)' + match
+  if (result.useUnmatch) {
+    return '(?!^' + result.unmatch + '$)' + result.match
   } else {
-    return match
+    return result.match
   }
 }
 

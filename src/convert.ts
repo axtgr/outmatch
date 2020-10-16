@@ -2,6 +2,17 @@
 
 import type { OutmatchOptions } from './index'
 
+// We use typescript-transform-macros to inline functions that handle various glob features.
+// These functions are called for every char in a pattern, and using them without explicit
+// inlining degrades performance significantly
+declare function MACRO<T>(t: T): T
+
+// This is used in place of the return value in inlined functions to skip to the next char
+const CONTINUE = MACRO(function () {
+  // @ts-expect-error
+  continue
+})
+
 const EXCLUDE_DOT_PATTERN = '(?!\\.)'
 
 function escapeRegExpChar(char: string) {
@@ -113,9 +124,13 @@ function Result() {
 
 function State(
   pattern: ReturnType<typeof Pattern>,
-  segment: ReturnType<typeof Segment>
+  segment: ReturnType<typeof Segment>,
+  result: ReturnType<typeof Result>
 ) {
   return {
+    pattern,
+    segment,
+    result,
     openingBracket: segment.end + 1,
     closingBracket: -1,
     openingParens: 0,
@@ -132,27 +147,166 @@ function State(
   }
 }
 
-function addToResult(
-  state: ReturnType<typeof State>,
-  result: ReturnType<typeof Result>,
-  addition: string,
-  addExcludeDotPrefix?: boolean
-) {
+function add(state: ReturnType<typeof State>, addition: string, excludeDot?: boolean) {
   if (state.addToUnmatch) {
-    result.unmatch += addition
+    state.result.unmatch += addition
   }
 
   if (state.addToMatch) {
-    if (addExcludeDotPrefix && !state.dotHandled) {
+    if (excludeDot && !state.dotHandled) {
       addition = EXCLUDE_DOT_PATTERN + addition
-      state.dotHandled = true
-    } else if (!addExcludeDotPrefix) {
-      state.dotHandled = true
     }
 
-    result.match += addition
+    state.dotHandled = true
+    state.result.match += addition
   }
 }
+
+const handleBrackets = MACRO(function (
+  state: ReturnType<typeof State>,
+  char: string,
+  i: number
+) {
+  let pattern = state.pattern
+  let segment = state.segment
+
+  if (i > state.openingBracket && i <= state.closingBracket) {
+    // We are certainly in a complete character class
+    // and should treat almost all characters literally
+    if (state.escapeChar) {
+      add(state, escapeRegExpChar(char))
+    } else if (i === state.closingBracket) {
+      add(state, ']')
+      state.openingBracket = segment.source.length
+    } else if (char === '-' && i === state.closingBracket - 1) {
+      add(state, '\\-')
+    } else if (char === '!' && i === state.openingBracket + 1) {
+      add(state, '^')
+    } else if (char === ']') {
+      add(state, '\\]')
+    } else {
+      add(state, char)
+    }
+    state.escapeChar = false
+    return CONTINUE()
+  }
+
+  if (i > state.openingBracket) {
+    // We are in an open character class and are looking for a closing bracket
+    // to make sure the class is terminated
+    if (
+      char === ']' &&
+      !state.escapeChar &&
+      i > state.openingBracket + 1 &&
+      i > state.closingBracket
+    ) {
+      // Closing bracket is found; return to openingBracket
+      // and treat all the in-between chars literally
+      state.closingBracket = i
+      i = state.openingBracket
+      if (pattern.separator) {
+        add(state, '(?!' + pattern.separatorMatcher + ')[', true)
+      } else {
+        add(state, '[', true)
+      }
+    } else if (i === segment.end) {
+      // Closing bracket is not found; return to the opening bracket
+      // and treat all the in-between chars as usual
+      add(state, '\\[')
+      i = state.openingBracket
+      state.openingBracket = segment.source.length
+      state.closingBracket = segment.source.length
+    }
+    state.escapeChar = false
+    return CONTINUE()
+  }
+
+  // An opening bracket is found; commence scanning for a closing bracket
+  if (
+    char === '[' &&
+    !state.escapeChar &&
+    i > state.closingBracket &&
+    i < segment.end
+  ) {
+    state.openingBracket = i
+    state.escapeChar = false
+    return CONTINUE()
+  }
+})
+
+const handleExtglob = MACRO(function (
+  state: ReturnType<typeof State>,
+  char: string,
+  nextChar: string,
+  i: number
+) {
+  // When we find an opening extglob paren, we start counting opening and closing
+  // parens and ignoring other chars until all the opened extglobes are closed
+  // or the pattern ends. After we have counted the parens, we return to the char
+  // we started from and proceed normally while transforming the extglobs that have
+  // a closing paren.
+  if (
+    nextChar === '(' &&
+    !state.escapeChar &&
+    (char === '@' || char === '?' || char === '*' || char === '+' || char === '!')
+  ) {
+    if (state.scanningForParens) {
+      state.openingParens++
+    } else if (i > state.parensHandledUntil && !state.closingParens) {
+      state.parensHandledUntil = i
+      state.scanningForParens = true
+      state.openingParens++
+    } else if (state.closingParens >= state.openingParens) {
+      if (char === '!') {
+        state.addToMatch = true
+        state.addToUnmatch = false
+        add(state, state.pattern.wildcard + '*?', true)
+        state.addToMatch = false
+        state.addToUnmatch = true
+        state.result.useUnmatch = true
+      }
+      state.extglobModifiers.push(char)
+      add(state, '(?:', true)
+      state.openingParens--
+      i++
+      return CONTINUE()
+    } else {
+      state.openingParens--
+    }
+  } else if (char === ')' && !state.escapeChar) {
+    if (state.scanningForParens) {
+      state.closingParens++
+    } else if (state.extglobModifiers.length) {
+      let modifier = state.extglobModifiers.pop()
+      if (modifier === '!' && state.extglobModifiers.indexOf('!') !== -1) {
+        throw new Error("Nested negated extglobs aren't supported")
+      }
+      modifier = modifier === '!' || modifier === '@' ? '' : modifier
+      add(state, ')' + modifier)
+      state.addToMatch = true
+      state.addToUnmatch = true
+      state.closingParens--
+      return CONTINUE()
+    }
+  } else if (
+    char === '|' &&
+    state.closingParens &&
+    !state.scanningForParens &&
+    !state.escapeChar
+  ) {
+    add(state, '|')
+    return CONTINUE()
+  }
+
+  if (state.scanningForParens) {
+    if (state.closingParens === state.openingParens || i === state.segment.end) {
+      state.scanningForParens = false
+      i = state.parensHandledUntil - 1
+    }
+    state.escapeChar = false
+    return CONTINUE()
+  }
+})
 
 function convertSegment(
   pattern: ReturnType<typeof Pattern>,
@@ -160,8 +314,7 @@ function convertSegment(
   result: ReturnType<typeof Result>
 ) {
   let support = pattern.support
-  let state = State(pattern, segment)
-  let add = addToResult.bind(null, state, result)
+  let state = State(pattern, segment, result)
 
   if (!support.excludeDot) {
     state.dotHandled = true
@@ -175,7 +328,7 @@ function convertSegment(
       '*?' +
       segment.separatorMatcher +
       ')*?'
-    add(addition)
+    add(state, addition)
     return result
   }
 
@@ -194,159 +347,33 @@ function convertSegment(
         state.escapeChar = true
         continue
       } else {
-        // If the last char in a pattern is a backslash, it is omitted
+        // If the last char in a pattern is a backslash, it is ignored
         char = ''
       }
     }
 
     if (support.brackets && !state.scanningForParens) {
-      if (i > state.openingBracket && i <= state.closingBracket) {
-        // We are certainly in a complete character class
-        // and should treat almost all characters literally
-        if (state.escapeChar) {
-          add(escapeRegExpChar(char))
-        } else if (i === state.closingBracket) {
-          add(']')
-          state.openingBracket = segment.source.length
-        } else if (char === '-' && i === state.closingBracket - 1) {
-          add('\\-')
-        } else if (char === '!' && i === state.openingBracket + 1) {
-          add('^')
-        } else if (char === ']') {
-          add('\\]')
-        } else {
-          add(char)
-        }
-        state.escapeChar = false
-        continue
-      }
-
-      if (i > state.openingBracket) {
-        // We are in an open character class and are looking for a closing bracket
-        // to make sure the class is terminated
-        if (
-          char === ']' &&
-          !state.escapeChar &&
-          i > state.openingBracket + 1 &&
-          i > state.closingBracket
-        ) {
-          // Closing bracket is found; return to openingBracket
-          // and treat all the in-between chars literally
-          state.closingBracket = i
-          i = state.openingBracket
-          if (pattern.separator) {
-            add('(?!' + pattern.separatorMatcher + ')[', true)
-          } else {
-            add('[', true)
-          }
-        } else if (i === segment.end) {
-          // Closing bracket is not found; return to the opening bracket
-          // and treat all the in-between chars as usual
-          add('\\[')
-          i = state.openingBracket
-          state.openingBracket = segment.source.length
-          state.closingBracket = segment.source.length
-        }
-        state.escapeChar = false
-        continue
-      }
-
-      // An opening bracket is found; commence scanning for a closing bracket
-      if (
-        char === '[' &&
-        !state.escapeChar &&
-        i > state.closingBracket &&
-        i < segment.end
-      ) {
-        state.openingBracket = i
-        state.escapeChar = false
-        continue
-      }
+      handleBrackets(state, char, i)
     }
 
     if (support.extglobs) {
-      // When we find an opening extglob paren, we start counting opening and closing
-      // parens and ignoring other chars until all the opened extglobes are closed
-      // or the pattern ends. After we have counted the parens, we return to the char
-      // we started from and proceed normally while transforming the extglobs that have
-      // a closing paren.
-      if (
-        nextChar === '(' &&
-        !state.escapeChar &&
-        (char === '@' || char === '?' || char === '*' || char === '+' || char === '!')
-      ) {
-        if (state.scanningForParens) {
-          state.openingParens++
-        } else if (i > state.parensHandledUntil && !state.closingParens) {
-          state.parensHandledUntil = i
-          state.scanningForParens = true
-          state.openingParens++
-        } else if (state.closingParens >= state.openingParens) {
-          if (char === '!') {
-            state.addToMatch = true
-            state.addToUnmatch = false
-            add(pattern.wildcard + '*?', true)
-            state.addToMatch = false
-            state.addToUnmatch = true
-            result.useUnmatch = true
-          }
-          state.extglobModifiers.push(char)
-          add('(?:', true)
-          state.openingParens--
-          i++
-          continue
-        } else {
-          state.openingParens--
-        }
-      } else if (char === ')' && !state.escapeChar) {
-        if (state.scanningForParens) {
-          state.closingParens++
-        } else if (state.extglobModifiers.length) {
-          let modifier = state.extglobModifiers.pop()
-          if (modifier === '!' && state.extglobModifiers.indexOf('!') !== -1) {
-            throw new Error("Nested negated extglobs aren't supported")
-          }
-          modifier = modifier === '!' || modifier === '@' ? '' : modifier
-          add(')' + modifier)
-          state.addToMatch = true
-          state.addToUnmatch = true
-          state.closingParens--
-          continue
-        }
-      } else if (
-        char === '|' &&
-        state.closingParens &&
-        !state.scanningForParens &&
-        !state.escapeChar
-      ) {
-        add('|')
-        continue
-      }
-
-      if (state.scanningForParens) {
-        if (state.closingParens === state.openingParens || i === segment.end) {
-          state.scanningForParens = false
-          i = state.parensHandledUntil - 1
-        }
-        state.escapeChar = false
-        continue
-      }
+      handleExtglob(state, char, nextChar, i)
     }
 
     if (!state.escapeChar && support.star && char === '*') {
       if (i === segment.end || nextChar !== '*') {
-        add(pattern.wildcard + '*?', true)
+        add(state, pattern.wildcard + '*?', true)
       }
     } else if (!state.escapeChar && support.qMark && char === '?') {
-      add(pattern.wildcard, true)
+      add(state, pattern.wildcard, true)
     } else {
-      add(escapeRegExpChar(char))
+      add(state, escapeRegExpChar(char))
     }
 
     state.escapeChar = false
   }
 
-  add(segment.separatorMatcher)
+  add(state, segment.separatorMatcher)
   return result
 }
 

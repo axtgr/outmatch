@@ -289,6 +289,10 @@ paths.findIndex(isMatch) //=> 1
     <td>Matches a single character <em>not</em> in the specified list or range</td>
   </tr>
   <tr>
+    <td><code>[[:alnum:]]</code><br><code>[[:alpha:]]</code><br><code>[[:lower:]]</code></td>
+    <td>POSIX classes are not supported. Other libraries claim to have support, but in reality it's just a gimmick.<br><br>Their original purpose was to match symbols from the current locale rather than just English. For example, <code>[[:alpha:]]</code> would match the russian letter <code>ы</code> while <code>[a-zA-Z]</code> would not. However, making this work in JS is non-trivial, and most libraries that list POSIX classes as supported merely have them as aliases to regular character ranges, so <code>[[:alpha:]]</code> works identically to <code>[a-zA-Z]</code></td>
+  </tr>
+  <tr>
     <td colspan="3"><h4>Extglobs (Parens)</h4></td>
   </tr>
   <tr>
@@ -309,7 +313,7 @@ paths.findIndex(isMatch) //=> 1
   </tr>
   <tr>
     <td><code>!(foo)</code><br><code>!(bar|baz)</code></td>
-    <td>Matches anything except the given subpatterns. Cannot be nested inside another negated glob.</td>
+    <td>Matches anything except the given subpatterns. Cannot be nested inside another negated glob</td>
   </tr>
   <tr>
     <td colspan="2"><h4>Braces</h4></td>
@@ -321,6 +325,10 @@ paths.findIndex(isMatch) //=> 1
   <tr>
     <td><code>{1..5}</code></td>
     <td>Matches any character in the specified range
+  </tr>
+  <tr>
+    <td><code>{01...300}</code><br><code>{1..9..2}</code></td>
+    <td>Like most other libraries, outmatch doesn't support zero-padded and stepped ranges. The amount of code it would take to implement them is simply not justified by how rarely they are used</td>
   </tr>
   <tr>
     <td colspan="2"><h4>Negation</h4></td>

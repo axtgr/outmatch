@@ -62,7 +62,7 @@ More details are available in the [Installation](#installation), [Usage](#usage)
   </tr>
   <tr>
     <td align="center">🍃</td>
-    <td><strong>Lightweight</strong><br>No dependencies. Just 1.8&nbsp;KB when minified and gzipped — ¼&nbsp;of&nbsp;picomatch and ⅙&nbsp;of&nbsp;micromatch</td>
+    <td><strong>Lightweight</strong><br>No dependencies. Just 2.4&nbsp;KB when minified and gzipped — less than ⅓&nbsp;of&nbsp;picomatch and ⅕&nbsp;of&nbsp;micromatch</td>
   </tr>
   <tr>
     <td align="center">⚒</td>
@@ -377,16 +377,16 @@ The options object that was used to compile the regular expression and create th
 ## Comparison
 
 ```
-Pattern: src/zxc/**/*.?s
-Sample: src/test/foo.js
+Pattern: src/test/**/*.?s
+Sample: src/test/foo/bar.js
 
 Compilation
-  outmatch     714,721 ops/sec
-  picomatch    259,460 ops/sec
+  outmatch     644,122 ops/sec
+  picomatch    253,864 ops/sec
 
 Matching
-  outmatch     25,447,795 ops/sec
-  picomatch    11,149,386 ops/sec
+  outmatch     28,203,622 ops/sec
+  picomatch     9,510,707 ops/sec
 ```
 
 A better comparison is in the works.

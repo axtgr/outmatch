@@ -60,11 +60,11 @@ var MATCHERS = {
 function pattern() {
   // Making sure the engine doesn't optimize for static strings
   var str = 'src'
-  return (str || 'asd') + '/zxc/**/*.?s'
+  return (str || 'asd') + '/test/**/*.?s'
 }
 
 function sample() {
-  return 'src/test/foo.js'
+  return 'src/test/foo/bar.js'
 }
 
 function compile(fn, options) {
@@ -108,17 +108,17 @@ new Suite('Matching')
   .run()
 
 // Compilation
-//   outmatch                  1,116,500 ops/sec
-//   outmatch separated          709,660 ops/sec
-//   globrex                   1,019,725 ops/sec
-//   globrex separated           378,107 ops/sec
-//   picomatch                   194,023 ops/sec
-//   picomatch separated         190,969 ops/sec
+//   outmatch                  1,106,172 ops/sec
+//   outmatch separated          644,122 ops/sec
+//   globrex                   1,318,078 ops/sec
+//   globrex separated           403,270 ops/sec
+//   picomatch                   256,077 ops/sec
+//   picomatch separated         253,864 ops/sec
 
 // Matching
-//   outmatch                 26,307,202 ops/sec
-//   outmatch separated       25,472,305 ops/sec
-//   globrex                  26,181,638 ops/sec
-//   globrex separated        22,899,749 ops/sec
-//   picomatch separated      10,623,687 ops/sec
-//   matcher                   1,583,009 ops/sec
+//   outmatch                 43,276,103 ops/sec
+//   outmatch separated       28,203,622 ops/sec
+//   globrex                  28,432,880 ops/sec
+//   globrex separated        22,283,523 ops/sec
+//   picomatch separated       9,510,707 ops/sec
+//   matcher                   1,738,161 ops/sec

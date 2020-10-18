@@ -81,6 +81,116 @@ module.exports = suite(function (t) {
       }
     )
 
+    t.testPerSeparator('Can be nested', function (t) {
+      t.pattern('@(foo|@(bar|baz))')
+        .matches('foo', 'bar', 'baz')
+        .doesntMatch('', 'foobar', 'qux', '@(foo|@(bar|baz))')
+      t.pattern('?(foo|+(bar|baz))')
+        .matches('', 'foo', 'bar', 'baz')
+        .doesntMatch('foobar', 'qux', '?(foo|@(bar|baz))')
+      t.pattern('*(foo|*(bar|baz))')
+        .matches('', 'foo', 'foobar', 'bazfoobar', 'foofoo')
+        .doesntMatch('qux', 'fooqux', '*(foo|*(bar|baz))')
+      t.pattern('+(foo|+(bar|baz))')
+        .matches('foo', 'foobar', 'bazfoobar', 'foofoo')
+        .doesntMatch('', 'qux', 'fooqux', '+(foo|*(bar|baz))')
+
+      t.pattern('one@(two@(three|@(four|five)zix)|zeven)eight')
+        .matches(
+          'onezeveneight',
+          'onetwothreeeight',
+          'onetwofourzixeight',
+          'onetwofivezixeight'
+        )
+        .doesntMatch(
+          '',
+          'oneeight',
+          'onetwoeight',
+          'onetwozixeight',
+          'onezeveneightonezeveneight',
+          'onetwozeveneight',
+          'onethreezixeight',
+          'onezevenzevenzeveneight',
+          'onetwozeventwothreethreefourzixfivezixeight'
+        )
+      t.pattern('one?(two?(three|?(four|five)zix)|zeven)eight')
+        .matches(
+          'oneeight',
+          'onetwoeight',
+          'onezeveneight',
+          'onetwothreeeight',
+          'onetwofourzixeight',
+          'onetwofivezixeight',
+          'onetwozixeight'
+        )
+        .doesntMatch(
+          '',
+          'onezeveneightonezeveneight',
+          'onetwozeveneight',
+          'onethreezixeight',
+          'onezevenzevenzeveneight',
+          'onetwozeventwothreethreefourzixfivezixeight'
+        )
+      t.pattern('one*(two*(three|*(four|five)zix)|zeven)eight')
+        .matches(
+          'oneeight',
+          'onetwoeight',
+          'onezeveneight',
+          'onetwothreeeight',
+          'onetwofourzixeight',
+          'onetwofivezixeight',
+          'onetwozixeight',
+          'onetwozeveneight',
+          'onezevenzevenzeveneight',
+          'onetwothreetwofivezixeight',
+          'onetwozeventwothreethreefourzixfivezixeight'
+        )
+        .doesntMatch('', 'onezeveneightonezeveneight', 'onethreezixeight')
+      t.pattern('one+(two+(three|+(four|five)zix)|zeven)eight')
+        .matches(
+          'onezeveneight',
+          'onetwothreeeight',
+          'onetwofourzixeight',
+          'onetwofivezixeight',
+          'onezevenzevenzeveneight',
+          'onetwothreetwofivezixeight',
+          'onetwothreefourzixzeveneight',
+          'onetwothreetwofivezixzevenzeventwothreetwofourzixzeveneight'
+        )
+        .doesntMatch(
+          '',
+          'oneeight',
+          'onetwoeight',
+          'onezeveneightonezeveneight',
+          'onethreezixeight',
+          'onetwozeveneight',
+          'onetwozixeight',
+          'onetwozeventwothreethreefourzixfivezixeight'
+        )
+
+      t.pattern('one@(two?(three|*(four|+(five|zix))zeven)|eight)nine')
+        .matches(
+          'oneeightnine',
+          'onetwozevennine',
+          'onetwothreenine',
+          'onetwofourfivefivefourzixzevennine'
+        )
+        .doesntMatch(
+          '',
+          'onetwoeightnine',
+          'onetwothreeeightnine',
+          'onetwothreefourfivezixzeveneightnine'
+        )
+    })
+
+    // TODO: add tests for !() nested in other extglobs
+
+    t.test('!() cannot be nested in another !()', function (t) {
+      t.throws(function () {
+        t.pattern('!(foo!(bar|baz))')
+      })
+    })
+
     t.testPerSeparator(
       '| is treated literally when not in a complete group with a valid modifier',
       function (t) {
@@ -268,7 +378,5 @@ module.exports = suite(function (t) {
         .doesntMatch('(', ')')
         .matches('', '((', '))', ')())', '!((|))')
     })
-
-    // TODO: add tests for nested extglobs
   })
 })

@@ -221,18 +221,21 @@ function convertSegment(
 ) {
   let support = pattern.support
   let state = State(pattern, segment, result)
+  let separatorMatcher = segment.isLast
+    ? pattern.optionalSeparator
+    : pattern.requiredSeparator
 
   if (!support.excludeDot) {
     state.dotHandled = true
   }
 
   if (segment.end === -1) {
-    return add(state, segment.separatorMatcher)
+    return segment.isLast && !segment.isFirst ? result : add(state, separatorMatcher)
   }
 
   if (support.globstar && segment.source === '**') {
     let prefix = !state.dotHandled ? EXCLUDE_DOT_PATTERN : ''
-    let globstarSegment = prefix + pattern.wildcard + '*?' + segment.separatorMatcher
+    let globstarSegment = prefix + pattern.wildcard + '*?' + separatorMatcher
     return add(state, '(?:' + globstarSegment + ')*?')
   }
 
@@ -249,7 +252,7 @@ function convertSegment(
     state.escapeChar = false
   }
 
-  return add(state, segment.separatorMatcher)
+  return add(state, separatorMatcher)
 }
 
 function convert(source: string, options: OutmatchOptions, excludeDot: boolean) {
@@ -258,7 +261,7 @@ function convert(source: string, options: OutmatchOptions, excludeDot: boolean) 
   let segments = pattern.segments
 
   for (let i = 0; i < segments.length; i++) {
-    let segment = Segment(segments[i], pattern, i === segments.length - 1)
+    let segment = Segment(segments[i], pattern, i === 0, i === segments.length - 1)
     convertSegment(pattern, segment, result)
   }
 

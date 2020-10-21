@@ -3,26 +3,35 @@ import { escapeRegExpString } from './utils'
 
 function Pattern(source: string, options: OutmatchOptions, excludeDot: boolean) {
   let separator = options.separator
-  let separatorSplitter = separator === true ? '/' : separator || ''
-  let separatorMatcher =
-    separator === true
-      ? '/|\\\\'
-      : separatorSplitter && escapeRegExpString(separatorSplitter)
+  let separatorSplitter = ''
+  let separatorMatcher = ''
+  let wildcard = '.'
 
-  if (separatorMatcher.length > 1) {
-    separatorMatcher = '(?:' + separatorMatcher + ')'
+  if (separator === true) {
+    // In this case forward slashes in patterns match both forward and backslashes in samples
+    separatorSplitter = '/'
+    separatorMatcher = '[/\\\\]'
+    wildcard = '[^/\\\\]'
+  } else if (separator) {
+    separatorSplitter = separator
+    separatorMatcher = escapeRegExpString(separatorSplitter)
+
+    if (separatorMatcher.length > 1) {
+      separatorMatcher = '(?:' + separatorMatcher + ')'
+      wildcard = '((?!' + separatorMatcher + ').)'
+    } else {
+      wildcard = '[^' + separatorMatcher + ']'
+    }
+  } else {
+    wildcard = '.'
   }
 
-  // Multiple separators in a row are treated as a single one;
-  // trailing separators are optional unless they are put in the pattern deliberately
-  let optionalSeparator = separator ? separatorMatcher + '*' : ''
-  let requiredSeparator = separator ? separatorMatcher + '+' : ''
-
-  let wildcard = separator
-    ? separatorMatcher.length === 1
-      ? '[^' + separatorMatcher + ']'
-      : '((?!' + separatorMatcher + ').)'
-    : '.'
+  // When a separator is explicitly specified in a pattern, it must match _one or more_
+  // separators in a sample, so we use quantifiers. When a pattern doesn't have a trailing
+  // separator, a sample can still optionally have them, so we use different quantifiers
+  // depending on the index of a segment.
+  let requiredSeparator = separator ? separatorMatcher + '+?' : ''
+  let optionalSeparator = separator ? separatorMatcher + '*?' : ''
 
   let segments = separator ? source.split(separatorSplitter) : [source]
 
@@ -51,11 +60,17 @@ function Pattern(source: string, options: OutmatchOptions, excludeDot: boolean) 
   }
 }
 
-function Segment(source: string, pattern: ReturnType<typeof Pattern>, isLast: boolean) {
+function Segment(
+  source: string,
+  pattern: ReturnType<typeof Pattern>,
+  isFirst: boolean,
+  isLast: boolean
+) {
   return {
     source,
+    isFirst,
+    isLast,
     end: source.length - 1,
-    separatorMatcher: isLast ? pattern.optionalSeparator : pattern.requiredSeparator,
   }
 }
 

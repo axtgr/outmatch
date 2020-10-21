@@ -1,3 +1,4 @@
+// eslint-disable-next-line prefer-destructuring
 var Suite = require('benchmark').Suite
 var globrex = require('globrex')
 var picomatch = require('picomatch')
@@ -25,6 +26,7 @@ function handleStart(event) {
     }
   }
   event.currentTarget.longestName = longestName
+  // eslint-disable-next-line prefer-template
   console.log('\n' + event.currentTarget.name)
 }
 
@@ -34,13 +36,23 @@ function handleCycle(event) {
   console.log(' ', name, hz, 'ops/sec')
 }
 
+function pattern() {
+  // Make sure the engine doesn't optimize for static strings
+  var str = 'src'
+  return `${str || 'asd'}/test/**/*.?s`
+}
+
+function sample() {
+  return 'src/test/foo/bar.js'
+}
+
 var OPTIONS = {
   outmatch: { separator: false, '**': false },
-  outmatchSep: { separator: '/' },
+  outmatchSep: { separator: true },
   globrex: { globstar: false, filepath: false, extended: true, strict: false },
   globrexSep: { globstar: true, filepath: true, extended: true, strict: false },
   picomatchSep: {
-    nobrace: true,
+    nobrace: false,
     nounique: true,
     noquantifiers: true,
     nobracket: false,
@@ -50,21 +62,11 @@ var OPTIONS = {
   },
 }
 var MATCHERS = {
-  outmatch: outmatch('src/**/*.?s', OPTIONS.outmatch),
-  outmatchSep: outmatch('src/**/*.?s', OPTIONS.outmatchSep),
-  globrex: globrex('src/**/*.?s', OPTIONS.globrex).regex,
-  globrexSep: globrex('src/**/*.?s', OPTIONS.globrexSep).regex,
-  picomatchSep: picomatch('src/**/*.?s', OPTIONS.picomatchSep),
-}
-
-function pattern() {
-  // Making sure the engine doesn't optimize for static strings
-  var str = 'src'
-  return (str || 'asd') + '/test/**/*.?s'
-}
-
-function sample() {
-  return 'src/test/foo/bar.js'
+  outmatch: outmatch(pattern(), OPTIONS.outmatch),
+  outmatchSep: outmatch(pattern(), OPTIONS.outmatchSep),
+  globrex: globrex(pattern(), OPTIONS.globrex).regex,
+  globrexSep: globrex(pattern(), OPTIONS.globrexSep).regex,
+  picomatchSep: picomatch(pattern(), OPTIONS.picomatchSep),
 }
 
 function compile(fn, options) {
@@ -86,39 +88,39 @@ function match(matcher) {
 }
 
 new Suite('Compilation')
-  .add('outmatch', compile(outmatch, OPTIONS.outmatch))
-  .add('outmatch separated', compile(outmatch, OPTIONS.outmatchSep))
   .add('globrex', compile(globrex, OPTIONS.globrex))
   .add('globrex separated', compile(globrex, OPTIONS.globrexSep))
   .add('picomatch', compile(picomatch))
   .add('picomatch separated', compile(picomatch, OPTIONS.picomatchSep))
+  .add('outmatch', compile(outmatch, OPTIONS.outmatch))
+  .add('outmatch separated', compile(outmatch, OPTIONS.outmatchSep))
   .on('start', handleStart)
   .on('cycle', handleCycle)
   .run()
 
 new Suite('Matching')
-  .add('outmatch', match(MATCHERS.outmatch))
-  .add('outmatch separated', match(MATCHERS.outmatchSep))
+  .add('matcher', match(matcher.isMatch.bind(null, pattern())))
   .add('globrex', match(MATCHERS.globrex))
   .add('globrex separated', match(MATCHERS.globrexSep))
   .add('picomatch separated', match(MATCHERS.picomatchSep))
-  .add('matcher', match(matcher.isMatch.bind(null, pattern())))
+  .add('outmatch', match(MATCHERS.outmatch))
+  .add('outmatch separated', match(MATCHERS.outmatchSep))
   .on('start', handleStart)
   .on('cycle', handleCycle)
   .run()
 
 // Compilation
-//   outmatch                  1,106,172 ops/sec
-//   outmatch separated          644,122 ops/sec
-//   globrex                   1,318,078 ops/sec
-//   globrex separated           403,270 ops/sec
-//   picomatch                   256,077 ops/sec
-//   picomatch separated         253,864 ops/sec
+//   globrex                   1,212,953 ops/sec
+//   globrex separated           398,357 ops/sec
+//   outmatch                  1,122,997 ops/sec
+//   outmatch separated          695,059 ops/sec
+//   picomatch                   260,891 ops/sec
+//   picomatch separated         260,646 ops/sec
 
 // Matching
-//   outmatch                 43,276,103 ops/sec
-//   outmatch separated       28,203,622 ops/sec
-//   globrex                  28,432,880 ops/sec
-//   globrex separated        22,283,523 ops/sec
-//   picomatch separated       9,510,707 ops/sec
-//   matcher                   1,738,161 ops/sec
+//   matcher                   1,728,087 ops/sec
+//   globrex                  30,153,608 ops/sec
+//   globrex separated        25,169,136 ops/sec
+//   picomatch separated      10,710,969 ops/sec
+//   outmatch                 48,106,255 ops/sec
+//   outmatch separated       31,488,635 ops/sec

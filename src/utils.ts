@@ -16,7 +16,7 @@ function escapeRegExpChar(char: string) {
     char === '?' ||
     char === '\\'
   ) {
-    return '\\' + char
+    return `\\${char}`
   } else {
     return char
   }

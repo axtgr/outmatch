@@ -1,8 +1,8 @@
-var suite = require('./_utils').suite
+var { suite } = require('./_utils')
 
-module.exports = suite(function (t) {
-  t.test('* - multi-char wildcard', function (t) {
-    t.testPerSeparator('Matches 0 or more non-separator characters', function (t) {
+module.exports = suite((t) => {
+  t.test('* - multi-char wildcard', (t) => {
+    t.testPerSeparator('Matches 0 or more non-separator characters', (t) => {
       t.pattern('*')
         .matches('', '/', '//', 'o', 'one', 'one/')
         .doesntMatchWhenSeparated('one/two', '/one')
@@ -59,7 +59,7 @@ module.exports = suite(function (t) {
         .matchesWhenSeparated('/o/')
     })
 
-    t.testPerSeparator('When escaped, treated literally', function (t) {
+    t.testPerSeparator('When escaped, treated literally', (t) => {
       // TODO: add cases with separators
       t.pattern('\\*')
         .matches('*')
@@ -100,7 +100,7 @@ module.exports = suite(function (t) {
 
     t.options({ '*': false }).testPerSeparator(
       'When turned off in options, treated literally',
-      function (t) {
+      (t) => {
         t.pattern('*').matches('*').doesntMatch('', 'one', '/')
         t.pattern('one*two')
           .matches('one*two')

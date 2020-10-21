@@ -1,8 +1,8 @@
-var suite = require('./_utils').suite
+var { suite } = require('./_utils')
 
-module.exports = suite(function (t) {
-  t.test('? - single-char wildcard', function (t) {
-    t.testPerSeparator('Matches one non-separator character', function (t) {
+module.exports = suite((t) => {
+  t.test('? - single-char wildcard', (t) => {
+    t.testPerSeparator('Matches one non-separator character', (t) => {
       t.pattern('?')
         .matches('o', 't', '_')
         .doesntMatch('', '//', 'on', 'o/n', '/o')
@@ -49,14 +49,14 @@ module.exports = suite(function (t) {
 
     t.options({ '?': false }).testPerSeparator(
       'When turned off in options, treated literally',
-      function (t) {
+      (t) => {
         t.pattern('?').matches('?').doesntMatch('', 'a', '/')
         t.pattern('a?c').matches('a?c').doesntMatch('abc', 'a/c')
         t.pattern('o?e/t?o').matches('o?e/t?o').doesntMatch('one/two')
       }
     )
 
-    t.testPerSeparator('When escaped, treated literally', function (t) {
+    t.testPerSeparator('When escaped, treated literally', (t) => {
       // TODO: add cases with separators, multiple backslashes
 
       t.pattern('\\?').matches('?').doesntMatch('', 'o', '\\?', '\\o', '\\')
@@ -71,7 +71,7 @@ module.exports = suite(function (t) {
         .doesntMatch('', 'o\\?e', 'o\\ne', 'o\\e', '\\?', 'oo?e', 'o??e', '??e', '???')
     })
 
-    t.testPerSeparator('Can be mixed escaped and unescaped', function (t) {
+    t.testPerSeparator('Can be mixed escaped and unescaped', (t) => {
       // TODO: add cases with separators, multiple backslashes
 
       t.pattern('\\?_?').matches('?_o', '?_n')

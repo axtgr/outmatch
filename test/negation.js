@@ -1,10 +1,10 @@
-var suite = require('./_utils').suite
+var { suite } = require('./_utils')
 
-module.exports = suite(function (t) {
-  t.test('! - negated pattern', function (t) {
+module.exports = suite((t) => {
+  t.test('! - negated pattern', (t) => {
     t.testPerSeparator(
       'When put at the beggining of an only pattern, matches everything except for the pattern',
-      function (t) {
+      (t) => {
         t.pattern('!one').doesntMatch('one').matches('', 'two')
         t.pattern('!o?e').doesntMatch('one').matches('oe', 'two')
         t.pattern('!*').doesntMatch('', 'one').matchesWhenSeparated('one/two')
@@ -18,7 +18,7 @@ module.exports = suite(function (t) {
 
     t.testPerSeparator(
       'When an array of negated patterns is given, matches everything except for what matches the given patterns',
-      function (t) {
+      (t) => {
         t.pattern(['!one', '!two']).matches('', 'three').doesntMatch('one', 'two')
         t.pattern(['!one*', '!?'])
           .matches('', 'two')
@@ -29,7 +29,7 @@ module.exports = suite(function (t) {
 
     t.testPerSeparator(
       'When a mixed array of negated and non-negated patterns is given, matches everything that matches non-negated patterns except for what matches the negated patterns',
-      function (t) {
+      (t) => {
         t.pattern(['*', '!one', '!!!two'])
           .matches('', 'three', 'four', 'onetwo')
           .doesntMatch('one', 'two')
@@ -39,7 +39,7 @@ module.exports = suite(function (t) {
 
     t.testPerSeparator(
       'When a pattern with braces is negated, it behaves as multiple negated patterns',
-      function (t) {
+      (t) => {
         t.pattern('!{one,two}')
           .matches('', 'three', 'one/two')
           .doesntMatch('one', 'two')
@@ -62,7 +62,7 @@ module.exports = suite(function (t) {
 
     t.testPerSeparator(
       'Multiple ! at the beginning of a pattern toggle negation',
-      function (t) {
+      (t) => {
         t.pattern('!!one').matches('one').doesntMatch('!!one')
         t.pattern('!!!one').matches('two', '!!!one').doesntMatch('one')
         t.pattern('!!!!*')
@@ -77,7 +77,7 @@ module.exports = suite(function (t) {
 
     t.testPerSeparator(
       'When not at the beginning of a pattern, treated literally',
-      function (t) {
+      (t) => {
         t.pattern('one!two').matches('one!two').doesntMatch('', 'onetwo')
         t.pattern('one!').matches('one!').doesntMatch('', 'one')
       }
@@ -85,7 +85,7 @@ module.exports = suite(function (t) {
 
     t.options({ '!': false }).testPerSeparator(
       'When turned off in options, treated literally even at the beginning of a pattern',
-      function (t) {
+      (t) => {
         t.pattern('!one').matches('!one').doesntMatch('', 'one', 'two')
         t.pattern('!*')
           .matches('!', '!*', '!one')

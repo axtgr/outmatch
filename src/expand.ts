@@ -2,7 +2,7 @@
 
 function handleNoCommaBraces(span: string) {
   if (span.length < 3) {
-    return '{' + span + '}'
+    return `{${span}}`
   }
 
   let separatorI = -1
@@ -10,7 +10,7 @@ function handleNoCommaBraces(span: string) {
   for (let i = 2; i < span.length; i++) {
     if (span[i] === '.' && span[i - 1] === '.' && (i < 2 || span[i - 2] !== '\\')) {
       if (separatorI > -1) {
-        return '{' + span + '}'
+        return `{${span}}`
       }
 
       separatorI = i - 1
@@ -22,16 +22,16 @@ function handleNoCommaBraces(span: string) {
     let rangeEnd = span.substr(separatorI + 2)
 
     if (rangeStart.length > 0 && rangeEnd.length > 0) {
-      return '[' + span.substr(0, separatorI) + '-' + span.substr(separatorI + 2) + ']'
+      return `[${span.substr(0, separatorI)}-${span.substr(separatorI + 2)}]`
     }
   }
 
-  return '{' + span + '}'
+  return `{${span}}`
 }
 
 function expand(pattern: string): string[] {
   if (typeof pattern !== 'string') {
-    throw new TypeError('A pattern must be a string, but ' + typeof pattern + ' given')
+    throw new TypeError(`A pattern must be a string, but ${typeof pattern} given`)
   }
 
   let scanning = false

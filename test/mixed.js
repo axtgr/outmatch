@@ -1,8 +1,8 @@
-var suite = require('./_utils').suite
+var { suite } = require('./_utils')
 
-module.exports = suite(function (t) {
-  t.test('Mixed wildcards', function (t) {
-    t.testPerSeparator('? and *', function (t) {
+module.exports = suite((t) => {
+  t.test('Mixed wildcards', (t) => {
+    t.testPerSeparator('? and *', (t) => {
       t.pattern('?*')
         .matches('onetwo', 'o', 'one/')
         .doesntMatch('')
@@ -32,7 +32,7 @@ module.exports = suite(function (t) {
         .doesntMatchWhenSeparated('one/two/three/four')
     })
 
-    t.testPerSeparator('* and **', function (t) {
+    t.testPerSeparator('* and **', (t) => {
       t.pattern('*/**')
         .matches(
           '/',
@@ -77,7 +77,7 @@ module.exports = suite(function (t) {
       t.skip('**/*', '')
     })
 
-    t.testPerSeparator('? and **', function (t) {
+    t.testPerSeparator('? and **', (t) => {
       t.pattern('?**').matches('o', 'one').doesntMatch('')
       t.pattern('one?**').doesntMatch('one')
       t.pattern('?ne**').doesntMatch('ne/two')
@@ -92,7 +92,7 @@ module.exports = suite(function (t) {
       t.pattern('?/**').doesntMatch('one/two')
     })
 
-    t.testPerSeparator('?, * and **', function (t) {
+    t.testPerSeparator('?, * and **', (t) => {
       t.pattern('?*/**').matches('one/two').doesntMatch('one', '/two')
       t.pattern('?*/?**').matches('one/two')
       t.pattern('?*?/**').matches(
@@ -108,7 +108,7 @@ module.exports = suite(function (t) {
       t.pattern('?*?/**').doesntMatch('', '/', 'o', 'oe', 'one', 'o/two')
     })
 
-    t.testPerSeparator('Hodgepodge', function (t) {
+    t.testPerSeparator('Hodgepodge', (t) => {
       t.pattern('@(foo*|bar???)')
         .matches('foo', 'foobar', 'foob', 'barbaz', 'barfoo')
         .doesntMatch('barbazqux', 'bar', 'bar/baz', '@(foo*|bar???)', '')

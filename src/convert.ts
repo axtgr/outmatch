@@ -9,7 +9,7 @@ import { escapeRegExpChar } from './utils'
 declare function MACRO<T>(t: T): T
 
 // This is used in place of the return value in inlined functions to skip to the next char
-const CONTINUE = MACRO(function () {
+const CONTINUE = MACRO(() => {
   // @ts-expect-error
   continue
 })
@@ -33,7 +33,7 @@ function add(state: ReturnType<typeof State>, addition: string, excludeDot?: boo
   return state.result
 }
 
-const convertEscaping = MACRO(function (state: ReturnType<typeof State>) {
+const convertEscaping = MACRO((state: ReturnType<typeof State>) => {
   // The straightforward way to handle escaping would be to add the next character
   // to the result as soon as a backslash is found and skip the rest of the current iteration.
   // However, some processing has to be triggered for the last char in a pattern no matter
@@ -51,11 +51,8 @@ const convertEscaping = MACRO(function (state: ReturnType<typeof State>) {
   }
 })
 
-const convertBrackets = MACRO(function (state: ReturnType<typeof State>) {
-  let pattern = state.pattern
-  let segment = state.segment
-  let i = state.i
-  let char = state.char
+const convertBrackets = MACRO((state: ReturnType<typeof State>) => {
+  let { pattern, segment, char, i } = state
 
   if (pattern.support.brackets && !state.scanningForParens) {
     if (i > state.openingBracket && i <= state.closingBracket) {
@@ -93,7 +90,7 @@ const convertBrackets = MACRO(function (state: ReturnType<typeof State>) {
         state.closingBracket = i
         state.i = state.openingBracket
         if (pattern.separator) {
-          add(state, '(?!' + pattern.separatorMatcher + ')[', true)
+          add(state, `(?!${pattern.separatorMatcher})[`, true)
         } else {
           add(state, '[', true)
         }
@@ -123,12 +120,9 @@ const convertBrackets = MACRO(function (state: ReturnType<typeof State>) {
   }
 })
 
-const convertExtglob = MACRO(function (state: ReturnType<typeof State>) {
+const convertExtglob = MACRO((state: ReturnType<typeof State>) => {
   if (state.pattern.support.extglobs) {
-    let i = state.i
-    let char = state.char
-    let nextChar = state.nextChar
-    let extglobModifiers = state.extglobModifiers
+    let { extglobModifiers, char, nextChar, i } = state
 
     // When we find an opening extglob paren, we start counting opening and closing
     // parens and ignoring other chars until all the opened extglobes are closed
@@ -150,7 +144,7 @@ const convertExtglob = MACRO(function (state: ReturnType<typeof State>) {
         if (char === '!') {
           state.addToMatch = true
           state.addToUnmatch = false
-          add(state, state.pattern.wildcard + '*?', true)
+          add(state, `${state.pattern.wildcard}*?`, true)
           state.addToMatch = false
           state.addToUnmatch = true
           state.result.useUnmatch = true
@@ -172,7 +166,7 @@ const convertExtglob = MACRO(function (state: ReturnType<typeof State>) {
           throw new Error("Nested negated extglobs aren't supported")
         }
         modifier = modifier === '!' || modifier === '@' ? '' : modifier
-        add(state, ')' + modifier)
+        add(state, `)${modifier}`)
         state.addToMatch = true
         state.addToUnmatch = true
         state.closingParens--
@@ -199,13 +193,13 @@ const convertExtglob = MACRO(function (state: ReturnType<typeof State>) {
   }
 })
 
-const convertSingleChar = MACRO(function (state: ReturnType<typeof State>) {
-  let pattern = state.pattern
-  let support = pattern.support
+const convertSingleChar = MACRO((state: ReturnType<typeof State>) => {
+  let { pattern } = state
+  let { support } = pattern
 
   if (!state.escapeChar && support.star && state.char === '*') {
     if (state.i === state.segment.end || state.nextChar !== '*') {
-      add(state, pattern.wildcard + '*?', true)
+      add(state, `${pattern.wildcard}*?`, true)
     }
   } else if (!state.escapeChar && support.qMark && state.char === '?') {
     add(state, pattern.wildcard, true)
@@ -219,7 +213,7 @@ function convertSegment(
   segment: ReturnType<typeof Segment>,
   result: ReturnType<typeof Result>
 ) {
-  let support = pattern.support
+  let { support } = pattern
   let state = State(pattern, segment, result)
   let separatorMatcher = segment.isLast
     ? pattern.optionalSeparator
@@ -235,8 +229,8 @@ function convertSegment(
 
   if (support.globstar && segment.source === '**') {
     let prefix = !state.dotHandled ? EXCLUDE_DOT_PATTERN : ''
-    let globstarSegment = prefix + pattern.wildcard + '*?' + separatorMatcher
-    return add(state, '(?:' + globstarSegment + ')*?')
+    let globstarSegment = `${prefix + pattern.wildcard}*?${separatorMatcher}`
+    return add(state, `(?:${globstarSegment})*?`)
   }
 
   while (++state.i <= segment.end) {
@@ -258,7 +252,7 @@ function convertSegment(
 function convert(source: string, options: OutmatchOptions, excludeDot: boolean) {
   let pattern = Pattern(source, options, excludeDot)
   let result = Result()
-  let segments = pattern.segments
+  let { segments } = pattern
 
   for (let i = 0; i < segments.length; i++) {
     let segment = Segment(segments[i], pattern, i === 0, i === segments.length - 1)
@@ -266,7 +260,7 @@ function convert(source: string, options: OutmatchOptions, excludeDot: boolean) 
   }
 
   if (result.useUnmatch) {
-    return '(?!^' + result.unmatch + '$)' + result.match
+    return `(?!^${result.unmatch}$)${result.match}`
   } else {
     return result.match
   }

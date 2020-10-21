@@ -1,10 +1,10 @@
-var suite = require('./_utils').suite
+var { suite } = require('./_utils')
 
-module.exports = suite(function (t) {
-  t.test('** - globstar', function (t) {
+module.exports = suite((t) => {
+  t.test('** - globstar', (t) => {
     t.testPerSeparator(
       'Matches 0 or more segments when it takes a whole segment (/**/)',
-      function (t) {
+      (t) => {
         t.pattern('**').matches(
           '',
           '/',
@@ -42,7 +42,7 @@ module.exports = suite(function (t) {
 
     t.testPerSeparator(
       "Behaves as * when it doesn't take a whole segment (/one**/) or no separator is given",
-      function (t) {
+      (t) => {
         // TODO: add cases with separators
 
         t.pattern('o**')
@@ -61,7 +61,7 @@ module.exports = suite(function (t) {
       }
     )
 
-    t.testPerSeparator('When both stars are escaped, treated literally', function (t) {
+    t.testPerSeparator('When both stars are escaped, treated literally', (t) => {
       t.pattern('\\*\\*').matches('**').doesntMatch('', '*', 'one', 'one/two')
       t.pattern('one/\\*\\*')
         .matches('one/**')
@@ -76,7 +76,7 @@ module.exports = suite(function (t) {
 
     t.testPerSeparator(
       'When one of the stars is escaped, treated as a single-star wildcard and a literal star',
-      function (t) {
+      (t) => {
         t.pattern('\\**').matches('*', '**', '*one').doesntMatch('one*', 'one')
         t.pattern('*\\*').matches('*', '**', 'one*').doesntMatch('*one', 'one')
         t.pattern('\\**one').matches('*one', '*twoone').doesntMatch('one')
@@ -86,7 +86,7 @@ module.exports = suite(function (t) {
 
     t.options({ '**': false }).testPerSeparator(
       'When turned off in options, behaves as a singular *',
-      function (t) {
+      (t) => {
         t.pattern('**').matches('', '**', 'one')
         t.pattern('one/**').matches('one/**', 'one/two', 'one/').doesntMatch('one')
         t.pattern('one/**/three')

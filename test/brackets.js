@@ -1,8 +1,8 @@
-var suite = require('./_utils').suite
+var { suite } = require('./_utils')
 
-module.exports = suite(function (t) {
-  t.test('[] - character class', function (t) {
-    t.testPerSeparator('Matches one character from the given list', function (t) {
+module.exports = suite((t) => {
+  t.test('[] - character class', (t) => {
+    t.testPerSeparator('Matches one character from the given list', (t) => {
       t.pattern('[abc]').matches('a', 'b').doesntMatch('', 'd', 'ab', '[abc]')
       t.pattern('[fd]oo').matches('foo', 'doo').doesntMatch('', 'oo', 'zoo', '[fd]oo')
       t.pattern('fo[oz]/bar')
@@ -13,7 +13,7 @@ module.exports = suite(function (t) {
         .doesntMatch('', 'foo/ar', 'foo/xar', 'foo/[bc]ar')
     })
 
-    t.testPerSeparator('Matches one character from the given range', function (t) {
+    t.testPerSeparator('Matches one character from the given range', (t) => {
       t.pattern('[a-z]').matches('a', 'g', 'z').doesntMatch('A', '2', 'ab', '', '[a-z]')
       t.pattern('[0-5]')
         .matches('0', '1', '2', '3', '4', '5')
@@ -27,7 +27,7 @@ module.exports = suite(function (t) {
 
     t.testPerSeparator(
       'Handles multiple classes in a single pattern correctly',
-      function (t) {
+      (t) => {
         t.pattern('[a-c][de]')
           .matches('ad', 'ae', 'bd', 'be', 'cd', 'ce')
           .doesntMatch(
@@ -53,7 +53,7 @@ module.exports = suite(function (t) {
 
     t.testPerSeparator(
       '? in a character class is treated as a literal member of the class',
-      function (t) {
+      (t) => {
         t.pattern('[?]').matches('?').doesntMatch('', '[?]', 'one')
         t.pattern('[o?e]').matches('o', '?', 'e').doesntMatch('', 'n', '[o?e]')
       }
@@ -61,7 +61,7 @@ module.exports = suite(function (t) {
 
     t.testPerSeparator(
       '* in a character class is treated as a literal member of the class',
-      function (t) {
+      (t) => {
         t.pattern('[*]').matches('*').doesntMatch('', '[*]', 'one')
         t.pattern('[o*e]').matches('o', '*', 'e').doesntMatch('', 'n', '[o*e]')
       }
@@ -69,7 +69,7 @@ module.exports = suite(function (t) {
 
     t.testPerSeparator(
       'When - is at the beginning or end of a character class, it is treated as a member of the class',
-      function (t) {
+      (t) => {
         t.pattern('[-z]').matches('-', 'z').doesntMatch('', '-z', 'b')
         t.pattern('[z-]').matches('-', 'z').doesntMatch('', 'z-', 'b')
       }
@@ -77,7 +77,7 @@ module.exports = suite(function (t) {
 
     t.testPerSeparator(
       'When ] is at the beginning of a character class, it is treated as a member of the class',
-      function (t) {
+      (t) => {
         t.pattern('[]]').matches(']').doesntMatch('')
         t.pattern('[]z]').matches(']', 'z').doesntMatch('', ']z', 'b')
         t.pattern('one/[]t]wo').matches('one/two', 'one/]wo')
@@ -86,7 +86,7 @@ module.exports = suite(function (t) {
 
     t.options({ '[]': false }).testPerSeparator(
       'When turned off in options, treated literally',
-      function (t) {
+      (t) => {
         t.pattern('[abc]').matches('[abc]').doesntMatch('', 'a', 'b', '[]')
         t.pattern('[a-z]').matches('[a-z]').doesntMatch('', 'a', '-', 'z', '[]')
         t.pattern('[a/c]').matches('[a/c]').doesntMatch('', 'a', '/')
@@ -97,13 +97,13 @@ module.exports = suite(function (t) {
       }
     )
 
-    t.testPerSeparator('[] is treated literally', function (t) {
+    t.testPerSeparator('[] is treated literally', (t) => {
       t.pattern('[]').matches('[]').doesntMatch('', '[', ']', 'o')
       t.pattern('[]]').doesntMatch('[]')
       t.pattern('on[]/two').matches('on[]/two').doesntMatch('on[/two', 'on]/two')
     })
 
-    t.testPerSeparator('Unclosed [ is treated literally', function (t) {
+    t.testPerSeparator('Unclosed [ is treated literally', (t) => {
       t.pattern('[').matches('[').doesntMatch('', '[]')
       t.pattern('one[').matches('one[').doesntMatch('one')
       t.pattern('one[/two').matches('one[/two')
@@ -111,7 +111,7 @@ module.exports = suite(function (t) {
 
     t.testPerSeparator(
       'Separators in the middle of a character class interrupt it, so [/] are treated literally',
-      function (t) {
+      (t) => {
         t.pattern('[/]')
           .matchesWhenSeparated('[/]')
           .doesntMatch('[]')
@@ -126,7 +126,7 @@ module.exports = suite(function (t) {
 
     t.test(
       "Character ranges don't match separators when they are included implicitly",
-      function (t) {
+      (t) => {
         t.options({ separator: '5' })
           .pattern('[0-9]')
           .matches('0', '4', '9')
@@ -138,15 +138,13 @@ module.exports = suite(function (t) {
       }
     )
 
-    t.testPerSeparator("] that doesn't close anything is treated literally", function (
-      t
-    ) {
+    t.testPerSeparator("] that doesn't close anything is treated literally", (t) => {
       t.pattern(']').matches(']').doesntMatch('', '[]')
       t.pattern('one]').matches('one]').doesntMatch('one')
       t.pattern('one]/two').matches('one]/two')
     })
 
-    t.testPerSeparator('When escaped, treated literally', function (t) {
+    t.testPerSeparator('When escaped, treated literally', (t) => {
       t.pattern('\\[').matches('[').doesntMatch('', '\\[')
       t.pattern('\\[]').matches('[]').doesntMatch('', '\\[]')
       t.pattern('\\[abc]').matches('[abc]').doesntMatch('', '\\[abc]')
@@ -156,7 +154,7 @@ module.exports = suite(function (t) {
 
     t.testPerSeparator(
       'When an escaped [, ] or - is in a character class, it is treated as a member of the class',
-      function (t) {
+      (t) => {
         t.pattern('[a\\[b]').matches('[', 'a', 'b')
         t.pattern('[\\[]').doesntMatch('', 'c', '[\\[]')
         t.pattern('[a\\]b]').matches(']', 'a', 'b').doesntMatch('', 'c', '[a\\]b]')

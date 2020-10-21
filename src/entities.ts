@@ -2,7 +2,7 @@ import type { OutmatchOptions } from './index'
 import { escapeRegExpString } from './utils'
 
 function Pattern(source: string, options: OutmatchOptions, excludeDot: boolean) {
-  let separator = options.separator
+  let { separator } = options
   let separatorSplitter = ''
   let separatorMatcher = ''
   let wildcard = '.'
@@ -17,10 +17,10 @@ function Pattern(source: string, options: OutmatchOptions, excludeDot: boolean) 
     separatorMatcher = escapeRegExpString(separatorSplitter)
 
     if (separatorMatcher.length > 1) {
-      separatorMatcher = '(?:' + separatorMatcher + ')'
-      wildcard = '((?!' + separatorMatcher + ').)'
+      separatorMatcher = `(?:${separatorMatcher})`
+      wildcard = `((?!${separatorMatcher}).)`
     } else {
-      wildcard = '[^' + separatorMatcher + ']'
+      wildcard = `[^${separatorMatcher}]`
     }
   } else {
     wildcard = '.'
@@ -30,8 +30,8 @@ function Pattern(source: string, options: OutmatchOptions, excludeDot: boolean) 
   // separators in a sample, so we use quantifiers. When a pattern doesn't have a trailing
   // separator, a sample can still optionally have them, so we use different quantifiers
   // depending on the index of a segment.
-  let requiredSeparator = separator ? separatorMatcher + '+?' : ''
-  let optionalSeparator = separator ? separatorMatcher + '*?' : ''
+  let requiredSeparator = separator ? `${separatorMatcher}+?` : ''
+  let optionalSeparator = separator ? `${separatorMatcher}*?` : ''
 
   let segments = separator ? source.split(separatorSplitter) : [source]
 

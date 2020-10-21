@@ -54,18 +54,18 @@ function compile(patterns: string | string[], options: OutmatchOptions) {
   }
 
   if (negativeResults.length) {
-    result = '(?!(?:' + negativeResults.join('|') + ')$)'
+    result = `(?!(?:${negativeResults.join('|')})$)`
   }
 
   if (positiveResults.length > 1) {
-    result += '(?:' + positiveResults.join('|') + ')'
+    result += `(?:${positiveResults.join('|')})`
   } else if (positiveResults.length === 1) {
     result += positiveResults[0]
   } else if (result.length) {
     result += convert('**', options, true)
   }
 
-  return '^' + result + '$'
+  return `^${result}$`
 }
 
 interface isMatch {
@@ -90,7 +90,7 @@ interface isMatch {
 
 function isMatch(regexp: RegExp, sample: string) {
   if (typeof sample !== 'string') {
-    throw new TypeError('Sample must be a string, but ' + typeof sample + ' given')
+    throw new TypeError(`Sample must be a string, but ${typeof sample} given`)
   }
 
   return regexp.test(sample)
@@ -114,9 +114,7 @@ function isMatch(regexp: RegExp, sample: string) {
 function outmatch(pattern: string | string[], options?: OutmatchOptions): isMatch {
   if (typeof pattern !== 'string' && !Array.isArray(pattern)) {
     throw new TypeError(
-      'Pattern must be a string or an array of strings, but ' +
-        typeof pattern +
-        ' given'
+      `Pattern must be a string or an array of strings, but ${typeof pattern} given`
     )
   }
 
@@ -125,7 +123,7 @@ function outmatch(pattern: string | string[], options?: OutmatchOptions): isMatc
     (Array.isArray(options) ||
       (typeof options !== 'object' && typeof options !== 'undefined'))
   ) {
-    throw new TypeError('Options must be an object, but ' + typeof options + ' given')
+    throw new TypeError(`Options must be an object, but ${typeof options} given`)
   }
 
   options = options || DEFAULT_OPTIONS

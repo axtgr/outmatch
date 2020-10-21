@@ -1,23 +1,20 @@
-var suite = require('./_utils').suite
+var { suite } = require('./_utils')
 
-module.exports = suite(function (t) {
-  t.test('{} - braces', function (t) {
-    t.testPerSeparator(
-      'Matches one of the given subpatterns exactly one time',
-      function (t) {
-        t.pattern('{one,two}')
-          .matches('one', 'two')
-          .doesntMatch('', '{one,two}', 'onetwo', 'oneone')
+module.exports = suite((t) => {
+  t.test('{} - braces', (t) => {
+    t.testPerSeparator('Matches one of the given subpatterns exactly one time', (t) => {
+      t.pattern('{one,two}')
+        .matches('one', 'two')
+        .doesntMatch('', '{one,two}', 'onetwo', 'oneone')
 
-        t.pattern('{one,two,three,four}').matches('three').doesntMatch('five', 'onetwo')
+      t.pattern('{one,two,three,four}').matches('three').doesntMatch('five', 'onetwo')
 
-        t.pattern('one/{two,three}/four')
-          .matches('one/two/four', 'one/three/four')
-          .doesntMatch('one/{two,three}/four', 'one//four', 'one/five/four')
-      }
-    )
+      t.pattern('one/{two,three}/four')
+        .matches('one/two/four', 'one/three/four')
+        .doesntMatch('one/{two,three}/four', 'one//four', 'one/five/four')
+    })
 
-    t.testPerSeparator("Separators don't split braces", function (t) {
+    t.testPerSeparator("Separators don't split braces", (t) => {
       t.pattern('{one,two/three}').matches('one', 'two/three')
       t.pattern('src/{bin,test/unit,test/integration}/index.js')
         .matches(
@@ -31,7 +28,7 @@ module.exports = suite(function (t) {
         .matchesWhenSeparated('src/bar/one.js')
     })
 
-    t.testPerSeparator('Supports nesting', function (t) {
+    t.testPerSeparator('Supports nesting', (t) => {
       t.pattern('{one,{two,three}}')
         .matches('one', 'two', 'three')
         .doesntMatch('', '{one,{two,three}}')
@@ -44,7 +41,7 @@ module.exports = suite(function (t) {
       )
     })
 
-    t.testPerSeparator(', is treated literally when not in braces', function (t) {
+    t.testPerSeparator(', is treated literally when not in braces', (t) => {
       t.pattern(',').matches(',').doesntMatch('')
       t.pattern('o,e').matches('o,e').doesntMatch('o', ',')
       t.pattern('{o,e').matches('{o,e').doesntMatch('o')
@@ -55,7 +52,7 @@ module.exports = suite(function (t) {
 
     t.testPerSeparator(
       'When there is no comma and no range inside, treated literally',
-      function (t) {
+      (t) => {
         t.pattern('{}').matches('{}')
         t.pattern('one{}').matches('one{}')
         t.pattern('{}two').matches('{}two')
@@ -71,7 +68,7 @@ module.exports = suite(function (t) {
 
     t.testPerSeparator(
       'When the range inside is incomplete or there are more than one separator, treated literally',
-      function (t) {
+      (t) => {
         t.pattern('{..1}').matches('{..1}')
         t.pattern('{1..}').matches('{1..}')
         t.pattern('{1..2..3}').matches('{1..2..3}')
@@ -79,7 +76,7 @@ module.exports = suite(function (t) {
       }
     )
 
-    t.testPerSeparator('When unmatched, treated literally', function (t) {
+    t.testPerSeparator('When unmatched, treated literally', (t) => {
       t.pattern('{').matches('{')
       t.pattern('}').matches('}')
       t.pattern('{{').matches('{{')
@@ -92,7 +89,7 @@ module.exports = suite(function (t) {
 
     t.options({ '{}': false }).testPerSeparator(
       'When turned off in options, treated literally',
-      function (t) {
+      (t) => {
         t.pattern('{one,two}').matches('{one,two}').doesntMatch('', 'one', 'two')
         t.pattern('one/{two,three}/four')
           .matches('one/{two,three}/four')
@@ -103,7 +100,7 @@ module.exports = suite(function (t) {
       }
     )
 
-    t.testPerSeparator('When escaped, treated literally', function (t) {
+    t.testPerSeparator('When escaped, treated literally', (t) => {
       t.pattern('\\{one,two}').matches('{one,two}').doesntMatch('one')
       t.pattern('\\{one,two\\}').matches('{one,two}').doesntMatch('two')
       t.pattern('one\\{two,{three,four},five}six')
@@ -122,7 +119,7 @@ module.exports = suite(function (t) {
 
     t.testPerSeparator(
       'Escaped characters inside braces remain escaped after expansion',
-      function (t) {
+      (t) => {
         t.pattern('{\\*}').matches('{*}').doesntMatch('{one}')
         t.pattern('{\\*,one}')
           .matches('*', 'one')

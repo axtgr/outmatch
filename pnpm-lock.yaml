@@ -6,7 +6,6 @@ devDependencies:
   core-js: 3.6.5
   eslint: 7.8.1
   eslint-config-prettier: 6.11.0_eslint@7.8.1
-  eslint-plugin-es5: 1.5.0_eslint@7.8.1
   eslint-plugin-prettier: 3.1.4_eslint@7.8.1+prettier@2.1.1
   globrex: 0.1.2
   husky: 4.3.0
@@ -20,6 +19,7 @@ devDependencies:
   rollup-plugin-terser: 7.0.2_rollup@2.26.10
   ts-node: 9.0.0_typescript@3.9.7
   ts-transform-default-export: 1.0.2_typescript@3.9.7
+  tslib: 2.0.3
   typescript: 3.9.7
   typescript-transform-macros: 1.1.1
 lockfileVersion: 5.1
@@ -1666,14 +1666,6 @@ packages:
       eslint: '>=3.14.1'
     resolution:
       integrity: sha512-oB8cpLWSAjOVFEJhhyMZh6NOEOtBVziaqdDQ86+qhDHFbZXoRTM7pNSvFRfW/W/L/LrQ38C99J5CGuRBBzBsdA==
-  /eslint-plugin-es5/1.5.0_eslint@7.8.1:
-    dependencies:
-      eslint: 7.8.1
-    dev: true
-    peerDependencies:
-      eslint: '>= 3.0.0'
-    resolution:
-      integrity: sha512-Qxmfo7v2B7SGAEURJo0dpBweFf+JU15kSyALfiB2rXWcBuJ96r6X9kFHXFnhdopPHCaHjoQs1xQPUJVbGMb1AA==
   /eslint-plugin-prettier/3.1.4_eslint@7.8.1+prettier@2.1.1:
     dependencies:
       eslint: 7.8.1
@@ -2961,6 +2953,10 @@ packages:
     dev: true
     resolution:
       integrity: sha512-SgIkNheinmEBgx1IUNirK0TUD4X9yjjBRTqqjggWCU3pUEqIk3/Uwl3yRixYKT6WjQuGiwDv4NomL3wqRCj+CQ==
+  /tslib/2.0.3:
+    dev: true
+    resolution:
+      integrity: sha512-uZtkfKblCEQtZKBF6EBXVZeQNl82yqtDQdv+eck8u7tdPxjLu2/lp5/uPW+um2tpuxINHWy3GhiccY7QgEaVHQ==
   /tsutils/3.17.1_typescript@3.9.7:
     dependencies:
       tslib: 1.13.0
@@ -3097,7 +3093,6 @@ specifiers:
   core-js: ^3.6.5
   eslint: ^7.8.1
   eslint-config-prettier: ^6.11.0
-  eslint-plugin-es5: ^1.5.0
   eslint-plugin-prettier: ^3.1.4
   globrex: ^0.1.2
   husky: ^4.3.0
@@ -3111,5 +3106,6 @@ specifiers:
   rollup-plugin-terser: ^7.0.2
   ts-node: ^9.0.0
   ts-transform-default-export: ^1.0.2
+  tslib: ^2.0.3
   typescript: ^3.9.7
   typescript-transform-macros: ^1.1.1

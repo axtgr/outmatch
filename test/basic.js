@@ -1,7 +1,7 @@
-var suite = require('./_utils').suite
+var { suite } = require('./_utils')
 
-module.exports = suite(function (t) {
-  t.testPerSeparator('No wildcards and no separators in arguments', function (t) {
+module.exports = suite((t) => {
+  t.testPerSeparator('No wildcards and no separators in arguments', (t) => {
     t.pattern('').matches('').doesntMatch('o')
     t.pattern('o').matches('o').doesntMatch('', 'n', 'O')
     t.pattern('one').matches('one').doesntMatch('', 'o', 'on', 'two')
@@ -12,7 +12,7 @@ module.exports = suite(function (t) {
     t.pattern('oneTwo').doesntMatch('onetwo')
   })
 
-  t.testPerSeparator('Wildcard symbols in samples are treated literally', function (t) {
+  t.testPerSeparator('Wildcard symbols in samples are treated literally', (t) => {
     t.pattern('').doesntMatch('?')
     t.pattern('o').doesntMatch('?')
     t.pattern('one').doesntMatch('?', '???', '***')
@@ -51,7 +51,7 @@ module.exports = suite(function (t) {
     t.pattern('one/').doesntMatch('???/', '*/', '**/')
   })
 
-  t.testPerSeparator('No wildcards in patterns', function (t) {
+  t.testPerSeparator('No wildcards in patterns', (t) => {
     t.pattern('').matchesWhenSeparated('/')
     t.pattern('/').matches('/').doesntMatch('', 'one/two')
     t.pattern('//').matches('//')
@@ -71,7 +71,7 @@ module.exports = suite(function (t) {
     t.pattern('one/two/three').doesntMatch('one/three', 'one/three/two')
   })
 
-  t.test('Treats unused RegExp characters literally', function (t) {
+  t.test('Treats unused RegExp characters literally', (t) => {
     t.pattern('^$.+-|)').matches('^$.+-|)')
   })
 })

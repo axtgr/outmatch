@@ -1,12 +1,12 @@
-var suite = require('./_utils').suite
+var { suite } = require('./_utils')
 var outmatch = require('../build')
 
 // This suite tests the behavior and properties of the exported function
 // rather than matching/syntactic features
-module.exports = suite(function (t) {
+module.exports = suite((t) => {
   t.test(
     'Compiles the pattern into a RegExp and returns a function that takes a sample and checks if it matches the pattern',
-    function (t) {
+    (t) => {
       var pattern = 'one'
       var isMatch = outmatch(pattern)
 
@@ -18,7 +18,7 @@ module.exports = suite(function (t) {
 
   t.test(
     'If given an array of patterns instead of a single pattern, the returned function returns true if the sample matches ANY of the patterns',
-    function (t) {
+    (t) => {
       t.equal(outmatch(['one', 'two'])('one'), true)
       t.equal(outmatch(['one', 'two'])('two'), true)
       t.equal(outmatch(['one', 'two'])('three'), false)
@@ -27,7 +27,7 @@ module.exports = suite(function (t) {
 
   t.test(
     'The returned function has "options", "pattern" and "regexp" properties set',
-    function (t) {
+    (t) => {
       var pattern = 'one'
       var isMatch = outmatch(pattern)
 
@@ -37,64 +37,59 @@ module.exports = suite(function (t) {
     }
   )
 
-  t.test('Can be given an options object as the second argument', function (t) {
+  t.test('Can be given an options object as the second argument', (t) => {
     var options = {}
     var isMatch = outmatch('one', options)
 
     t.equal(isMatch.options, options)
   })
 
-  t.test('Throws an error if the given pattern is not a string or an array', function (
-    t
-  ) {
-    t.doesNotThrow(function () {
+  t.test('Throws an error if the given pattern is not a string or an array', (t) => {
+    t.doesNotThrow(() => {
       outmatch('')
       outmatch([])
     })
-    t.throws(function () {
+    t.throws(() => {
       outmatch()
     })
-    t.throws(function () {
+    t.throws(() => {
       outmatch(null)
     })
-    t.throws(function () {
+    t.throws(() => {
       outmatch(1)
     })
-    t.throws(function () {
+    t.throws(() => {
       outmatch(false)
     })
-    t.throws(function () {
+    t.throws(() => {
       outmatch({})
     })
   })
 
-  t.test(
-    'Throws an error if the given options are not an object or undefined',
-    function (t) {
-      t.doesNotThrow(function () {
-        outmatch('')
-        outmatch('', undefined)
-        outmatch('', null)
-        outmatch('', {})
-      })
-      t.throws(function () {
-        outmatch('', '')
-      })
-      t.throws(function () {
-        outmatch('', [])
-      })
-      t.throws(function () {
-        outmatch('', 1)
-      })
-      t.throws(function () {
-        outmatch('', false)
-      })
-    }
-  )
+  t.test('Throws an error if the given options are not an object or undefined', (t) => {
+    t.doesNotThrow(() => {
+      outmatch('')
+      outmatch('', undefined)
+      outmatch('', null)
+      outmatch('', {})
+    })
+    t.throws(() => {
+      outmatch('', '')
+    })
+    t.throws(() => {
+      outmatch('', [])
+    })
+    t.throws(() => {
+      outmatch('', 1)
+    })
+    t.throws(() => {
+      outmatch('', false)
+    })
+  })
 
   t.test(
     'The returned function can be used as a predicate to Array#map() to get an array of results',
-    function (t) {
+    (t) => {
       var samples = ['one', 'two', 'three']
 
       t.equal(samples.map(outmatch('one')), [true, false, false])
@@ -105,7 +100,7 @@ module.exports = suite(function (t) {
 
   t.test(
     'The returned function can be used as a predicate to Array#filter() to get a subarray of matching samples from an array',
-    function (t) {
+    (t) => {
       var samples = ['one', 'two', 'three']
 
       t.equal(samples.filter(outmatch('one')), ['one'])
@@ -117,7 +112,7 @@ module.exports = suite(function (t) {
 
   t.test(
     'The returned function can be used as a predicate to Array#some() to check if at least one sample in an array of samples matches the pattern',
-    function (t) {
+    (t) => {
       var samples = ['one', 'two', 'three']
 
       t.ok(samples.some(outmatch('one')))
@@ -129,7 +124,7 @@ module.exports = suite(function (t) {
 
   t.test(
     'The returned function can be used as a predicate to Array#every() to check if all samples in an array match the pattern',
-    function (t) {
+    (t) => {
       var samples = ['one', 'two', 'three']
 
       t.notOk(samples.every(outmatch('one')))
@@ -138,11 +133,10 @@ module.exports = suite(function (t) {
     }
   )
 
-  /* eslint-disable es5/no-es6-methods */
   if (typeof Array.prototype.find === 'function') {
     t.test(
       'The returned function can be used as a predicate to Array#find() to find the first matching sample in an array',
-      function (t) {
+      (t) => {
         var samples = ['one', 'two', 'three']
 
         t.equal(samples.find(outmatch('two')), 'two')
@@ -156,7 +150,7 @@ module.exports = suite(function (t) {
   if (typeof Array.prototype.findIndex === 'function') {
     t.test(
       'The returned function can be used as a predicate to Array#findIndex() to find the index of the first matching sample in an array',
-      function (t) {
+      (t) => {
         var samples = ['one', 'two', 'three']
 
         t.equal(samples.findIndex(outmatch('two')), 1)
@@ -166,5 +160,4 @@ module.exports = suite(function (t) {
       }
     )
   }
-  /* eslint-enable es5/no-es6-methods */
 })

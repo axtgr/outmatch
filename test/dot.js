@@ -1,13 +1,11 @@
-var suite = require('./_utils').suite
+var { suite } = require('./_utils')
 
-module.exports = suite(function (t) {
+module.exports = suite((t) => {
   // When separator === false, the pattern is not split into segments,
   // so dots matter only when they are the very first char
 
-  t.options({ excludeDot: true }).test('When excludeDot === true (default)', function (
-    t
-  ) {
-    t.testPerSeparator('? ignores leading dots', function (t) {
+  t.options({ excludeDot: true }).test('When excludeDot === true (default)', (t) => {
+    t.testPerSeparator('? ignores leading dots', (t) => {
       t.pattern('?').doesntMatch('.', '.o')
       t.pattern('one/?')
         .doesntMatchWhenSeparated('one/.')
@@ -15,7 +13,7 @@ module.exports = suite(function (t) {
       t.pattern('?/two').doesntMatch('./two', '.t/two', 't/.two', './.two', '.t')
     })
 
-    t.testPerSeparator('* ignores leading dots', function (t) {
+    t.testPerSeparator('* ignores leading dots', (t) => {
       t.pattern('*').doesntMatch('.one', '.', '.two')
       t.pattern('one/*')
         .doesntMatchWhenSeparated('one/.two', 'one/.')
@@ -23,7 +21,7 @@ module.exports = suite(function (t) {
       t.pattern('*/two').doesntMatch('.one/two', '.one/.two', 'one/.', '.one/.')
     })
 
-    t.testPerSeparator('** ignores leading dots', function (t) {
+    t.testPerSeparator('** ignores leading dots', (t) => {
       t.pattern('**')
         .doesntMatch('.one', '.', '.one/two/three')
         .doesntMatchWhenSeparated('one/.two', 'one/two/three/.four')
@@ -38,7 +36,7 @@ module.exports = suite(function (t) {
       t.pattern('one/**/two').doesntMatchWhenSeparated('one/./two', 'one/.three/two')
     })
 
-    t.testPerSeparator('[] ignores leading dots', function (t) {
+    t.testPerSeparator('[] ignores leading dots', (t) => {
       t.pattern('[a.]').doesntMatch('.')
       t.pattern('[.]foo').doesntMatch('.foo', 'foo')
       t.pattern('foo/[.b]ar')
@@ -51,7 +49,7 @@ module.exports = suite(function (t) {
         .doesntMatch('foo/bar')
     })
 
-    t.testPerSeparator('@() ignores leading dots', function (t) {
+    t.testPerSeparator('@() ignores leading dots', (t) => {
       t.pattern('@(.)').doesntMatch('.', '', '@(.)')
       t.pattern('@(.|foo)').matches('foo').doesntMatch('.', '.foo', '@(.|foo)', '')
       t.pattern('foo/@(.)')
@@ -70,7 +68,7 @@ module.exports = suite(function (t) {
         .doesntMatch('foo//baz', 'foo/.bar/baz', 'foo/.', 'foo/', 'foo/@(.|bar)/baz')
     })
 
-    t.testPerSeparator('?() ignores leading dots', function (t) {
+    t.testPerSeparator('?() ignores leading dots', (t) => {
       t.pattern('?(.)').matches('').doesntMatch('.', '?(.)')
       t.pattern('?(.|foo)').matches('', 'foo').doesntMatch('.', '.foo', '?(.|foo)')
       t.pattern('foo/?(.)')
@@ -90,7 +88,7 @@ module.exports = suite(function (t) {
         .doesntMatch('foo/.bar/baz', 'foo/.', 'foo/', 'foo/?(.|bar)/baz')
     })
 
-    t.testPerSeparator('*() ignores leading dots', function (t) {
+    t.testPerSeparator('*() ignores leading dots', (t) => {
       t.pattern('*(.)').matches('').doesntMatch('.', '...', '*(.)')
       t.pattern('*(.|foo)')
         .matches('', 'foo', 'foo.', 'foo.foo')
@@ -112,7 +110,7 @@ module.exports = suite(function (t) {
         .doesntMatch('foo/.', 'foo/', 'foo/*(.|bar)/baz')
     })
 
-    t.testPerSeparator('+() ignores leading dots', function (t) {
+    t.testPerSeparator('+() ignores leading dots', (t) => {
       t.pattern('+(.)').doesntMatch('.', '...', '+(.)', '')
       t.pattern('+(.|foo)')
         .matches('foo', 'foo.', 'foo.foo')
@@ -133,7 +131,7 @@ module.exports = suite(function (t) {
         .doesntMatch('foo/.', 'foo/', 'foo/+(.|bar)/baz', 'foo//baz')
     })
 
-    t.testPerSeparator('!() ignores leading dots', function (t) {
+    t.testPerSeparator('!() ignores leading dots', (t) => {
       t.pattern('!(.)').matches('foo').doesntMatch('.', '.foo')
       t.pattern('!(a)').matches('foo').doesntMatch('.', '.foo')
       t.pattern('!(.|a)').matches('foo').doesntMatch('.', 'a', '.foo')
@@ -153,7 +151,7 @@ module.exports = suite(function (t) {
       t.pattern('!(.|a)/bar').matches('foo/bar').doesntMatch('./bar', '.foo/bar')
     })
 
-    t.testPerSeparator('Negated patterns ignore leading dots', function (t) {
+    t.testPerSeparator('Negated patterns ignore leading dots', (t) => {
       t.pattern('!foo').doesntMatch('.bar').doesntMatchWhenSeparated('foo/.bar')
       t.pattern('!foo/.bar')
         .doesntMatch('foo/.bar')
@@ -167,7 +165,7 @@ module.exports = suite(function (t) {
         .doesntMatch('foo/.bar')
     })
 
-    t.testPerSeparator('Explicit dots in basic patterns are matched', function (t) {
+    t.testPerSeparator('Explicit dots in basic patterns are matched', (t) => {
       t.pattern('.').matches('.').doesntMatch('', '..', '.one')
       t.pattern('..').matches('..').doesntMatch('', '.', '.one')
       t.pattern('./..').matches('./..').doesntMatch('', '.', '..', './.one')
@@ -188,7 +186,7 @@ module.exports = suite(function (t) {
         .doesntMatch('one/.two/three', 'one//three')
     })
 
-    t.testPerSeparator('Explicit dots in braces are matched', function (t) {
+    t.testPerSeparator('Explicit dots in braces are matched', (t) => {
       t.pattern('{.,..}')
         .matches('.', '..')
         .doesntMatch('', '.one', '.,..', './..', '{.,..}')
@@ -226,20 +224,20 @@ module.exports = suite(function (t) {
     })
   })
 
-  t.options({ excludeDot: false }).test('When excludeDot === false', function (t) {
-    t.testPerSeparator('? matches leading dots', function (t) {
+  t.options({ excludeDot: false }).test('When excludeDot === false', (t) => {
+    t.testPerSeparator('? matches leading dots', (t) => {
       t.pattern('?').matches('.')
       t.pattern('one/?').matches('one/.')
       t.pattern('?/two').matches('./two')
     })
 
-    t.testPerSeparator('* matches leading dots', function (t) {
+    t.testPerSeparator('* matches leading dots', (t) => {
       t.pattern('*').matches('.one', '.', '.two')
       t.pattern('one/*').matches('one/.two', 'one/.')
       t.pattern('*/two').matches('.one/two')
     })
 
-    t.testPerSeparator('** matches leading dots', function (t) {
+    t.testPerSeparator('** matches leading dots', (t) => {
       t.pattern('**').matches(
         '.one',
         '.',
@@ -257,7 +255,7 @@ module.exports = suite(function (t) {
       t.pattern('one/**/two').matches('one/./two', 'one/.three/two')
     })
 
-    t.testPerSeparator('[] matches leading dots', function (t) {
+    t.testPerSeparator('[] matches leading dots', (t) => {
       t.pattern('[a.]').matches('.')
       t.pattern('[.]foo').matches('.foo')
       t.pattern('foo/[.b]ar').matches('foo/.ar')
@@ -266,7 +264,7 @@ module.exports = suite(function (t) {
       t.pattern('foo/[!-Z]bar').matches('foo/.bar')
     })
 
-    t.testPerSeparator('@() matches leading dots', function (t) {
+    t.testPerSeparator('@() matches leading dots', (t) => {
       t.pattern('@(.)').matches('.').doesntMatch('', '@(.)')
       t.pattern('@(.|foo)').matches('foo', '.').doesntMatch('.foo', '@(.|foo)', '')
       t.pattern('foo/@(.)').matches('foo/.').doesntMatch('foo/', 'foo/@(.)')
@@ -281,7 +279,7 @@ module.exports = suite(function (t) {
         .doesntMatch('foo//baz', 'foo/.bar/baz', 'foo/.', 'foo/', 'foo/@(.|bar)/baz')
     })
 
-    t.testPerSeparator('?() matches leading dots', function (t) {
+    t.testPerSeparator('?() matches leading dots', (t) => {
       t.pattern('?(.)').matches('', '.').doesntMatch('?(.)')
       t.pattern('?(.|foo)').matches('', '.', 'foo').doesntMatch('.foo', '?(.|foo)')
       t.pattern('foo/?(.)').matches('foo/', 'foo/.').doesntMatch('foo/?(.)')
@@ -296,7 +294,7 @@ module.exports = suite(function (t) {
         .doesntMatch('foo/.bar/baz', 'foo/.', 'foo/', 'foo/?(.|bar)/baz')
     })
 
-    t.testPerSeparator('*() matches leading dots', function (t) {
+    t.testPerSeparator('*() matches leading dots', (t) => {
       t.pattern('*(.)').matches('', '.', '...').doesntMatch('*(.)')
       t.pattern('*(.|foo)')
         .matches('', 'foo', 'foo.', 'foo.foo', '.', '...', '.foo', '..foo')
@@ -329,7 +327,7 @@ module.exports = suite(function (t) {
         .doesntMatch('foo/.', 'foo/', 'foo/*(.|bar)/baz')
     })
 
-    t.testPerSeparator('+() matches leading dots', function (t) {
+    t.testPerSeparator('+() matches leading dots', (t) => {
       t.pattern('+(.)').matches('.', '...').doesntMatch('+(.)', '')
       t.pattern('+(.|foo)')
         .matches('foo', 'foo.', 'foo.foo', '.', '...', '.foo', '.foo.')
@@ -354,7 +352,7 @@ module.exports = suite(function (t) {
         .doesntMatch('foo/.', 'foo/', 'foo/+(.|bar)/baz', 'foo//baz')
     })
 
-    t.testPerSeparator('!() matches leading dots', function (t) {
+    t.testPerSeparator('!() matches leading dots', (t) => {
       t.pattern('!(.)').matches('foo', '.foo').doesntMatch('.')
       t.pattern('!(a)').matches('foo', '.', '.foo').doesntMatch('a')
       t.pattern('!(.|a)').matches('foo', '.foo').doesntMatch('.', 'a')
@@ -368,7 +366,7 @@ module.exports = suite(function (t) {
         .doesntMatch('./bar', 'a/bar')
     })
 
-    t.testPerSeparator('Negated patterns match leading dots', function (t) {
+    t.testPerSeparator('Negated patterns match leading dots', (t) => {
       t.pattern('!foo').matches('.', '.bar', 'foo/.bar')
       t.pattern('!foo/.bar')
         .matches('foo', '.bar', 'foo/bar', 'foo/.qux')

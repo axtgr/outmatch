@@ -9,7 +9,7 @@ function assign(to, from) {
     from = to
     to = {}
   }
-  Object.keys(from).forEach(function (key) {
+  Object.keys(from).forEach((key) => {
     to[key] = from[key]
   })
   return to
@@ -18,7 +18,7 @@ function assign(to, from) {
 // Replaces slashes in patterns and samples with the actual separator being used
 function replaceSeparators(stringOrArray, separator) {
   if (Array.isArray(stringOrArray)) {
-    return stringOrArray.map(function (p) {
+    return stringOrArray.map((p) => {
       return p.replace(/\//g, separator)
     })
   } else {
@@ -39,7 +39,7 @@ function match(pattern, options) {
     var argsStr = JSON.stringify(args)
 
     if (testSet[argsStr]) {
-      throw new Error('Duplicate test found: ' + argsStr)
+      throw new Error(`Duplicate test found: ${argsStr}`)
     }
 
     testSet[argsStr] = true
@@ -60,12 +60,9 @@ function decorateT(t, options, skip) {
       pass: actual === expected,
       actual: actual,
       expected: expected,
-      description:
-        '"' +
-        pattern +
-        (expected ? '" matches "' : '" doesn\'t match "') +
-        sample +
-        '"',
+      description: `"${pattern}${
+        expected ? '" matches "' : '" doesn\'t match "'
+      }${sample}"`,
       operator: expected ? 'ok' : 'notOk',
     })
   }
@@ -73,7 +70,7 @@ function decorateT(t, options, skip) {
   t.test = skip
     ? t.skip
     : function (description, fn) {
-        _test(description, function zora_spec_fn(t) {
+        _test(description, (t) => {
           decorateT(t, options)
           fn(t)
         })
@@ -87,11 +84,11 @@ function decorateT(t, options, skip) {
           separators = null
         }
 
-        _test(description, function zora_spec_fn(t) {
+        _test(description, (t) => {
           separators = separators || SEPARATORS
-          separators.forEach(function (separator) {
-            var sepDescription = separator ? 'Separator: ' + separator : 'No separator'
-            t.test(sepDescription, function zora_spec_fn(t) {
+          separators.forEach((separator) => {
+            var sepDescription = separator ? `Separator: ${separator}` : 'No separator'
+            t.test(sepDescription, (t) => {
               var newOptions = assign(options)
               newOptions.separator = separator
               decorateT(t, newOptions)
@@ -112,7 +109,7 @@ function decorateT(t, options, skip) {
         }
 
         var newT
-        _test(description, function zora_spec_fn(t) {
+        _test(description, (t) => {
           // eslint-disable-next-line no-undef
           decorateT(t, options, process.platform !== platform)
           fn && fn(t)
@@ -132,7 +129,7 @@ function decorateT(t, options, skip) {
         }
 
         var newT
-        _test(description, function zora_spec_fn(t) {
+        _test(description, (t) => {
           decorateT(t, options)
           fn && fn(t)
           newT = t

@@ -1,10 +1,10 @@
-var suite = require('./_utils').suite
+var { suite } = require('./_utils')
 
-module.exports = suite(function (t) {
-  t.test('() - group/extglob', function (t) {
+module.exports = suite((t) => {
+  t.test('() - group/extglob', (t) => {
     t.testPerSeparator(
       '@() matches one of the given subpatterns exactly one time',
-      function (t) {
+      (t) => {
         t.pattern('@(one)').matches('one').doesntMatch('', 'oneone', 'two', '@(one)')
         t.pattern('@(one|two)')
           .matches('one', 'two')
@@ -17,7 +17,7 @@ module.exports = suite(function (t) {
 
     t.testPerSeparator(
       '?() matches one of the given subpatterns zero or one time',
-      function (t) {
+      (t) => {
         t.pattern('?(one|two)')
           .matches('', 'one', 'two')
           .doesntMatch('?(one|two)', 'onetwo', 'oneone')
@@ -29,7 +29,7 @@ module.exports = suite(function (t) {
 
     t.testPerSeparator(
       '*() matches one of the given subpatterns zero or more times',
-      function (t) {
+      (t) => {
         t.pattern('*(one|two)')
           .matches('', 'one', 'two', 'onetwo', 'oneone', 'oneonetwoonetwo')
           .doesntMatch('*(one|two)', 'three')
@@ -41,7 +41,7 @@ module.exports = suite(function (t) {
 
     t.testPerSeparator(
       '+() matches one of the given subpatterns one or more times',
-      function (t) {
+      (t) => {
         t.pattern('+(one|two)')
           .matches('one', 'two', 'onetwo', 'oneone', 'oneonetwoonetwo')
           .doesntMatch('', '+(one|two)', 'three')
@@ -51,37 +51,34 @@ module.exports = suite(function (t) {
       }
     )
 
-    t.testPerSeparator(
-      '!() matches anything except for the given subpatterns',
-      function (t) {
-        t.pattern('!(one)')
-          .doesntMatch('one')
-          .doesntMatchWhenSeparated('one/two', '/one/', 'one/')
-          .matches('', 'two', 'onetwo', 'twoone')
-        t.pattern('!(one|two)three')
-          .doesntMatch('', 'onethree', 'twothree')
-          .doesntMatchWhenSeparated('one/three', 'two/three')
-          .matches(
-            '!(one|two)three',
-            'three',
-            'onetwothree',
-            'twoonethree',
-            'onefourthree'
-          )
-        t.pattern('three!(one|two)')
-          .doesntMatch('', 'threeone', 'threetwo')
-          .doesntMatchWhenSeparated('threeone/', 'threetwo/')
-          .matches(
-            'three!(one|two)',
-            'three',
-            'threeonetwo',
-            'threetwoone',
-            'threeonefour'
-          )
-      }
-    )
+    t.testPerSeparator('!() matches anything except for the given subpatterns', (t) => {
+      t.pattern('!(one)')
+        .doesntMatch('one')
+        .doesntMatchWhenSeparated('one/two', '/one/', 'one/')
+        .matches('', 'two', 'onetwo', 'twoone')
+      t.pattern('!(one|two)three')
+        .doesntMatch('', 'onethree', 'twothree')
+        .doesntMatchWhenSeparated('one/three', 'two/three')
+        .matches(
+          '!(one|two)three',
+          'three',
+          'onetwothree',
+          'twoonethree',
+          'onefourthree'
+        )
+      t.pattern('three!(one|two)')
+        .doesntMatch('', 'threeone', 'threetwo')
+        .doesntMatchWhenSeparated('threeone/', 'threetwo/')
+        .matches(
+          'three!(one|two)',
+          'three',
+          'threeonetwo',
+          'threetwoone',
+          'threeonefour'
+        )
+    })
 
-    t.testPerSeparator('Can be nested', function (t) {
+    t.testPerSeparator('Can be nested', (t) => {
       t.pattern('@(foo|@(bar|baz))')
         .matches('foo', 'bar', 'baz')
         .doesntMatch('', 'foobar', 'qux', '@(foo|@(bar|baz))')
@@ -185,15 +182,15 @@ module.exports = suite(function (t) {
 
     // TODO: add tests for !() nested in other extglobs
 
-    t.test('!() cannot be nested in another !()', function (t) {
-      t.throws(function () {
+    t.test('!() cannot be nested in another !()', (t) => {
+      t.throws(() => {
         t.pattern('!(foo!(bar|baz))')
       })
     })
 
     t.testPerSeparator(
       '| is treated literally when not in a complete group with a valid modifier',
-      function (t) {
+      (t) => {
         t.pattern('|').matches('|').doesntMatch('')
         t.pattern('o|e').matches('o|e').doesntMatch('', 'o', '|')
         t.pattern('(o|e)').matches('(o|e)').doesntMatch('o')
@@ -205,7 +202,7 @@ module.exports = suite(function (t) {
 
     t.testPerSeparator(
       'When there is no preceding modifier given, () are treated literally',
-      function (t) {
+      (t) => {
         t.pattern('()').matches('()').doesntMatch('')
         t.pattern('one()').matches('one()').doesntMatch('', 'one')
         t.pattern('one()two').matches('one()two').doesntMatch('onetwo')
@@ -223,7 +220,7 @@ module.exports = suite(function (t) {
 
     t.options({ '()': false }).testPerSeparator(
       'When turned off in options, treated literally',
-      function (t) {
+      (t) => {
         t.pattern('@(one)').matches('@(one)').doesntMatch('', 'one')
         t.pattern('@(one|two)').matches('@(one|two)').doesntMatch('', 'one')
         t.pattern('?(one)').matches('?(one)').doesntMatch('', 'one')
@@ -261,7 +258,7 @@ module.exports = suite(function (t) {
       }
     )
 
-    t.testPerSeparator('When unmatched, treated literally', function (t) {
+    t.testPerSeparator('When unmatched, treated literally', (t) => {
       t.pattern('(').matches('(')
       t.pattern(')').matches(')')
       t.pattern('((').matches('((')
@@ -297,26 +294,23 @@ module.exports = suite(function (t) {
       t.pattern('!()!(').matches('one!(')
     })
 
-    t.testPerSeparator(
-      'Separators between () make them be treated literally',
-      function (t) {
-        t.pattern('@(one/two)').doesntMatch('one').matchesWhenSeparated('@(one/two)')
+    t.testPerSeparator('Separators between () make them be treated literally', (t) => {
+      t.pattern('@(one/two)').doesntMatch('one').matchesWhenSeparated('@(one/two)')
 
-        t.pattern('?(one/two)')
-          .doesntMatch('one')
-          .matchesWhenSeparated('?(one/two)', 'o(one/two)')
+      t.pattern('?(one/two)')
+        .doesntMatch('one')
+        .matchesWhenSeparated('?(one/two)', 'o(one/two)')
 
-        t.pattern('*(one/two)')
-          .doesntMatch('one')
-          .matchesWhenSeparated('*(one/two)', 'one(one/two)')
+      t.pattern('*(one/two)')
+        .doesntMatch('one')
+        .matchesWhenSeparated('*(one/two)', 'one(one/two)')
 
-        t.pattern('+(one/two)').doesntMatch('one').matchesWhenSeparated('+(one/two)')
+      t.pattern('+(one/two)').doesntMatch('one').matchesWhenSeparated('+(one/two)')
 
-        t.pattern('!(one/two)').matches('!(one/two)').doesntMatchWhenSeparated('one')
-      }
-    )
+      t.pattern('!(one/two)').matches('!(one/two)').doesntMatchWhenSeparated('one')
+    })
 
-    t.testPerSeparator('When escaped, treated literally', function (t) {
+    t.testPerSeparator('When escaped, treated literally', (t) => {
       t.pattern('\\@(one|two)')
         .matches('@(one|two)')
         .doesntMatch('', 'one', '\\@(one|two)')

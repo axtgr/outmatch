@@ -1,7 +1,7 @@
 <br>
 
 <h1 align="center">
-  <img src="assets/logo.png" width="300" height="69">
+  <img src="assets/logo.png" width="300" height="69" alt="Outmatch">
 </h1>
 
 <p align="center">
@@ -48,7 +48,11 @@ More details are available in the [Installation](#installation), [Usage](#usage)
 ## Why outmatch?
 
 <table>
-<tr>
+  <tr>
+    <td align="center">🍃</td>
+    <td><strong>Lightweight</strong><br>No dependencies. Just 2.4&nbsp;KB when minified and gzipped — less than ⅓&nbsp;of&nbsp;picomatch and ⅕&nbsp;of&nbsp;micromatch</td>
+  </tr>
+  <tr>
     <td align="center">💪</td>
     <td><strong>Powerful</strong><br>Supports basic and extended globbing, proper multi-pattern compilation and custom path separators — a&nbsp;feature unique to&nbsp;outmatch</td>
   </tr>
@@ -59,10 +63,6 @@ More details are available in the [Installation](#installation), [Usage](#usage)
   <tr>
     <td align="center">🏎</td>
     <td><strong>Fast</strong><br>Compiles and matches patterns faster than minimatch, micromatch and picomatch</td>
-  </tr>
-  <tr>
-    <td align="center">🍃</td>
-    <td><strong>Lightweight</strong><br>No dependencies. Just 2.4&nbsp;KB when minified and gzipped — less than ⅓&nbsp;of&nbsp;picomatch and ⅕&nbsp;of&nbsp;micromatch</td>
   </tr>
   <tr>
     <td align="center">⚒</td>
@@ -327,7 +327,7 @@ paths.findIndex(isMatch) //=> 1
     <td>Matches any character in the specified range
   </tr>
   <tr>
-    <td><code>{01...300}</code><br><code>{1..9..2}</code></td>
+    <td><code>{01..300}</code><br><code>{1..9..2}</code></td>
     <td>Like most other libraries, outmatch doesn't support zero-padded and stepped ranges. The amount of code it would take to implement them is simply not justified by how rarely they are used</td>
   </tr>
   <tr>
@@ -389,12 +389,12 @@ Pattern: src/test/**/*.?s
 Sample: src/test/foo/bar.js
 
 Compilation
-  outmatch     644,122 ops/sec
-  picomatch    253,864 ops/sec
+  outmatch     695,059 ops/sec
+  picomatch    260,646 ops/sec
 
 Matching
-  outmatch     28,203,622 ops/sec
-  picomatch     9,510,707 ops/sec
+  outmatch     48,106,255 ops/sec
+  picomatch    10,710,969 ops/sec
 ```
 
 A better comparison is in the works.

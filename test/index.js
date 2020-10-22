@@ -44,6 +44,12 @@ module.exports = suite((t) => {
     t.equal(isMatch.options, options)
   })
 
+  t.test('Can be given a separator string as the second argument', (t) => {
+    var isMatch = outmatch('one', '@')
+
+    t.equal(isMatch.options, { separator: '@' })
+  })
+
   t.test('Throws an error if the given pattern is not a string or an array', (t) => {
     t.doesNotThrow(() => {
       outmatch('')
@@ -66,26 +72,26 @@ module.exports = suite((t) => {
     })
   })
 
-  t.test('Throws an error if the given options are not an object or undefined', (t) => {
-    t.doesNotThrow(() => {
-      outmatch('')
-      outmatch('', undefined)
-      outmatch('', null)
-      outmatch('', {})
-    })
-    t.throws(() => {
-      outmatch('', '')
-    })
-    t.throws(() => {
-      outmatch('', [])
-    })
-    t.throws(() => {
-      outmatch('', 1)
-    })
-    t.throws(() => {
-      outmatch('', false)
-    })
-  })
+  t.test(
+    'Throws an error if the second argument is not an object, string or undefined',
+    (t) => {
+      t.doesNotThrow(() => {
+        outmatch('')
+        outmatch('', undefined)
+        outmatch('', null)
+        outmatch('', {})
+      })
+      t.throws(() => {
+        outmatch('', [])
+      })
+      t.throws(() => {
+        outmatch('', 1)
+      })
+      t.throws(() => {
+        outmatch('', false)
+      })
+    }
+  )
 
   t.test(
     'The returned function can be used as a predicate to Array#map() to get an array of results',

@@ -100,11 +100,18 @@ function isMatch(regexp: RegExp, sample: string) {
  * isMatch('foo.bar.com') //=> false
  * ```
  */
-function outmatch(pattern: string | string[], options?: OutmatchOptions): isMatch {
+function outmatch(
+  pattern: string | string[],
+  options?: OutmatchOptions | string
+): isMatch {
   if (typeof pattern !== 'string' && !Array.isArray(pattern)) {
     throw new TypeError(
-      `Pattern must be a string or an array of strings, but ${typeof pattern} given`
+      `The first argument must be a single pattern string or an array of patterns, but ${typeof pattern} given`
     )
+  }
+
+  if (typeof options === 'string') {
+    options = { separator: options }
   }
 
   if (
@@ -112,7 +119,9 @@ function outmatch(pattern: string | string[], options?: OutmatchOptions): isMatc
     (Array.isArray(options) ||
       (typeof options !== 'object' && typeof options !== 'undefined'))
   ) {
-    throw new TypeError(`Options must be an object, but ${typeof options} given`)
+    throw new TypeError(
+      `The second argument must be an options object or a string separator, but ${typeof options} given`
+    )
   }
 
   options = options || DEFAULT_OPTIONS

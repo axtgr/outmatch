@@ -1,7 +1,7 @@
 import { escapeRegExpString, OutmatchOptions } from './common'
 
 function Pattern(source: string, options: OutmatchOptions, excludeDot: boolean) {
-  let { separator } = options
+  let separator = typeof options.separator === 'undefined' ? true : options.separator
   let separatorSplitter = ''
   let separatorMatcher = ''
   let wildcard = '.'

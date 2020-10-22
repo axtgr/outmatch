@@ -124,7 +124,7 @@ function outmatch(
     )
   }
 
-  options = options || { separator: true }
+  options = options || {}
 
   if (options.separator === '\\') {
     throw new Error('\\ is not a valid separator')

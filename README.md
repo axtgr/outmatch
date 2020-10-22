@@ -151,9 +151,9 @@ matchLike('what like do like you like mean') //=> true
 ```
 
 The only limitation is that backslashes `\` cannot be used as separators in patterns because
-outmatch uses them for character escaping. However, when `separator` is set to `true` (which
-is the default), `/` in patterns will match both `/` and `\`, so a single pattern with forward
-slashes can match both Unix and Windows paths:
+outmatch uses them for character escaping. However, when `separator` is `undefined` or `true`,
+`/` in patterns will match both `/` and `\`, so a single pattern with forward slashes
+can match both Unix and Windows paths:
 
 ```js
 const isMatchA = outmatch('foo/bar') // the same as { separator: true }

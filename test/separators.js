@@ -9,10 +9,16 @@ module.exports = suite((t) => {
   })
 
   t.options({ separator: true }).test(
-    'When separator === true, forward slashes in patterns match both forward and backslashes in samples',
+    'When separator === true or undefined, forward slashes in patterns match both forward and backslashes in samples',
     (t) => {
-      t.pattern('foo/bar').matches('foo/bar', 'foo\\bar')
-      t.pattern('foo/**/qux').matches(Path.join('foo', 'bar', 'baz', 'qux'))
+      t.pattern('foo/*')
+        .matches('foo/bar', 'foo\\bar')
+        .doesntMatch('foo/bar/baz', 'foo\\bar\\baz')
+      t.pattern('foo/**/qux', true).matches(
+        'foo/qux',
+        'foo\\bar\\qux',
+        Path.join('foo', 'bar', 'baz', 'qux')
+      )
     }
   )
 

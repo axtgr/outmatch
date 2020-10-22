@@ -28,7 +28,7 @@ module.exports = suite((t) => {
   t.test(
     'The returned function has "options", "pattern" and "regexp" properties set',
     (t) => {
-      var defaultOptions = { separator: true }
+      var defaultOptions = {}
       var pattern = 'one'
       var isMatch = outmatch(pattern)
 

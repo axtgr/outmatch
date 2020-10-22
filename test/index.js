@@ -28,11 +28,12 @@ module.exports = suite((t) => {
   t.test(
     'The returned function has "options", "pattern" and "regexp" properties set',
     (t) => {
+      var defaultOptions = { separator: true }
       var pattern = 'one'
       var isMatch = outmatch(pattern)
 
-      t.is(isMatch.options, outmatch.options)
-      t.is(isMatch.pattern, pattern)
+      t.equals(isMatch.options, defaultOptions)
+      t.equals(isMatch.pattern, pattern)
       t.ok(isMatch.regexp instanceof RegExp)
     }
   )

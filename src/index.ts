@@ -3,8 +3,6 @@ import expand from './expand'
 import negate from './negate'
 import convert from './convert'
 
-const DEFAULT_OPTIONS = { separator: true }
-
 function flatMap<T, R>(array: Array<T>, predicate: (arg: T) => Array<R>) {
   let results = []
   for (let i = 0; i < array.length; i++) {
@@ -124,7 +122,7 @@ function outmatch(
     )
   }
 
-  options = options || DEFAULT_OPTIONS
+  options = options || { separator: true }
 
   if (options.separator === '\\') {
     throw new Error('\\ is not a valid separator')
@@ -139,7 +137,5 @@ function outmatch(
   fn.regexp = regexp
   return fn
 }
-
-outmatch.options = DEFAULT_OPTIONS
 
 export default outmatch

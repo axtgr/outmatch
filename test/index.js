@@ -50,6 +50,12 @@ module.exports = suite((t) => {
     t.equal(isMatch.options, { separator: '@' })
   })
 
+  t.test('Can be given a separator boolean as the second argument', (t) => {
+    var isMatch = outmatch('one', false)
+
+    t.equal(isMatch.options, { separator: false })
+  })
+
   t.test('Throws an error if the given pattern is not a string or an array', (t) => {
     t.doesNotThrow(() => {
       outmatch('')
@@ -73,7 +79,7 @@ module.exports = suite((t) => {
   })
 
   t.test(
-    'Throws an error if the second argument is not an object, string or undefined',
+    'Throws an error if the second argument is not an object, string, boolean or undefined',
     (t) => {
       t.doesNotThrow(() => {
         outmatch('')
@@ -86,9 +92,6 @@ module.exports = suite((t) => {
       })
       t.throws(() => {
         outmatch('', 1)
-      })
-      t.throws(() => {
-        outmatch('', false)
       })
     }
   )

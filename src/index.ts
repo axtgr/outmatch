@@ -102,7 +102,7 @@ function isMatch(regexp: RegExp, sample: string) {
  */
 function outmatch(
   pattern: string | string[],
-  options?: OutmatchOptions | string
+  options?: OutmatchOptions | string | boolean
 ): isMatch {
   if (typeof pattern !== 'string' && !Array.isArray(pattern)) {
     throw new TypeError(
@@ -110,7 +110,7 @@ function outmatch(
     )
   }
 
-  if (typeof options === 'string') {
+  if (typeof options === 'string' || typeof options === 'boolean') {
     options = { separator: options }
   }
 
@@ -120,7 +120,7 @@ function outmatch(
       (typeof options !== 'object' && typeof options !== 'undefined'))
   ) {
     throw new TypeError(
-      `The second argument must be an options object or a string separator, but ${typeof options} given`
+      `The second argument must be an options object or a string/boolean separator, but ${typeof options} given`
     )
   }
 

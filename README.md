@@ -40,12 +40,12 @@ isMatch('src/README.md') //=> false
 
 isMatch.pattern //=> 'src/**/*.{js,ts}'
 isMatch.options //=> { separator: true }
-isMatch.regexp //=> /^(src((\/|\\))+ ... \.ts((\/|\\))*)$/
+isMatch.regexp //=> /^(?:src[/\\]+? ... \.ts[/\\]*?)$/
 ```
 
 More details are available in the [Installation](#installation), [Usage](#usage), [Syntax](#syntax) and [API](#api) sections.
 
-## Why outmatch?
+## Features
 
 <table>
   <tr>
@@ -78,7 +78,7 @@ More details are available in the [Installation](#installation), [Usage](#usage)
   </tr>
 </table>
 
-For detailed comparison with the alternatives, see the [corresponding section](#comparison).
+For comparison with the alternatives, see the [corresponding section](#comparison).
 
 ## Installation
 
@@ -113,7 +113,7 @@ When included from a CDN, outmatch is available as the global function `outmatch
 
 Outmatch comes built in ESM, CommonJS and UMD formats and includes TypeScript typings. The examples use ESM imports, which can be replaced with the following line for CommonJS: `const outmatch = require('outmatch')`.
 
-The default export is a function that takes two arguments: a glob pattern and, if needed, an [options](#options) object. It compiles them into a regular expression and returns a function (usually called `isMatch` in the examples) that tests strings against the pattern. The pattern, options and the compiled RegExp object are available as properties on the returned function:
+The default export is a function of two arguments, first of which can be either a single glob string or an array of such patterns. The second argument is optional and can be either an [options](#options) object or a string, which will be treated as the `separator` option. Outmatch compiles them into a regular expression and returns a function (usually called `isMatch` in the examples) that tests strings against the pattern. The pattern, options and the compiled RegExp object are available as properties on the returned function:
 
 ```js
 import outmatch from 'outmatch'
@@ -126,7 +126,7 @@ isMatch('src/tar') //=> false
 
 isMatch.pattern //=> 'src/[bc]ar'
 isMatch.options //=> { '{}': false }
-isMatch.regexp //=> /^src((\/|\\))+(?!\.)[bc]ar((\/|\\))*$/
+isMatch.regexp //=> /^src[/\\]+?(?!\.)(?![/\\])[bc]ar[/\\]*?$/
 ```
 
 The returned function can be invoked immediately if there is no need to match a pattern more than once:
@@ -140,24 +140,31 @@ Compiling a pattern is much slower than comparing a string to it, so it is recom
 ### File Paths and Separators
 
 Globs are most often used to search file paths, which are, essentially, strings split into segments by slashes. While other libraries
-are usually restricted to this use-case, outmatch is able to work with _arbitrary_ strings by accepting a custom separator in the `separator` option:
+are usually restricted to this use-case, outmatch is able to work with _arbitrary_ strings by accepting a custom separator via the second argument:
 
 ```js
 const matchDomain = outmatch('*.example.com', { separator: '.' })
 matchDomain('subdomain.example.com') //=> true
 
-const matchLike = outmatch('wh?t like**like mean', { separator: 'like' })
+const matchLike = outmatch('wh?t like**like mean', 'like') // shorthand for { separator: 'like' }
 matchLike('what like do like you like mean') //=> true
 ```
 
-Backslashes `\` cannot be used as separators in patterns because outmatch uses them for character escaping. To address this limitation,
-when a custom separator is not specified, `/` in patterns will match both `/` and `\` in samples:
+The only limitation is that backslashes `\` cannot be used as separators in patterns because
+outmatch uses them for character escaping. However, when `separator` is set to `true` (which
+is the default), `/` in patterns will match both `/` and `\`, so a single pattern with forward
+slashes can match both Unix and Windows paths:
 
 ```js
-const isMatch = outmatch('foo/bar')
+const isMatchA = outmatch('foo/bar') // the same as { separator: true }
 
-isMatch('foo/bar') //=> true
-isMatch('foo\bar') //=> true
+isMatchA('foo/bar') //=> true
+isMatchA('foo\bar') //=> true
+
+const isMatchB = outmatch('foo/bar', { separator: '/' })
+
+isMatchB('foo/bar') //=> true
+isMatchB('foo\bar') //=> false
 ```
 
 A thing to note is that most matching features work with a _segment_ rather than a whole pattern. For example, `foo/b*` will match `foo/bar`
@@ -165,7 +172,7 @@ but not `foo/b/ar`. The two exceptions to this are _brace expansion_ and _patter
 
 ```js
 outmatch('src/{foo/bar,baz}')('src/foo/bar') //=> true (brace expansion)
-outmatch('src/@(foo/bar,baz)')('src/foo/bar') //=> false (extglob)
+outmatch('src/@(foo/bar|baz)')('src/foo/bar') //=> false (extglob)
 ```
 
 Any string that contains a segment starting with a dot (a dotfile) is excluded unless the dot is specified explicitly in the pattern.
@@ -177,11 +184,11 @@ outmatch('project/.*')('project/.git') //=> true (dot is specified explicitly)
 outmatch('project/*', { excludeDot: false })('project/.git') //=> true
 ```
 
-Segmentation can be turned off completely by passing `separator: false`, which makes outmatch treat whole patterns as a single segment.
+Segmentation can be turned off completely by passing `false` as the separator, which makes outmatch treat whole patterns as a single segment.
 Slashes become regular symbols, `**` works identically to `*` and leading dots get excluded only when they are the very first character of a pattern:
 
 ```js
-const isMatch = outmatch('foo?ba*', { separator: false })
+const isMatch = outmatch('foo?ba*', false)
 isMatch('foo/bar/.qux') //=> true
 ```
 
@@ -271,7 +278,7 @@ paths.findIndex(isMatch) //=> 1
   </tr>
   <tr>
     <td><code>**</code></td>
-    <td>Matches any number of segments when used as a whole segment in a separated pattern (e.g. <code>/**/</code> if <code>/</code> is the separator)</td>
+    <td>Matches zero or more segments when used as a whole segment in a separated pattern (e.g. <code>/**/</code> if <code>/</code> is the separator)</td>
   </tr>
   <tr>
     <td colspan="2"><h4>Character Classes (Brackets)</h4></td>
@@ -350,6 +357,8 @@ paths.findIndex(isMatch) //=> 1
 
 ### outmatch(patterns, options?): isMatch
 
+### outmatch(patterns, separator?): isMatch
+
 Takes a single pattern string or an array of patterns and compiles them into a regular expression. Returns an isMatch function that takes a sample string as its only argument and returns true if the string matches the pattern(s).
 
 ### isMatch(sample): boolean
@@ -393,7 +402,7 @@ Compilation
   picomatch    260,646 ops/sec
 
 Matching
-  outmatch     48,106,255 ops/sec
+  outmatch     32,407,232 ops/sec
   picomatch    10,710,969 ops/sec
 ```
 

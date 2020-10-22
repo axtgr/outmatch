@@ -1,6 +1,5 @@
-import type { OutmatchOptions } from './index'
 import { Pattern, Segment, Result, State } from './entities'
-import { escapeRegExpChar } from './utils'
+import { escapeRegExpChar, OutmatchOptions } from './common'
 
 // We use typescript-transform-macros to inline functions that handle various glob features.
 // These functions are called for every char in a pattern, and using them without explicit

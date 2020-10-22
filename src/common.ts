@@ -1,3 +1,15 @@
+interface OutmatchOptions {
+  separator?: boolean | string
+  excludeDot?: boolean
+  '!'?: boolean
+  '?'?: boolean
+  '*'?: boolean
+  '**'?: boolean
+  '[]'?: boolean
+  '()'?: boolean
+  '{}'?: boolean
+}
+
 function escapeRegExpChar(char: string) {
   if (
     char === '-' ||
@@ -30,4 +42,4 @@ function escapeRegExpString(str: string) {
   return result
 }
 
-export { escapeRegExpChar, escapeRegExpString }
+export { OutmatchOptions, escapeRegExpChar, escapeRegExpString }

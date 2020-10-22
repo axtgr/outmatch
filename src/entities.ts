@@ -1,5 +1,4 @@
-import type { OutmatchOptions } from './index'
-import { escapeRegExpString } from './utils'
+import { escapeRegExpString, OutmatchOptions } from './common'
 
 function Pattern(source: string, options: OutmatchOptions, excludeDot: boolean) {
   let { separator } = options

@@ -1,18 +1,7 @@
+import type { OutmatchOptions } from './common'
 import expand from './expand'
 import negate from './negate'
 import convert from './convert'
-
-interface OutmatchOptions {
-  separator?: boolean | string
-  excludeDot?: boolean
-  '!'?: boolean
-  '?'?: boolean
-  '*'?: boolean
-  '**'?: boolean
-  '[]'?: boolean
-  '()'?: boolean
-  '{}'?: boolean
-}
 
 const DEFAULT_OPTIONS = { separator: true }
 
@@ -144,4 +133,4 @@ function outmatch(pattern: string | string[], options?: OutmatchOptions): isMatc
 
 outmatch.options = DEFAULT_OPTIONS
 
-export { outmatch as default, OutmatchOptions }
+export default outmatch

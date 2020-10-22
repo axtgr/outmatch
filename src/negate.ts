@@ -1,4 +1,4 @@
-import type { OutmatchOptions } from './index'
+import { OutmatchOptions } from './common'
 
 function negate(pattern: string, options: OutmatchOptions) {
   let supportNegation = options['!'] !== false

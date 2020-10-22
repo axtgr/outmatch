@@ -114,8 +114,10 @@ function outmatch(
 
   if (
     arguments.length === 2 &&
-    (Array.isArray(options) ||
-      (typeof options !== 'object' && typeof options !== 'undefined'))
+    !(
+      typeof options === 'undefined' ||
+      (typeof options === 'object' && options !== null && !Array.isArray(options))
+    )
   ) {
     throw new TypeError(
       `The second argument must be an options object or a string/boolean separator, but ${typeof options} given`

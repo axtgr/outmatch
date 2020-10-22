@@ -58,10 +58,6 @@ module.exports = suite((t) => {
   })
 
   t.test('Throws an error if the given pattern is not a string or an array', (t) => {
-    t.doesNotThrow(() => {
-      outmatch('')
-      outmatch([])
-    })
     t.throws(() => {
       outmatch()
     })
@@ -82,11 +78,8 @@ module.exports = suite((t) => {
   t.test(
     'Throws an error if the second argument is not an object, string, boolean or undefined',
     (t) => {
-      t.doesNotThrow(() => {
-        outmatch('')
-        outmatch('', undefined)
+      t.throws(() => {
         outmatch('', null)
-        outmatch('', {})
       })
       t.throws(() => {
         outmatch('', [])

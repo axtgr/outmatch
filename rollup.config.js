@@ -1,6 +1,5 @@
 /* eslint-disable */
 
-import Path from 'path'
 import del from 'rollup-plugin-delete'
 import { terser } from 'rollup-plugin-terser'
 import typescript from '@wessberg/rollup-plugin-ts'
@@ -35,34 +34,47 @@ export default {
       dir: OUT_DIR,
       format: 'es',
       sourcemap: true,
-      entryFileNames: '[name].mjs',
+      entryFileNames: '[name].es.mjs',
       plugins: [],
     },
   ],
-  external: ['path'],
   plugins: [
     del({ targets: `${OUT_DIR}/*` }),
-    typescript({
-      transformers: ({ program }) => ({
-        before: transformMacros(program),
-        afterDeclarations: transformDefaultExport(program, {
-          allowNamedExports: true,
-          keepOriginalExport: true,
-        }),
-      }),
-      hook: {
-        // Do not generate more than one declaration file
-        outputPath: (path, kind) => {
-          if (kind === 'declaration') {
-            return Path.join(
-              Path.dirname(path),
-              Path.basename(INPUT_FILE, Path.extname(INPUT_FILE)) + '.d.ts'
-            )
-          }
-          return path
-        },
-      },
-    }),
+    typescript(
+      (() => {
+        // We don't want to transform the default export for the ES bundle. However,
+        // there is apparently no way to tell what the current output format is
+        // in the context of the transformer factory, so we do it in a hacky way.
+        let currentFormat
+        return {
+          hook: {
+            outputPath(path, kind) {
+              if (kind === 'declaration') {
+                if (path.endsWith('.es.d.ts')) {
+                  currentFormat = 'es'
+                } else if (path.endsWith('.umd.d.ts')) {
+                  currentFormat = 'umd'
+                } else {
+                  currentFormat = 'cjs'
+                }
+              }
+            },
+          },
+          transformers: ({ program }) => {
+            return {
+              before: transformMacros(program),
+              afterDeclarations:
+                currentFormat === 'es'
+                  ? undefined
+                  : transformDefaultExport(program, {
+                      allowNamedExports: true,
+                      keepOriginalExport: false,
+                    }),
+            }
+          },
+        }
+      })()
+    ),
     // Remove all comments except JSDoc
     cleanup({
       comments: /^\*/,

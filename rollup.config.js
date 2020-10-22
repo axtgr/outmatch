@@ -64,12 +64,7 @@ export default {
             return {
               before: transformMacros(program),
               afterDeclarations:
-                currentFormat === 'es'
-                  ? undefined
-                  : transformDefaultExport(program, {
-                      allowNamedExports: true,
-                      keepOriginalExport: false,
-                    }),
+                currentFormat === 'es' ? undefined : transformDefaultExport(program),
             }
           },
         }

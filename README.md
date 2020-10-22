@@ -156,15 +156,17 @@ outmatch uses them for character escaping. However, when `separator` is `undefin
 can match both Unix and Windows paths:
 
 ```js
-const isMatchA = outmatch('foo/bar') // the same as { separator: true }
+const isMatchA = outmatch('foo\\bar') // throws an error
 
-isMatchA('foo/bar') //=> true
-isMatchA('foo\bar') //=> true
-
-const isMatchB = outmatch('foo/bar', { separator: '/' })
+const isMatchB = outmatch('foo/bar') // same as passing `true` as the separator
 
 isMatchB('foo/bar') //=> true
-isMatchB('foo\bar') //=> false
+isMatchB('foo\\bar') //=> true
+
+const isMatchC = outmatch('foo/bar', '/')
+
+isMatchC('foo/bar') //=> true
+isMatchC('foo\\bar') //=> false
 ```
 
 A thing to note is that most matching features work with a _segment_ rather than a whole pattern. For example, `foo/b*` will match `foo/bar`
@@ -355,9 +357,7 @@ paths.findIndex(isMatch) //=> 1
 
 ## API
 
-### outmatch(patterns, options?): isMatch
-
-### outmatch(patterns, separator?): isMatch
+### outmatch(patterns, options?): isMatch<br>outmatch(patterns, separator?): isMatch
 
 Takes a single pattern string or an array of patterns and compiles them into a regular expression. Returns an isMatch function that takes a sample string as its only argument and returns true if the string matches the pattern(s).
 

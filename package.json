@@ -9,7 +9,8 @@
     "glob",
     "pattern",
     "wildcard",
-    "match"
+    "match",
+    "regexp"
   ],
   "private": true,
   "type": "commonjs",

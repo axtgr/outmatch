@@ -93,7 +93,7 @@ function isMatch(regexp: RegExp, sample: string) {
  * ```
  *
  * ```js
- * const isMatch = outmatch('*.example.com', { separator: '.' })
+ * const isMatch = outmatch('*.example.com', '.')
  * isMatch('foo.example.com') //=> true
  * isMatch('foo.bar.com') //=> false
  * ```

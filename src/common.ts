@@ -1,5 +1,6 @@
 interface OutmatchOptions {
   separator?: boolean | string
+  flags?: string
   excludeDot?: boolean
   '!'?: boolean
   '?'?: boolean

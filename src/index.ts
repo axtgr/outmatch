@@ -131,7 +131,7 @@ function outmatch(
   }
 
   let regexpPattern = compile(pattern, options)
-  let regexp = new RegExp(regexpPattern)
+  let regexp = new RegExp(regexpPattern, options.flags)
 
   let fn = isMatch.bind(null, regexp) as isMatch
   fn.options = options

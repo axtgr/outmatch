@@ -5,7 +5,7 @@
 </h1>
 
 <p align="center">
-  <strong>An extremely fast and lightweight glob-matching library for JavaScript</strong>
+  <strong>An extremely fast and lightweight glob-matching library for JavaScript with advanced features</strong>
 </p>
 
 <p align="center">
@@ -379,17 +379,18 @@ The options object that was used to compile the regular expression and create th
 
 ### Options
 
-| Option       | Type              | Default Value | Description                                                                                                                                                                                          |
-| ------------ | ----------------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `separator`  | boolean \| string | true          | Defines the separator used to split patterns and samples into segments<ul><li>`true` — `/` in patterns match both `/` and `\` in samples<li>`false` — don't split<li>_any string_ — custom separator |
-| `excludeDot` | boolean           | true          | Toggles whether to exclude strings that contain segments starting with a dot                                                                                                                         |
-| `!`          | boolean           | true          | Toggles pattern negation                                                                                                                                                                             |
-| `?`          | boolean           | true          | Toggles single-char wildcards                                                                                                                                                                        |
-| `*`          | boolean           | true          | Toggles multi-char wildcards                                                                                                                                                                         |
-| `**`         | boolean           | true          | Toggles globstars                                                                                                                                                                                    |
-| `[]`         | boolean           | true          | Toggles character classes                                                                                                                                                                            |
-| `()`         | boolean           | true          | Toggles extglobs                                                                                                                                                                                     |
-| `{}`         | boolean           | true          | Toggles brace expansion                                                                                                                                                                              |
+| Option       | Type                        | Default Value | Description                                                                                                                                                                                                                       |
+| ------------ | --------------------------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `separator`  | string&nbsp;\|&nbsp;boolean | true          | Separator to be used to split patterns and samples into segments:<ul><li>`true` — `/` in patterns match both `/` and `\` in samples<li>`false` — don't split<li>_any string_ — custom separator                                   |
+| `flags`      | string                      | undefined     | [Flags](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#Advanced_searching_with_flags) to pass to the RegExp. For example, setting this option to `'i'` will make the matching case-insensitive |
+| `excludeDot` | boolean                     | true          | Toggles whether to exclude strings that contain segments starting with a dot                                                                                                                                                      |
+| `!`          | boolean                     | true          | Toggles pattern negation                                                                                                                                                                                                          |
+| `?`          | boolean                     | true          | Toggles single-char wildcards                                                                                                                                                                                                     |
+| `*`          | boolean                     | true          | Toggles multi-char wildcards                                                                                                                                                                                                      |
+| `**`         | boolean                     | true          | Toggles globstars                                                                                                                                                                                                                 |
+| `[]`         | boolean                     | true          | Toggles character classes                                                                                                                                                                                                         |
+| `()`         | boolean                     | true          | Toggles extglobs                                                                                                                                                                                                                  |
+| `{}`         | boolean                     | true          | Toggles brace expansion                                                                                                                                                                                                           |
 
 ## Comparison
 

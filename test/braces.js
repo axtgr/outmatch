@@ -1,6 +1,6 @@
-var { suite } = require('./_utils')
+import { suite } from './_utils'
 
-module.exports = suite((t) => {
+export default suite((t) => {
   t.test('{} - braces', (t) => {
     t.testPerSeparator('Matches one of the given subpatterns exactly one time', (t) => {
       t.pattern('{one,two}')

@@ -1,14 +1,14 @@
-var { suite } = require('./_utils')
-var outmatch = require('../build')
+import { suite } from './_utils'
+import outmatch from '../build'
 
 // This suite tests the behavior and properties of the exported function
 // rather than matching/syntactic features
-module.exports = suite((t) => {
+export default suite((t) => {
   t.test(
     'Compiles the pattern into a RegExp and returns a function that takes a sample and checks if it matches the pattern',
     (t) => {
-      var pattern = 'one'
-      var isMatch = outmatch(pattern)
+      let pattern = 'one'
+      let isMatch = outmatch(pattern)
 
       t.equal(typeof isMatch, 'function')
       t.equal(isMatch(pattern), true)
@@ -28,9 +28,9 @@ module.exports = suite((t) => {
   t.test(
     'The returned function has "options", "pattern" and "regexp" properties set',
     (t) => {
-      var defaultOptions = {}
-      var pattern = 'one'
-      var isMatch = outmatch(pattern)
+      let defaultOptions = {}
+      let pattern = 'one'
+      let isMatch = outmatch(pattern)
 
       t.equals(isMatch.options, defaultOptions)
       t.equals(isMatch.pattern, pattern)
@@ -39,20 +39,20 @@ module.exports = suite((t) => {
   )
 
   t.test('Can be given an options object as the second argument', (t) => {
-    var options = {}
-    var isMatch = outmatch('one', options)
+    let options = {}
+    let isMatch = outmatch('one', options)
 
     t.equal(isMatch.options, options)
   })
 
   t.test('Can be given a separator string as the second argument', (t) => {
-    var isMatch = outmatch('one', '@')
+    let isMatch = outmatch('one', '@')
 
     t.equal(isMatch.options, { separator: '@' })
   })
 
   t.test('Can be given a separator boolean as the second argument', (t) => {
-    var isMatch = outmatch('one', false)
+    let isMatch = outmatch('one', false)
 
     t.equal(isMatch.options, { separator: false })
   })
@@ -93,7 +93,7 @@ module.exports = suite((t) => {
   t.test(
     'The returned function can be used as a predicate to Array#map() to get an array of results',
     (t) => {
-      var samples = ['one', 'two', 'three']
+      let samples = ['one', 'two', 'three']
 
       t.equal(samples.map(outmatch('one')), [true, false, false])
       t.equal(samples.map(outmatch('{one,two}')), [true, true, false])
@@ -104,7 +104,7 @@ module.exports = suite((t) => {
   t.test(
     'The returned function can be used as a predicate to Array#filter() to get a subarray of matching samples from an array',
     (t) => {
-      var samples = ['one', 'two', 'three']
+      let samples = ['one', 'two', 'three']
 
       t.equal(samples.filter(outmatch('one')), ['one'])
       t.equal(samples.filter(outmatch('{one,two}')), ['one', 'two'])
@@ -116,7 +116,7 @@ module.exports = suite((t) => {
   t.test(
     'The returned function can be used as a predicate to Array#some() to check if at least one sample in an array of samples matches the pattern',
     (t) => {
-      var samples = ['one', 'two', 'three']
+      let samples = ['one', 'two', 'three']
 
       t.ok(samples.some(outmatch('one')))
       t.notOk(samples.some(outmatch('four')))
@@ -128,7 +128,7 @@ module.exports = suite((t) => {
   t.test(
     'The returned function can be used as a predicate to Array#every() to check if all samples in an array match the pattern',
     (t) => {
-      var samples = ['one', 'two', 'three']
+      let samples = ['one', 'two', 'three']
 
       t.notOk(samples.every(outmatch('one')))
       t.ok(samples.every(outmatch('{one,two,three}')))
@@ -140,7 +140,7 @@ module.exports = suite((t) => {
     t.test(
       'The returned function can be used as a predicate to Array#find() to find the first matching sample in an array',
       (t) => {
-        var samples = ['one', 'two', 'three']
+        let samples = ['one', 'two', 'three']
 
         t.equal(samples.find(outmatch('two')), 'two')
         t.equal(samples.find(outmatch('{one,four}')), 'one')
@@ -154,7 +154,7 @@ module.exports = suite((t) => {
     t.test(
       'The returned function can be used as a predicate to Array#findIndex() to find the index of the first matching sample in an array',
       (t) => {
-        var samples = ['one', 'two', 'three']
+        let samples = ['one', 'two', 'three']
 
         t.equal(samples.findIndex(outmatch('two')), 1)
         t.equal(samples.findIndex(outmatch('{one,four}')), 0)

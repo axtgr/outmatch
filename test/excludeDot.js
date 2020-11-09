@@ -1,6 +1,6 @@
-var { suite } = require('./_utils')
+import { suite } from './_utils'
 
-module.exports = suite((t) => {
+export default suite((t) => {
   // When separator === false, the pattern is not split into segments,
   // so dots matter only when they are the very first char
 

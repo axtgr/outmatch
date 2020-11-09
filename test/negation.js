@@ -1,6 +1,6 @@
-var { suite } = require('./_utils')
+import { suite } from './_utils'
 
-module.exports = suite((t) => {
+export default suite((t) => {
   t.test('! - negated pattern', (t) => {
     t.testPerSeparator(
       'When put at the beggining of an only pattern, matches everything except for the pattern',

@@ -1,7 +1,7 @@
-var { suite } = require('./_utils')
-var outmatch = require('../build')
+import { suite } from './_utils'
+import outmatch from '../build'
 
-module.exports = suite((t) => {
+export default suite((t) => {
   t.test('When flags are defined, they are set on the compiled RegExp', (t) => {
     let isMatch = outmatch('foo', { flags: 'ig' })
     t.equal(isMatch.regexp.flags, 'gi')

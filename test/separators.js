@@ -1,7 +1,7 @@
-var Path = require('path')
-var { suite } = require('./_utils')
+import Path from 'path'
+import { suite } from './_utils'
 
-module.exports = suite((t) => {
+export default suite((t) => {
   t.options({ separator: '\\' }).test('Using \\ as the separator is forbidden', (t) => {
     t.throws(() => {
       t.pattern('')

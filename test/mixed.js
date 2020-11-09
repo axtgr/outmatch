@@ -1,6 +1,6 @@
-var { suite } = require('./_utils')
+import { suite } from './_utils'
 
-module.exports = suite((t) => {
+export default suite((t) => {
   t.test('Mixed wildcards', (t) => {
     t.testPerSeparator('? and *', (t) => {
       t.pattern('?*')

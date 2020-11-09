@@ -1,6 +1,6 @@
-var { suite } = require('./_utils')
+import { suite } from './_utils'
 
-module.exports = suite((t) => {
+export default suite((t) => {
   t.test('() - group/extglob', (t) => {
     t.testPerSeparator(
       '@() matches one of the given subpatterns exactly one time',

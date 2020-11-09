@@ -1,6 +1,6 @@
-var { suite } = require('./_utils')
+import { suite } from './_utils'
 
-module.exports = suite((t) => {
+export default suite((t) => {
   t.test('? - single-char wildcard', (t) => {
     t.testPerSeparator('Matches one non-separator character', (t) => {
       t.pattern('?')

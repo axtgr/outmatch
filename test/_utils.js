@@ -1,7 +1,9 @@
-var outmatch = require('../build')
+/* eslint-env node */
+
+import outmatch from '../build'
 
 // TODO: add '\\', '//' and separators with wildcards
-var SEPARATORS = [true, false, '/', ' ', 's', 'sep']
+const SEPARATORS = [true, false, '/', ' ', 's', 'sep']
 
 // We assume that tests are run in an ES5 environment, which don't have Object.assign
 function assign(to, from) {
@@ -18,31 +20,28 @@ function assign(to, from) {
 // Replaces slashes in patterns and samples with the actual separator being used
 function replaceSeparators(stringOrArray, separator) {
   if (Array.isArray(stringOrArray)) {
-    return stringOrArray.map((p) => {
-      return p.replace(/\//g, separator)
-    })
+    return stringOrArray.map((p) => replaceSeparators(p, separator))
   } else {
     return stringOrArray.replace(/\//g, separator)
   }
 }
 
 // Used for test deduplication
-var testSet = Object.create(null)
+let testSet = Object.create(null)
 
 function match(pattern, options) {
-  var replaceSep = typeof options.separator === 'string'
-  var prepPattern = replaceSep ? replaceSeparators(pattern, options.separator) : pattern
-  var isMatch = outmatch(prepPattern, options)
+  let replaceSep = typeof options.separator === 'string'
+  let prepPattern = replaceSep ? replaceSeparators(pattern, options.separator) : pattern
+  let isMatch = outmatch(prepPattern, options)
 
-  return function (sample) {
-    var args = { options: options, pattern: pattern, sample: sample }
-    var argsStr = JSON.stringify(args)
+  return (sample) => {
+    let args = JSON.stringify({ options, pattern, sample })
 
-    if (testSet[argsStr]) {
-      throw new Error(`Duplicate test found: ${argsStr}`)
+    if (testSet[args]) {
+      throw new Error(`Duplicate test found: ${args}`)
     }
 
-    testSet[argsStr] = true
+    testSet[args] = true
     sample = replaceSep ? replaceSeparators(sample, options.separator) : sample
     return isMatch(sample)
   }
@@ -52,14 +51,14 @@ function match(pattern, options) {
 // Test functions must be named "zora_spec_fn" to get the correct stack trace
 // https://github.com/lorenzofox3/zora/issues/25
 function decorateT(t, options, skip) {
-  var _test = t.test
+  let _test = t.test
   options = options || {}
 
-  t.collectMatchResult = function (pattern, sample, actual, expected) {
+  t.collectMatchResult = (pattern, sample, actual, expected) => {
     t.collect({
+      actual,
+      expected,
       pass: actual === expected,
-      actual: actual,
-      expected: expected,
       description: `"${pattern}${
         expected ? '" matches "' : '" doesn\'t match "'
       }${sample}"`,
@@ -69,7 +68,7 @@ function decorateT(t, options, skip) {
 
   t.test = skip
     ? t.skip
-    : function (description, fn) {
+    : (description, fn) => {
         _test(description, (t) => {
           decorateT(t, options)
           fn(t)
@@ -78,7 +77,7 @@ function decorateT(t, options, skip) {
 
   t.testPerSeparator = skip
     ? t.skip
-    : function (description, separators, fn) {
+    : (description, separators, fn) => {
         if (!fn) {
           fn = separators
           separators = null
@@ -87,10 +86,10 @@ function decorateT(t, options, skip) {
         _test(description, (t) => {
           separators = separators || SEPARATORS
           separators.forEach((separator) => {
-            var sepDescription = separator ? `Separator: ${separator}` : 'No separator'
+            let sepDescription = separator ? `Separator: ${separator}` : 'No separator'
+            let newOptions = assign(options)
+            newOptions.separator = separator
             t.test(sepDescription, (t) => {
-              var newOptions = assign(options)
-              newOptions.separator = separator
               decorateT(t, newOptions)
               fn(t, separator)
             })
@@ -99,101 +98,55 @@ function decorateT(t, options, skip) {
       }
 
   t.platform = skip
-    ? function () {
-        return t
-      }
-    : function (platform, description, fn) {
-        if (!fn) {
-          fn = description
-          description = platform
-        }
-
-        var newT
-        _test(description, (t) => {
-          // eslint-disable-next-line no-undef
-          decorateT(t, options, process.platform !== platform)
-          fn && fn(t)
-          newT = t
+    ? () => t
+    : (platform) => {
+        let newT
+        _test(undefined, (t) => {
+          newT = decorateT(t, options, process.platform !== platform)
         })
         return newT
       }
 
   t.options = skip
-    ? function () {
-        return t
-      }
-    : function (options, description, fn) {
-        if (!fn && typeof description === 'function') {
-          fn = description
-          description = undefined
-        }
-
-        var newT
-        _test(description, (t) => {
-          decorateT(t, options)
-          fn && fn(t)
-          newT = t
+    ? () => t
+    : (options) => {
+        let newT
+        _test(undefined, (t) => {
+          newT = decorateT(t, options)
         })
         return newT
       }
 
-  t.pattern = function (pattern) {
-    var isMatch = match(pattern, options)
-    var matcher = {
-      matches: function () {
-        if (!skip) {
-          for (var i = 0; i < arguments.length; i++) {
-            t.collectMatchResult(pattern, arguments[i], isMatch(arguments[i]), true)
-          }
-        }
+  t.pattern = (pattern) => {
+    let isMatch = match(pattern, options)
+    let matchSamples = (expected) => (...samples) => {
+      if (skip) {
         return matcher
-      },
-      matchesWhenSeparated: function () {
-        if (!skip) {
-          for (var i = 0; i < arguments.length; i++) {
-            t.collectMatchResult(
-              pattern,
-              arguments[i],
-              isMatch(arguments[i]),
-              Boolean(options.separator)
-            )
-          }
-        }
-        return matcher
-      },
-      doesntMatch: function () {
-        if (!skip) {
-          for (var i = 0; i < arguments.length; i++) {
-            t.collectMatchResult(pattern, arguments[i], isMatch(arguments[i]), false)
-          }
-        }
-        return matcher
-      },
-      doesntMatchWhenSeparated: function () {
-        if (!skip) {
-          for (var i = 0; i < arguments.length; i++) {
-            t.collectMatchResult(
-              pattern,
-              arguments[i],
-              isMatch(arguments[i]),
-              !options.separator
-            )
-          }
-        }
-        return matcher
-      },
+      }
+
+      samples.forEach((sample) => {
+        t.collectMatchResult(pattern, sample, isMatch(sample), expected)
+      })
+
+      return matcher
+    }
+    let matcher = {
+      matches: matchSamples(true),
+      matchesWhenSeparated: matchSamples(Boolean(options.separator)),
+      doesntMatch: matchSamples(false),
+      doesntMatchWhenSeparated: matchSamples(!options.separator),
     }
     return matcher
   }
+
+  return t
 }
 
 function suite(fn) {
-  return function (t) {
+  return (t) => {
     decorateT(t)
     return fn(t)
   }
 }
 
-module.exports.SEPARATORS = SEPARATORS
-module.exports.match = match
-module.exports.suite = suite
+export { SEPARATORS, match, suite }

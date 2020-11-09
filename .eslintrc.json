@@ -19,6 +19,7 @@
   ],
   "rules": {
     "prettier/prettier": "error",
+    "no-var": "error",
     "prefer-const": "off",
     "prefer-template": "error",
     "prefer-destructuring": "error",

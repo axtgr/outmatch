@@ -1,6 +1,6 @@
-var { suite } = require('./_utils')
+import { suite } from './_utils'
 
-module.exports = suite((t) => {
+export default suite((t) => {
   t.testPerSeparator('No wildcards and no separators in arguments', (t) => {
     t.pattern('').matches('').doesntMatch('o')
     t.pattern('o').matches('o').doesntMatch('', 'n', 'O')

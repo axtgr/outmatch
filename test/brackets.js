@@ -1,6 +1,6 @@
-var { suite } = require('./_utils')
+import { suite } from './_utils'
 
-module.exports = suite((t) => {
+export default suite((t) => {
   t.test('[] - character class', (t) => {
     t.testPerSeparator('Matches one character from the given list', (t) => {
       t.pattern('[abc]').matches('a', 'b').doesntMatch('', 'd', 'ab', '[abc]')

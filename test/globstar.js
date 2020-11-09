@@ -1,6 +1,6 @@
-var { suite } = require('./_utils')
+import { suite } from './_utils'
 
-module.exports = suite((t) => {
+export default suite((t) => {
   t.test('** - globstar', (t) => {
     t.testPerSeparator(
       'Matches 0 or more segments when it takes a whole segment (/**/)',

@@ -1,7 +1,7 @@
 /* eslint-disable */
 
 import del from 'rollup-plugin-delete'
-import { terser } from 'rollup-plugin-terser'
+import terser from '@rollup/plugin-terser'
 import typescript from 'rollup-plugin-ts'
 import cleanup from 'rollup-plugin-cleanup'
 import transformDefaultExport from 'ts-transform-default-export'

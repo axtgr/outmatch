@@ -119,17 +119,19 @@ function decorateT(t, options, skip) {
 
   t.pattern = (pattern) => {
     let isMatch = match(pattern, options)
-    let matchSamples = (expected) => (...samples) => {
-      if (skip) {
+    let matchSamples =
+      (expected) =>
+      (...samples) => {
+        if (skip) {
+          return matcher
+        }
+
+        samples.forEach((sample) => {
+          t.collectMatchResult(pattern, sample, isMatch(sample), expected)
+        })
+
         return matcher
       }
-
-      samples.forEach((sample) => {
-        t.collectMatchResult(pattern, sample, isMatch(sample), expected)
-      })
-
-      return matcher
-    }
     let matcher = {
       matches: matchSamples(true),
       matchesWhenSeparated: matchSamples(Boolean(options.separator)),

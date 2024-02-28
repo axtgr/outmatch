@@ -11,7 +11,7 @@
 <p align="center">
   <a href="https://www.npmjs.com/package/outmatch"><img src="https://img.shields.io/npm/v/outmatch" alt="npm package"></a>
   &nbsp;
-  <a href="https://github.com/axtgr/outmatch/actions"><img src="https://img.shields.io/github/workflow/status/axtgr/outmatch/CI?label=CI&logo=github" alt="CI"></a>
+  <a href="https://github.com/axtgr/outmatch/actions"><img src="https://img.shields.io/github/actions/workflow/status/axtgr/outmatch/ci.yml?label=CI&logo=github" alt="CI"></a>
   &nbsp;
   <a href="https://www.buymeacoffee.com/axtgr"><img src="https://img.shields.io/badge/%F0%9F%8D%BA-Buy%20me%20a%20beer-red?style=flat" alt="Buy me a beer"></a>
 </p>

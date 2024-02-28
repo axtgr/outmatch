@@ -23,3 +23,12 @@ ipch/
 package-lock.json
 .eslintcache
 .nyc_output
+
+# Yarn (no PNP)
+.yarn/*
+!.yarn/patches
+!.yarn/releases
+!.yarn/plugins
+!.yarn/sdks
+!.yarn/versions
+.pnp.*

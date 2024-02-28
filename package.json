@@ -13,6 +13,7 @@
     "regexp"
   ],
   "private": true,
+  "packageManager": "yarn@4.1.0",
   "type": "commonjs",
   "main": "build/index.js",
   "module": "build/index.es.mjs",
@@ -47,7 +48,7 @@
     "eslint-config-prettier": "^6.11.0",
     "eslint-plugin-prettier": "^3.1.4",
     "globrex": "^0.1.2",
-    "husky": "^4.3.0",
+    "husky": "^4.3.8",
     "matcher": "^3.0.0",
     "picomatch": "^2.2.2",
     "prettier": "^2.1.1",

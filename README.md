@@ -74,7 +74,7 @@ More details are available in the [Installation](#installation), [Usage](#usage)
   </tr>
   <tr>
     <td align="center">🔌</td>
-    <td><strong>Compatible</strong><br>Works in any ES5 environment including older versions of Node.js, Deno, React Native and browsers</td>
+    <td><strong>Compatible</strong><br>Works in any ES5 environment including older versions of Node.js, Deno, Bun, React Native and browsers</td>
   </tr>
 </table>
 
@@ -399,12 +399,10 @@ Pattern: src/test/**/*.?s
 Sample: src/test/foo/bar.js
 
 Compilation
-  outmatch     695,059 ops/sec
-  picomatch    260,646 ops/sec
+  outmatch     650,098 ops/sec
+  picomatch    136,927 ops/sec
 
 Matching
-  outmatch     32,407,232 ops/sec
-  picomatch    10,710,969 ops/sec
+  outmatch     34,524,204 ops/sec
+  picomatch    10,223,739 ops/sec
 ```
-
-A better comparison is in the works.
